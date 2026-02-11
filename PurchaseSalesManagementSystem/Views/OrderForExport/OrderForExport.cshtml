@@ -1,0 +1,57 @@
+﻿@{
+    Layout = null;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title> Open Order for export to Excel - Fujikin</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/lib/xlsx/xlsx.full.min.js"></script>
+    <style>
+        .tab-content {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        table th, table td {
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <!-- ナビバー -->
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <span class="text-white"> Open Order for export to Excel</span>
+        </div>
+    </nav>
+
+    <!-- 検索フォーム -->
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <label for="salesOrderNo">SalesOrderNo:</label>
+        <input type="text" id="salesOrderNo" class="form-control w-auto">
+        <button class="btn btn-primary" id="btnSearch">Search</button>
+    </div>
+
+    <!-- タブ -->
+    <div class="tab-content mt-3">
+        <div class="tab-pane fade show active" id="main">
+            <table class="table table-bordered table-sm" id="gridMain"><thead><tr></tr></thead><tbody></tbody></table>
+        </div>
+    </div>
+
+    <!-- 操作ボタン -->
+    <div class="mt-4">
+        <button id="btnExport" class="btn btn-success">
+            Export to Excel
+        </button>
+    </div>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/OrderForExport.js"></script>
+</body>
+</html>

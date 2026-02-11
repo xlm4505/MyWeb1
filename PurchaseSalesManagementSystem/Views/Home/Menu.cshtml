@@ -1,0 +1,157 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Menu - Fujikin</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/lib/xlsx/xlsx.full.min.js"></script>
+    <link href="~/css/Menu.css" rel="stylesheet" />
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Purchase & Sales Management System</a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3">
+                    Logged in as @Context.Session.GetString("LoginUser")
+                </span>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    @* <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // ログイン画面で保存したユーザー名を取得（モック）
+            const user = localStorage.getItem("loginUser") || "Guest";
+
+            // 表示を更新
+            document.getElementById("loginUserName").textContent = `Logged in as ${user}`;
+        });
+    </script> *@
+    @* <span id="loginUserName" class="text-white me-3">
+        Logged in as @Context.Session.GetString("LoginUser")
+    </span> *@
+
+    <div class="menu-area p-3 border-bottom">
+        <div class="d-flex justify-content-start gap-4">
+
+
+            <div class="dropdown">
+                <button class="btn btn-menu dropdown-toggle" type="button" data-bs-toggle="dropdown">Purchase Order</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/PurchaseOrder/PurchaseOrderExport">PO Data Download (2) ↗</a></li>
+                    <li><a class="dropdown-item" href="/POSeizo/POSeizoExport">PO Seizo Download (2) ↗</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="downloadExcel('OnHandShortageCheckList')">On-Hand Shortage Check List Download (2)</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="downloadExcel('ProjectPartOpenOrderVolume')">Project Part Open Order Volume Download (2)</a></li>
+                    <li><a class="dropdown-item" href="/POList/POListExport">Open PO Inquiry (3-1, 3-2) ↗</a></li>
+
+                    <li><a class="dropdown-item" href="#" onclick="downloadExcel('Combine_ShippingList_Rinku')">Combine shipping list for(JFI) (4-2)</a></li>
+                    <li><a class="dropdown-item" href="/SafetyStockMaintenance/SafetyStockMaintenance">Safety Stock Maintenance ↗</a></li>
+                </ul>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn btn-menu dropdown-toggle" type="button" data-bs-toggle="dropdown">Receiving</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/PurchaseReceipt/PurchaseReceipt">Invoice Combine & Upload [FJK/CCL/TK] (5, 5-1, 5-2, 5-3) ↗</a></li>
+                    <!--
+                       <li><a class="dropdown-item" href="../Receiving/PurchaseReceiptData.html">Invoice Combine & Upload [FJK/CCL/TK/FVBN/FBTL] (5, 5-1, 5-2, 5-3, 5-5, 5-6) ↗</a></li>
+                    -->
+
+                    <li><a class="dropdown-item" href="/PurchaseOrderReceiptHistory/PurchaseOrderReceiptHistory">PO Receipt History (5-4) ↗</a></li>
+                </ul>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn btn-menu dropdown-toggle" type="button" data-bs-toggle="dropdown">Shipping</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/OrderForExport/OrderForExport">Open Order Download (7) ↗</a></li>
+                    <li><a class="dropdown-item" href="/RAUpload/RAUpload">RA Upload (6-2) ↗</a></li>
+                    <li><a class="dropdown-item" href="/CISummary/CISummary">CI Summary Download (8) ↗</a></li>
+                    <li><a class="dropdown-item" href="/ReceivingActive/ReceivingActive">Receiving Active (12) ↗</a></li>
+                    <!--
+                       <li><a class="dropdown-item" href="../Shipping/ShippingConfirmation.html">Shipping Confirmation (14) ↗</a></li>
+                    -->
+                    <li><a class="dropdown-item" href="/SalesHistoryDetail/SalesHistoryDetail">Sales Hisotry Detail Download (9) ↗</a></li>
+                </ul>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn btn-menu dropdown-toggle" type="button" data-bs-toggle="dropdown">PO Management</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/ItemCodeMaster/ItemCodeMaster">Item Code Master Inquiry (1) ↗</a></li>
+                    <li><a class="dropdown-item" href="/MF_SalesPerson/MF_SalesPerson">Sales Person Table Maintenance ↗</a></li>
+                    <li><a class="dropdown-item" href="/Tbl_Vendor/Tbl_Vendor">Vendor Table Maintenance ↗</a></li>
+                    <li><a class="dropdown-item" href="/KatsuoIssueDate/KatsuoIssueDate">Katsuo Issue Date Table Maintenance ↗</a></li>
+                    <li><a class="dropdown-item" href="/KatsuoUploadCheck/KatsuoUploadCheck">Katsuo Upload & Check (4) ↗</a></li>
+
+                    <!--
+                       <li><a class="dropdown-item" href="#" onclick="downloadExcel('15-1')">FOA-FVBN Open PO Check (15-1)</a></li>
+                    <li><a class="dropdown-item" href="../PoManagement/PendingInvoiceUpload.html">Pending Invoice Upload (15-5)</a></li>
+                    -->
+                    
+                </ul>
+            </div>
+
+            <div class="dropdown">
+                <button class="btn btn-menu dropdown-toggle" type="button" data-bs-toggle="dropdown">Inventory Management</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="/FOAInventory/FOAInventory">FOA Inventory Download (6-3) ↗</a></li>
+                    <li><a class="dropdown-item" href="/NittsuInventoryCheck/NittsuInventoryCheck">Nittsu Inventory Check (6-1) ↗</a></li>
+                    <li><a class="dropdown-item" href="/ITUpload/ITUpload">Inventory Transfer Upload (10) ↗</a></li>
+                </ul>
+            </div>
+
+
+            <div class="dropdown">
+                <button class="btn btn-menu dropdown-toggle" type="button" data-bs-toggle="dropdown">Reports</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" onclick="downloadExcel('InventoryForecastingReport')">Inventory Forecast (11-1)</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="downloadExcel('InventoryForecastingReportWithoutPO')">Inventory Forecast without PO (11-2)</a></li>
+                    <li><a class="dropdown-item" href="/MonthlySalesSummary/MonthlySalesSummary">Monthly Sales Summary and Purchases (11-3, 11-4, 11-5) ↗</a></li>
+                    
+                    <!--
+                       <li><a class="dropdown-item" href="#" onclick="downloadExcel('InventoryForecastingReportByMonthforFujikin')">Inventory Forecast for Fujikin (11-7)</a></li>
+
+                    <li><a class="dropdown-item" href="#" onclick="downloadExcel('15-2')">Inventory Valuation (15-2)</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="downloadExcel('15-3')">Inventory Valuation with Minus Inventory (15-3)</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="downloadExcel('15-4')">Status Inventory PO SO Katsuo Tariff (15-4)</a></li>
+                    <li><a class="dropdown-item" href="../PoManagement/PendingInvoiceUpload.html">Pending Invoice Upload (15-5)</a></li>
+                    -->
+                    
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="modal fade" id="confirmModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Download</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p id="confirmMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmOk">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/Menu.js"></script>
+
+</body>
+</html>

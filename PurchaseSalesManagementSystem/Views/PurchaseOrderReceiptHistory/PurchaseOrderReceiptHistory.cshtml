@@ -1,0 +1,156 @@
+﻿@{
+    Layout = null;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Purchase Order Receipt History - Fujikin</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/lib/xlsx/xlsx.full.min.js"></script>
+</head>
+<body class="p-4 bg-light">
+
+    <!-- ナビバー -->
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <span class="text-white">Purchase Order Receipt History</span>
+        </div>
+    </nav>
+
+    <!-- 左端揃え＆幅制限 -->
+    <div style="max-width:700px; margin-left:0; margin-right:auto;">
+        <div class="card p-4">
+            <form id="searchForm">
+
+
+                <!-- Operation Date -->
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">Receipt Date</label>
+                    <div class="col-sm-4">
+                        <input type="date" id="dateFrom" class="form-control">
+                    </div>
+                    <div class="col-sm-1 text-center">～</div>
+                    <div class="col-sm-4">
+                        <input type="date" id="dateTo" class="form-control">
+                    </div>
+                </div>
+
+                <!-- Customer -->
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">Vendor No.</label>
+                    <div class="col-sm-9">
+                        <select id="customer" class="form-select">
+                            <option value="ALL" selected>*ALL</option>
+                            <option value="V001">V001</option>
+                            <option value="V002">V002</option>
+                            <option value="V003">V003</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">PO No.</label>
+                    <div class="col-sm-5">
+                        <input type="text" id="itemCodeInput" class="form-control" placeholder="*ALL">
+                    </div>
+                </div>
+
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">Invoice No.</label>
+                    <div class="col-sm-5">
+                        <input type="text" id="itemCodeInput" class="form-control" placeholder="*ALL">
+                    </div>
+                </div>
+
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">Receipt No.</label>
+                    <div class="col-sm-5">
+                        <input type="text" id="itemCodeInput" class="form-control" placeholder="*ALL">
+                    </div>
+                </div>
+
+
+                <!-- Item Code -->
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">Item Code</label>
+                    <div class="col-sm-9">
+                        <select id="itemCode" class="form-select">
+                            <option value="ALL" selected>*ALL</option>
+                            <option value="Item001">Item001</option>
+                            <option value="Item002">Item002</option>
+                            <option value="Item003">Item003</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Item Description -->
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">User Name</label>
+                    <div class="col-sm-6">
+                        <select id="itemDesc" class="form-select">
+                            <option value="ALL" selected>*ALL</option>
+                            <option value="U001">U001</option>
+                            <option value="U002">U002</option>
+                            <option value="U003">U003</option>
+                        </select>
+                    </div>
+                </div>
+
+
+
+                <!-- RUN Button -->
+                <div class="mb-3 row">
+                    <div class="col-sm-12 text-end">
+                        <button type="button" class="btn btn-primary" onclick="doRun()">RUN</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Console log 表示 -->
+        <div id="checklist" class="mt-4" style="display:none;">
+            <h5>Console log</h5>
+            <ul id="logList" class="list-group"></ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("dateFrom").value = new Date().toISOString().slice(0, 10);
+        document.getElementById("dateTo").value = new Date().toISOString().slice(0, 10);
+        function doRun() {
+      const customer = document.getElementById("customer").value;
+      const itemCode = document.getElementById("itemCode").value;
+      const itemDesc = document.getElementById("itemDesc").value;
+      const dateFrom = document.getElementById("dateFrom").value;
+      const dateTo = document.getElementById("dateTo").value;
+
+      // Console log 表示
+      const logList = document.getElementById("logList");
+      logList.innerHTML = "";
+      logList.innerHTML += `<li class="list-group-item">✔ Connect to Sage100 OK</li>`;
+      logList.innerHTML += `<li class="list-group-item">✔ Export Complete</li>`;
+      document.getElementById("checklist").style.display = "block";
+
+      // Excel 出力
+      const data = [
+        ["Search condition"],
+        ["Customer", customer],
+        ["Item Code", itemCode],
+        ["Item Description", itemDesc],
+        ["Operation Date From", dateFrom],
+        ["Operation Date To", dateTo]
+      ];
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "SearchResult");
+
+            const filename = "Purchase Order Receipt History_" + new Date().toISOString().slice(0, 10) + ".xlsx";
+      XLSX.writeFile(wb, filename);
+    }
+    </script>
+</body>
+</html>

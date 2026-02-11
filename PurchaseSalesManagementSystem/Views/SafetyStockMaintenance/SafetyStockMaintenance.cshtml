@@ -1,0 +1,127 @@
+﻿@{
+    Layout = null;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>dbo_U_ForecastItem Maintenance</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="p-4 bg-light">
+
+    <!-- ナビバー（Back to Menuエリア） -->
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <span class="text-white">dbo_U_ForecastItem Maintenance</span>
+        </div>
+    </nav>
+
+    <!-- ▼ 左端揃え（Back to Menu と同じ位置） -->
+    <div style="max-width: 700px; margin-left: 0; margin-right: auto;">
+
+        <h3 class="mb-3">dbo_U_ForecastItem Table Maintenance</h3>
+
+        <!-- 検索フォーム -->
+        <form id="searchForm" class="d-flex mb-3">
+            <input type="text" id="searchCode" class="form-control me-2" placeholder="Enter ItemCode">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        <!-- データ表示テーブル -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>ItemCode</th>
+                    <th>ProcType</th>
+                    <th>ARDivisionNo</th>
+                    <th>CustomerNo</th>
+                    <th>WarehouseCode</th>
+                    <th>Quantity</th>
+                    <th>ItemNo</th>
+                    <th>Comment</th>
+                    <th>Select</th>
+                </tr>
+            </thead>
+            <tbody id="dataBody"></tbody>
+        </table>
+
+        <!-- Action ボタン -->
+        <div id="actionArea" class="mt-3" style="display:none;">
+            <button class="btn btn-success me-2" onclick="updateSelected()">Update</button>
+            <button class="btn btn-danger" onclick="deleteSelected()">Delete</button>
+        </div>
+    </div>
+
+    <script>
+        let data = [
+            { ItemCode: "I001", ProcType: "P001", ARDivisionNo: "001", CustomerNo: "C001", WarehouseCode: "WH001", Quantity: "10", ItemNo: "I001", Comment: "Coment001" },
+            { ItemCode: "I002", ProcType: "P002", ARDivisionNo: "002", CustomerNo: "C001", WarehouseCode: "WH001", Quantity: "10", ItemNo: "I001", Comment: "Coment001" },
+            { ItemCode: "I003", ProcType: "P003", ARDivisionNo: "003", CustomerNo: "C001", WarehouseCode: "WH001", Quantity: "10", ItemNo: "I001", Comment: "Coment001" }
+        ];
+
+        function renderTable(records) {
+            const body = document.getElementById("dataBody");
+            body.innerHTML = "";
+
+            records.forEach((row, index) => {
+                body.innerHTML += `
+                            <tr>
+                                <td>${row.ItemCode}</td>
+                                <td>${row.ProcType}</td>
+                                <td>${row.ARDivisionNo}</td>
+                                <td>${row.CustomerNo}</td>
+                                <td>${row.WarehouseCode}</td>
+
+                                <td><input type="text" value="${row.Quantity}" id="name_${index}" class="form-control"></td>
+                                <td>${row.ItemNo}</td>
+                                <td>${row.Comment}</td>
+                                <td><input type="checkbox" id="chk_${index}"></td>
+                            </tr>
+                        `;
+            });
+
+            document.getElementById("actionArea").style.display = records.length ? "block" : "none";
+        }
+
+        function updateSelected() {
+            const updated = [];
+            data.forEach((row, index) => {
+                const chk = document.getElementById("chk_" + index);
+                if (chk && chk.checked) {
+                    row.VendorName = document.getElementById("name_" + index).value;
+                    updated.push(row);
+                }
+            });
+            alert("Updated: " + JSON.stringify(updated));
+        }
+
+        function deleteSelected() {
+            const remaining = [];
+            const deleted = [];
+            data.forEach((row, index) => {
+                const chk = document.getElementById("chk_" + index);
+                if (chk && chk.checked) {
+                    deleted.push(row);
+                } else {
+                    remaining.push(row);
+                }
+            });
+            data = remaining;
+            alert("Deleted: " + JSON.stringify(deleted));
+            renderTable(data);
+        }
+
+        document.getElementById("searchForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const code = document.getElementById("searchCode").value.trim();
+            const filtered = code ? data.filter(d => d.ItemCode.includes(code)) : data;
+            renderTable(filtered);
+        });
+    </script>
+</body>
+</html>

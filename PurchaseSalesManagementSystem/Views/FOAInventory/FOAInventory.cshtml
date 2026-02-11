@@ -1,0 +1,158 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FOA Inventory - Fujikin</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/lib/xlsx/xlsx.full.min.js"></script>
+    <style>
+        .tab-content {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        table th, table td {
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <!-- ナビバー -->
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <span class="text-white">FOA Inventory Query</span>
+        </div>
+    </nav>
+
+    <!-- 検索フォーム -->
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <label for="search">ItemCode:</label>
+        <input type="text" id="search" class="form-control w-auto">
+
+        <!-- Warehouse プルダウン -->
+        <select id="warehouse" class="form-select w-auto" onchange="searchItems()">
+            <option value="">Select Warehouse</option>
+            <option value="WH001">WH001</option>
+            <option value="WH002">WH002</option>
+            <option value="WH003">WH003</option>
+        </select>
+
+        <!-- Minus inventory チェック -->
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="minusInventory" onchange="searchItems()">
+            <label class="form-check-label" for="minusInventory">
+                Minus inventory
+            </label>
+        </div>
+
+        <button class="btn btn-primary" onclick="searchItems()">Search</button>
+    </div>
+
+    <!-- タブ -->
+    <div class="tab-content mt-3">
+        <div class="tab-pane fade show active" id="main">
+            <table class="table table-bordered table-sm" id="gridMain"><thead><tr></tr></thead><tbody></tbody></table>
+        </div>
+        <div class="tab-pane fade" id="excluded">
+            <table class="table table-bordered table-sm" id="gridExcluded"><thead><tr></tr></thead><tbody></tbody></table>
+        </div>
+    </div>
+
+    <!-- 操作ボタン -->
+    <div class="mt-4">
+        <button id="btnRefresh" class="btn btn-success" disabled>Refresh</button>
+        <button id="btnExport" class="btn btn-success" onclick="exportTable('gridMain')" disabled>Export to Excel</button>
+    </div>
+
+    <script>
+        const columns = [
+            "ProdLn", "ItemCode", "ItemCodeDesc", "WHSE", "OnHand", "Qty PO", "StandardUnitCost", "LastSoldDate", "LastReceiptDate", "LastTotalUnitCost"
+        ];
+
+        // ヘッダー生成
+        function createHeader(tableId) {
+            const thead = document.querySelector(`#${tableId} thead tr`);
+            thead.innerHTML = "";
+            columns.forEach(col => {
+                const th = document.createElement("th");
+                th.textContent = col;
+                thead.appendChild(th);
+            });
+        }
+
+        // 検索処理
+        function searchItems() {
+            const keyword = document.getElementById("search").value.toLowerCase();
+            const warehouseFilter = document.getElementById("warehouse").value;
+            const minusOnly = document.getElementById("minusInventory").checked;
+
+            const gridMain = document.querySelector("#gridMain tbody");
+            const gridExcluded = document.querySelector("#gridExcluded tbody");
+            gridMain.innerHTML = "";
+            gridExcluded.innerHTML = "";
+
+            let rowCount = 0;
+
+            for (let i = 1; i <= 30; i++) {
+                const itemCode = `A${String(i).padStart(4, '0')}`;
+                const itemDesc = `Widget ${i}`;
+                const whse = (i % 3 === 0) ? "WH002" : (i % 5 === 0 ? "WH003" : "WH001");
+                const onHand = (i % 5 === 0) ? -10 : 100; // ダミーでマイナス在庫を混ぜる
+
+                // ItemCode/Desc フィルタ（未入力なら全件）
+                if (keyword && !itemCode.toLowerCase().includes(keyword) && !itemDesc.toLowerCase().includes(keyword)) continue;
+
+                // Warehouse フィルタ
+                if (warehouseFilter && whse !== warehouseFilter) continue;
+
+                // Minus inventory フィルタ
+                if (minusOnly && onHand >= 0) continue;
+
+                const row = ["001", itemCode, itemDesc, whse, onHand, "10", "100.00", "2025/11/29", "2025/11/28", "300.00"];
+
+                const trMain = document.createElement("tr");
+                const trEx = document.createElement("tr");
+                row.forEach(cell => {
+                    const td1 = document.createElement("td");
+                    td1.textContent = cell;
+                    trMain.appendChild(td1);
+
+                    const td2 = document.createElement("td");
+                    td2.textContent = cell;
+                    trEx.appendChild(td2);
+                });
+                gridMain.appendChild(trMain);
+                gridExcluded.appendChild(trEx);
+                rowCount++;
+            }
+
+            document.getElementById("btnRefresh").disabled = (rowCount === 0);
+            document.getElementById("btnExport").disabled = (rowCount === 0);
+        }
+
+        // Excel出力（フィルター付き）
+        function exportTable(tableId) {
+            const table = document.getElementById(tableId);
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.table_to_sheet(table);
+
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            ws['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
+
+            XLSX.utils.book_append_sheet(wb, ws, "ItemMaster");
+            const filename = "FOA Inventory export_" + new Date().toISOString().slice(0, 19).replace(/[-T:]/g, "") + ".xlsx";
+            XLSX.writeFile(wb, filename);
+        }
+
+        // 初期化
+        createHeader("gridMain");
+        createHeader("gridExcluded");
+    </script>
+</body>
+</html>

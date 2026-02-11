@@ -1,0 +1,127 @@
+﻿@{
+    Layout = null;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Monthly Sales Summary - Fujikin</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/lib/xlsx/xlsx.full.min.js"></script>
+</head>
+<body class="p-4 bg-light">
+
+    <!-- ナビバー -->
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <span class="text-white">Monthly Sales Summary and Purchases Report</span>
+        </div>
+    </nav>
+
+    <!-- 左端揃え＆幅制限 -->
+    <div style="max-width:700px; margin-left:0; margin-right:auto;">
+        <div class="card p-4">
+            <form id="searchForm">
+
+                <!-- Export Target (A項目) -->
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">Export Target</label>
+                    <div class="col-sm-9">
+                        <select id="selectA" class="form-select">
+                            <option value="summary">Monthly Sales Summary</option>
+                            <option value="report">Monthly Sales and Purchases Report</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Target Year (B項目) -->
+                <div class="mb-3 row">
+                    <label class="col-sm-3 col-form-label">Target Year</label>
+                    <div class="col-sm-9">
+                        <select class="form-select" id="targetYear">
+                            <option value="2025" selected>2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Target Data (C項目) -->
+                <div class="mb-3 row" id="targetDataRow">
+                    <label class="col-sm-3 col-form-label">Target Data</label>
+                    <div class="col-sm-9">
+                        <select class="form-select" id="targetData">
+                            <option value="fast-selling" selected>Fast-selling</option>
+                            <option value="ALL">ALL</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- RUN Button -->
+                <div class="mb-3 row">
+                    <div class="col-sm-12 text-end">
+                        <button type="button" class="btn btn-primary" onclick="doSearch()">RUN</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Console log 表示 -->
+        <div id="checklist" class="mt-4" style="display:none;">
+            <h5>Console log</h5>
+            <ul id="logList" class="list-group"></ul>
+        </div>
+    </div>
+
+    <script>
+        const selectA = document.getElementById("selectA");
+        const targetDataRow = document.getElementById("targetDataRow");
+
+        // A項目の選択によってC項目を表示/非表示
+        selectA.addEventListener("change", function () {
+            if (this.value === "report") {
+                targetDataRow.style.display = "none"; // 非表示
+            } else {
+                targetDataRow.style.display = "flex"; // 表示
+            }
+        });
+
+        function doSearch() {
+            const selectA = document.getElementById("selectA");
+            const exportTargetValue = selectA.value;        // "summary" or "report"
+            const exportTargetText = selectA.options[selectA.selectedIndex].text; // 表示テキスト
+
+            const targetYear = document.getElementById("targetYear").value;
+            const targetData = document.getElementById("targetData").value;
+
+            // Console log 表示
+            const logList = document.getElementById("logList");
+            logList.innerHTML = "";
+            logList.innerHTML += `<li class="list-group-item">✔ Connect to Sage100 OK</li>`;
+            logList.innerHTML += `<li class="list-group-item">✔ Export Complete</li>`;
+            document.getElementById("checklist").style.display = "block";
+
+            // Excel 出力
+            const data = [
+                ["Search condition"],
+                ["Export Target", exportTargetText],
+                ["Target Year", targetYear],
+                ["Target Data", targetData]
+            ];
+            const ws = XLSX.utils.aoa_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "SearchResult");
+
+            // ファイル名に表示テキストを利用（スペースは "_" に置換）
+            const filename = exportTargetText.replace(/\s+/g, "_") + "_" + new Date().toISOString().slice(0, 10) + ".xlsx";
+            XLSX.writeFile(wb, filename);
+        }
+
+    </script>
+</body>
+</html>

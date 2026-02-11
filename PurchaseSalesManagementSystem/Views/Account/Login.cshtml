@@ -1,0 +1,102 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>login - Fujikin</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+
+    <style>
+        body {
+            background-color: #eef2f7;
+        }
+
+        .card {
+            border-radius: 12px;
+        }
+
+        .btn-login {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+            .btn-login:hover {
+                background-color: #5a6268;
+                border-color: #545b62;
+                color: white;
+            }
+    </style>
+</head>
+
+<body>
+    <div class="container d-flex justify-content-center align-items-center vh-100">
+        <div class="card p-4 shadow-sm" style="width: 350px;">
+            <h4 class="text-center mb-4">Login</h4>
+
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label for="userid" class="form-label">User ID</label>
+                    <input type="text" class="form-control" id="userid">
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password">
+                </div>
+
+                <button type="submit" class="btn btn-login w-100">Login</button>
+            </form>
+
+            <div id="errorMsg" class="text-danger mt-3" style="display:none;">
+                input ID/PASS
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("loginForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            const user = document.getElementById("userid").value.trim();
+            const pass = document.getElementById("password").value.trim();
+
+            if (user === "" || pass === "") {
+                document.getElementById("errorMsg").textContent = "input ID/PASS";
+                document.getElementById("errorMsg").style.display = "block";
+                return;
+            }
+
+            fetch("/Account/Login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ userId: user, password: pass })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // OK
+                        const user = localStorage.getItem("loginUser") || "Guest";
+                        //window.location.href = "../Home/Menu";
+                        window.location.href = "/Home/Menu";
+                    } else {
+                        // NG
+                        document.getElementById("errorMsg").textContent = data.message;
+                        document.getElementById("errorMsg").style.display = "block";
+                    }
+                })
+                .catch(err => {
+                    console.error("Error:", err);
+                });
+        });
+
+
+
+    </script>
+</body>
+</html>

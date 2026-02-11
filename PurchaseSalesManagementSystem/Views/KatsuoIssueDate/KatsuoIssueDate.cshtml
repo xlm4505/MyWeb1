@@ -1,0 +1,81 @@
+﻿@{
+    Layout = null;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Katsuo Issue Date Table View</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="p-4 bg-light">
+
+    <!-- ナビバー -->
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <span class="text-white">Katsuo Issue Date</span>
+        </div>
+    </nav>
+
+    <!-- コンテンツ -->
+    <div style="max-width:700px; margin-left:0; margin-right:auto;">
+        <h3 class="mb-3">Katsuo Issue Date Table</h3>
+
+        <!-- 検索フォーム -->
+        <form id="searchForm" class="d-flex mb-3">
+            <input type="text" id="searchCode" class="form-control me-2" placeholder="Enter User">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        <!-- データ表示テーブル -->
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>ID</th>
+                    <th>IssueDate</th>
+                </tr>
+            </thead>
+            <tbody id="dataBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        // ダミーデータ（実際はAPIから取得）
+        let data = [
+            { ID: "001", IssueDate: "2025/11/1", User: "Tanaka" },
+            { ID: "002", IssueDate: "2025/11/1", User: "Suzuki" },
+            { ID: "003", IssueDate: "2025/11/1", User: "Yamada" }
+        ];
+
+        // テーブル描画
+        function renderTable(records) {
+            const body = document.getElementById("dataBody");
+            body.innerHTML = "";
+
+            records.forEach(row => {
+                body.innerHTML += `
+                        <tr>
+                            <td>${row.User}</td>
+                            <td>${row.ID}</td>
+                            <td>${row.IssueDate}</td>
+                        </tr>
+                    `;
+            });
+        }
+
+        // 検索処理
+        document.getElementById("searchForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const code = document.getElementById("searchCode").value.trim();
+            const filtered = code ? data.filter(d => d.User.includes(code)) : data;
+            renderTable(filtered);
+        });
+
+            // ★ 初期表示では renderTable を呼ばないので空のまま
+    </script>
+</body>
+</html>

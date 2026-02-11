@@ -1,0 +1,82 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Purchase Order Export - Fujikin</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/lib/xlsx/xlsx.full.min.js"></script>
+</head>
+<body class="p-4 bg-light">
+
+    <!-- ナビバー -->
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <span class="text-white">Purchase Order Export</span>
+        </div>
+    </nav>
+
+    <!-- 左端揃え＆幅制限 -->
+    <div style="max-width:700px; margin-left:0; margin-right:auto;">
+        <div class="card p-4">
+            <form id="searchForm">
+
+                <!-- Vendor -->
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">Vendor</label>
+                    <div class="col-sm-4">
+                        <select class="form-select" id="vendorCode"></select>
+                    </div>
+                    <div class="col-sm-5">
+                        <input type="text"
+                               id="vendorName"
+                               class="form-control"
+                               readonly>
+                    </div>
+                </div>
+
+                <!-- Product Type -->
+                <div class="row mb-3">
+                    <label class="col-sm-3 col-form-label">Product Type</label>
+                    <div class="col-sm-9">
+                        <select class="form-select" id="productType">
+                            <option value="Valves" selected>Valves</option>
+                            <option value="MassFlow">Mass Flow Products</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3 row">
+                    <label class="col-sm-10 col-form-label">※Maintenance MF_SalesPerson table if needed!</label>
+                </div>
+
+                <!-- Run -->
+                <div class="row">
+                    <div class="col-sm-12 text-end">
+                        <button type="button"
+                                class="btn btn-primary"
+                                id="btnRun">
+                            RUN
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Result / Log -->
+        <div id="resultArea" class="mt-4 d-none">
+            <div class="alert alert-success">
+                Export request has been sent.
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/PurchaseOrder.js"></script>
+</body>
+</html>
+

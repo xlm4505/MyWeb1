@@ -1,0 +1,148 @@
+﻿@{
+    Layout = null;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice Combine & Upload - Fujikin</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/lib/xlsx/xlsx.full.min.js"></script>
+</head>
+<body class="p-4">
+    <!-- ナビバー -->
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <span class="text-white">Invoice Combine & Upload</span>
+        </div>
+    </nav>
+
+    <!-- プルダウン -->
+    <div class="mb-4 d-flex align-items-center">
+        <label for="selectB" class="me-2">Target:</label>
+        <select id="selectB" class="form-select w-auto">
+            <option value="FJK">FJK</option>
+            <option value="CCL">CCL</option>
+            <option value="TK">TK</option>
+            <!-- <option value="FVBN">FVBN</option> -->
+            <!-- <option value="FBTL">FBTL</option> -->
+        </select>
+    </div>
+
+    <div class="mb-4 d-flex align-items-center">
+        <label for="selectA" class="me-2">Action:</label>
+        <select id="selectA" class="form-select w-auto">
+            <option value="Check">Check Open PO</option>
+            <option value="Upload">Upload</option>
+        </select>
+    </div>
+
+    <!-- アップロードフォーム -->
+    <div class="card p-3">
+        <input type="file" id="fileInput" class="form-control mb-3" webkitdirectory directory multiple>
+
+        <!-- 選択ファイル一覧 -->
+        <div id="fileList" class="border rounded p-2 mb-3" style="min-height:60px;">
+            <strong>File Selected:</strong>
+            <ul id="fileListItems" class="mb-0"></ul>
+        </div>
+
+        <!-- ボタン（名前はプルダウンで切り替え） -->
+        <button id="actionButton" class="btn btn-primary">Check</button>
+    </div>
+
+    <!-- メッセージ表示 -->
+    <div id="messageArea" class="mt-3 text-primary fw-bold"></div>
+
+    <!-- チェックリスト表示 -->
+    <div id="checklist" class="mt-4" style="display:none;">
+        <h5>Console log</h5>
+        <ul class="list-group">
+            <li class="list-group-item">✔ Connect to Sage100 OK</li>
+            <li class="list-group-item">✔ Upload OK</li>
+            <li class="list-group-item">✔ Complete OK</li>
+        </ul>
+    </div>
+
+    <script>
+        // ファイル選択時に一覧を表示
+        document.getElementById("fileInput").addEventListener("change", function () {
+            const fileListItems = document.getElementById("fileListItems");
+            fileListItems.innerHTML = "";
+            if (this.files.length === 0) {
+                const li = document.createElement("li");
+                li.textContent = "No File Selected";
+                fileListItems.appendChild(li);
+            } else {
+                for (const file of this.files) {
+                    const li = document.createElement("li");
+                    li.textContent = file.name;
+                    fileListItems.appendChild(li);
+                }
+            }
+        });
+
+        // プルダウン変更イベントでボタン名を切り替え
+        document.getElementById("selectA").addEventListener("change", function () {
+            const actionButton = document.getElementById("actionButton");
+            actionButton.textContent = this.value; // ボタン名を選択値に変更
+
+            // 入力欄をクリア
+            document.getElementById("fileInput").value = "";
+            document.getElementById("fileListItems").innerHTML = "";
+
+            // メッセージエリアをクリア
+            document.getElementById("messageArea").textContent = "";
+
+            // チェックリストを非表示に戻す
+            document.getElementById("checklist").style.display = "none";
+        });
+
+        // ボタンクリック時の処理
+        document.getElementById("actionButton").addEventListener("click", function () {
+            const action = document.getElementById("selectA").value;
+            uploadFile(action); // 選択値を引数として渡す
+        });
+
+        function uploadFile(buttonName) {
+            const fileInput = document.getElementById("fileInput");
+            const messageArea = document.getElementById("messageArea");
+
+            if (!fileInput.files.length) {
+                alert("Select upload File");
+                return;
+            }
+
+            // メッセージ表示
+            messageArea.textContent = buttonName + " Start...";
+
+            // ダミー処理：少し待ってから完了メッセージとチェックリスト表示
+            setTimeout(() => {
+                messageArea.textContent = buttonName + " OK！CheckList OK";
+                document.getElementById("checklist").style.display = "block";
+
+                // Excel生成（チェックリスト＋ボタン名）
+                const data = [
+                    ["Check List", buttonName],
+                    ["File Count", fileInput.files.length],
+                    ["Step1", "OK"],
+                    ["Step2", "OK"],
+                    ["Step3", "OK"],
+                    ["Step4", "OK"]
+                ];
+
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Checklist");
+
+                const filename = "PurchaseReceiptData_" +
+                    new Date().toISOString().slice(0, 10) + ".xlsx";
+                XLSX.writeFile(wb, filename);
+            }, 1500);
+        }
+    </script>
+</body>
+</html>
