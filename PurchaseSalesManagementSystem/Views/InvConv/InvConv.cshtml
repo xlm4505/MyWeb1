@@ -1,0 +1,99 @@
+﻿@{
+    ViewData["Title"] = "InvConv";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>InvConv</title>
+    <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body class="p-4">
+    <nav class="navbar navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <span class="text-white">CI Summary</span>
+        </div>
+    </nav>
+
+    <div class="card p-3">
+        <form id="convertForm" method="post" asp-controller="InvConv" asp-action="Convert" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="file" id="fileInput" name="files" class="form-control mb-3" multiple accept=".xlsx,.xls">
+            <div id="fileList" class="border rounded p-2 mb-3" style="min-height:60px;">
+                <strong>File Selected:</strong>
+                <ul id="fileListItems" class="mb-0">
+                    <li>No File Selected</li>
+                </ul>
+            </div>
+            <button type="submit" class="btn btn-primary">Convert</button>
+        </form>
+    </div>
+
+    <div id="messageArea" class="mt-3 fw-bold"></div>
+
+    <script>
+        const fileInput = document.getElementById("fileInput");
+        const fileListItems = document.getElementById("fileListItems");
+        const form = document.getElementById("convertForm");
+        const messageArea = document.getElementById("messageArea");
+
+        fileInput.addEventListener("change", function () {
+            fileListItems.innerHTML = "";
+            if (this.files.length === 0) {
+                const li = document.createElement("li");
+                li.textContent = "No File Selected";
+                fileListItems.appendChild(li);
+                return;
+            }
+
+            for (const file of this.files) {
+                const li = document.createElement("li");
+                li.textContent = file.name;
+                fileListItems.appendChild(li);
+            }
+        });
+
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            if (!fileInput.files.length) {
+                alert("Select entry File");
+                return;
+            }
+
+            messageArea.className = "mt-3 fw-bold text-primary";
+            messageArea.textContent = "Conversion started...";
+
+            const formData = new FormData(form);
+            const response = await fetch(form.action, {
+                method: "POST",
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                messageArea.className = "mt-3 fw-bold text-danger";
+                messageArea.textContent = `Failed: ${errorText}`;
+                return;
+            }
+
+            const blob = await response.blob();
+            const disposition = response.headers.get("Content-Disposition") || "";
+            const match = disposition.match(/filename="?([^";]+)"?/);
+            const filename = match ? match[1] : "CI-Summary.zip";
+
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            messageArea.className = "mt-3 fw-bold text-success";
+            messageArea.textContent = "Conversion completed. ZIP file downloaded.";
+        });
+    </script>
+</body>
+</html>

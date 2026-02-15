@@ -16,7 +16,7 @@ builder.Services.AddTransient<Repository_Menu>();
 builder.Services.AddScoped<Repository_PurchaseOrder>();
 builder.Services.AddScoped<Repository_POSeizo>();
 builder.Services.AddScoped<Repository_OrderForExport>();
-
+builder.Services.AddScoped<Repository_InvConv>();
 
 
 var app = builder.Build();
