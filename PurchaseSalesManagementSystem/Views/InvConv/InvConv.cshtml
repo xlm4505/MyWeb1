@@ -20,7 +20,7 @@
     <div class="card p-3">
         <form id="convertForm" method="post" asp-controller="InvConv" asp-action="Convert" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
-            <input type="file" id="fileInput" name="files" class="form-control mb-3" multiple accept=".xlsx,.xls">
+            <input type="file" id="fileInput" class="form-control mb-3" webkitdirectory directory multiple>
             <div id="fileList" class="border rounded p-2 mb-3" style="min-height:60px;">
                 <strong>File Selected:</strong>
                 <ul id="fileListItems" class="mb-0">
@@ -39,18 +39,26 @@
         const form = document.getElementById("convertForm");
         const messageArea = document.getElementById("messageArea");
 
+        const isTargetInvoiceFile = (file) => {
+            const fileName = file.name.toLowerCase();
+            return fileName.endsWith(".xlsx") && !fileName.startsWith("~$");
+        };
+
+        let selectedInvoiceFiles = [];
+
         fileInput.addEventListener("change", function () {
+            selectedInvoiceFiles = Array.from(this.files).filter(isTargetInvoiceFile);
             fileListItems.innerHTML = "";
-            if (this.files.length === 0) {
+            if (selectedInvoiceFiles.length === 0) {
                 const li = document.createElement("li");
-                li.textContent = "No File Selected";
+                li.textContent = "No matching invoice file found in selected folder.";
                 fileListItems.appendChild(li);
                 return;
             }
 
-            for (const file of this.files) {
+            for (const file of selectedInvoiceFiles) {
                 const li = document.createElement("li");
-                li.textContent = file.name;
+                li.textContent = file.webkitRelativePath || file.name;
                 fileListItems.appendChild(li);
             }
         });
@@ -58,15 +66,19 @@
         form.addEventListener("submit", async function (e) {
             e.preventDefault();
 
-            if (!fileInput.files.length) {
-                alert("Select entry File");
+            if (!selectedInvoiceFiles.length) {
+                alert("Select a folder that contains target invoice files (.xlsx).");
                 return;
             }
 
             messageArea.className = "mt-3 fw-bold text-primary";
             messageArea.textContent = "Conversion started...";
 
-            const formData = new FormData(form);
+            const formData = new FormData();
+            formData.append("__RequestVerificationToken", form.querySelector('input[name="__RequestVerificationToken"]').value);
+            for (const file of selectedInvoiceFiles) {
+                formData.append("files", file, file.name);
+            }
             const response = await fetch(form.action, {
                 method: "POST",
                 body: formData
@@ -82,7 +94,7 @@
             const blob = await response.blob();
             const disposition = response.headers.get("Content-Disposition") || "";
             const match = disposition.match(/filename="?([^";]+)"?/);
-            const filename = match ? match[1] : "CI-Summary.zip";
+            const filename = match ? match[1] : "CI-Summary.xlsx";
 
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
@@ -92,7 +104,7 @@
             window.URL.revokeObjectURL(url);
 
             messageArea.className = "mt-3 fw-bold text-success";
-            messageArea.textContent = "Conversion completed. ZIP file downloaded.";
+            messageArea.textContent = "Conversion completed. Excel file downloaded.";
         });
     </script>
 </body>

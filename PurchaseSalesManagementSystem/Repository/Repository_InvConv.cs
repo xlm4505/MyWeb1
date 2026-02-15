@@ -25,7 +25,7 @@ public class Repository_InvConv
 
         var poDetails = await LoadOpenPoDetailsAsync();
         result.Logs.Add($"Open PO data retrieved. ({poDetails.Count} rows)");
-
+        SummaryType? targetSummaryType = null;
         var categorized = new Dictionary<SummaryType, SummaryWorkbook>
         {
             [SummaryType.Con] = new SummaryWorkbook("Summary CON"),
@@ -43,9 +43,9 @@ public class Repository_InvConv
 
         foreach (var file in files)
         {
-            if (!file.FileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            if (!IsSupportedInvoiceFile(file.FileName))
             {
-                result.Warnings.Add($"Skipped unsupported file format: {file.FileName} (.xlsx only)");
+                result.Warnings.Add($"Skipped unsupported file: {file.FileName} (I*.xlsx only)");
                 continue;
             }
 
@@ -76,6 +76,15 @@ public class Repository_InvConv
 
                 var isFlow = IsFlowInvoice(invSheet.Cell(24, 2).GetString());
                 var summaryType = ResolveType(siteCode, isFlow);
+                if (targetSummaryType is null)
+                {
+                    targetSummaryType = summaryType;
+                }
+                else if (targetSummaryType.Value != summaryType)
+                {
+                    result.Warnings.Add($"Warning: Skipped due to mixed condition. File = {file.FileName}");
+                    continue;
+                }
                 var invoiceDate = GetDate(invSheet.Cell("G9"));
                 processedDate = invoiceDate;
 
@@ -107,10 +116,10 @@ public class Repository_InvConv
             }
         }
 
-        CreateSummaryFile(result, categorized[SummaryType.Con], processedDate);
-        CreateSummaryFile(result, categorized[SummaryType.Rinku], processedDate);
-        CreateSummaryFile(result, categorized[SummaryType.ConFlow], processedDate);
-        CreateSummaryFile(result, categorized[SummaryType.RinkuFlow], processedDate);
+        if (targetSummaryType is not null)
+        {
+            CreateSummaryFile(result, categorized[targetSummaryType.Value], processedDate);
+        }
 
         if (result.TotalInvoices == 0)
         {
@@ -119,6 +128,16 @@ public class Repository_InvConv
 
         result.Logs.Add("Process complete.");
         return result;
+    }
+    private static bool IsSupportedInvoiceFile(string fileName)
+    {
+        if (!fileName.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var name = Path.GetFileNameWithoutExtension(fileName);
+        return name.Length >= 6 && name.StartsWith("I", StringComparison.OrdinalIgnoreCase);
     }
 
     private async Task<List<OpenPoRow>> LoadOpenPoDetailsAsync()
