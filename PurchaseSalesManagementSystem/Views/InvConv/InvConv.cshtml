@@ -48,6 +48,12 @@
 
         fileInput.addEventListener("change", function () {
             selectedInvoiceFiles = Array.from(this.files).filter(isTargetInvoiceFile);
+            const dataTransfer = new DataTransfer();
+            for (const file of selectedInvoiceFiles) {
+                dataTransfer.items.add(file);
+            }
+            fileInput.files = dataTransfer.files;
+
             fileListItems.innerHTML = "";
             if (selectedInvoiceFiles.length === 0) {
                 const li = document.createElement("li");
