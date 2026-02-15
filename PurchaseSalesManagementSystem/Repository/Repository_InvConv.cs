@@ -140,10 +140,12 @@ public class Repository_InvConv
         while (await reader.ReadAsync())
         {
             var poNo = reader["PoNo"]?.ToString() ?? string.Empty;
-            var lnKey = Convert.ToDecimal(reader["LnKey"]).ToString("000000");
+            var lineKeyNumber = Convert.ToDecimal(reader["LnKey"]);
+            var lnKeyForPoLn = lineKeyNumber.ToString("00");
+            var lnKey = lineKeyNumber.ToString("000000");
             list.Add(new OpenPoRow
             {
-                PoLn = $"{poNo}-{lnKey}",
+                PoLn = $"{poNo}-{lnKeyForPoLn}",
                 PoNo = poNo,
                 LnKey = lnKey,
                 PoDate = reader["PODate"] as DateTime?,
@@ -260,11 +262,11 @@ public class Repository_InvConv
             poMap.TryGetValue(poLn, out var po);
             ws.Cell(row, 6).Value = po?.Whse ?? string.Empty;
             ws.Cell(row, 16).Value = po?.ItemCode ?? string.Empty;
-            ws.Cell(row, 17).Value = po?.QtyInvoiced ?? 0m;
-            ws.Cell(row, 18).Value = po?.LastTotalUnitCost ?? 0m;
-            ws.Cell(row, 19).Value = po?.StandardUnitCost ?? 0m;
+            ws.Cell(row, 17).Value = po is null ? string.Empty : po.QtyInvoiced;
+            ws.Cell(row, 18).Value = po is null ? string.Empty : po.LastTotalUnitCost;
+            ws.Cell(row, 19).Value = po is null ? string.Empty : po.StandardUnitCost;
             ws.Cell(row, 20).Value = po?.Whse ?? string.Empty;
-            ws.Cell(row, 21).Value = po?.QtyDiscCost ?? 0m;
+            ws.Cell(row, 21).Value = po is null ? string.Empty : po.QtyDiscCost;
             ws.Cell(row, 22).Value = po?.PromiseDate;
             ws.Cell(row, 5).Value = ws.Cell(row, 12).GetString();
         }
