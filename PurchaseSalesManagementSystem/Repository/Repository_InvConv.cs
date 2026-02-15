@@ -1,4 +1,5 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Data.SqlClient;
 using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
@@ -25,14 +26,19 @@ public class Repository_InvConv
         var poDetails = await LoadOpenPoDetailsAsync();
         result.Logs.Add($"Open PO data retrieved. ({poDetails.Count} rows)");
 
-        var categorized = new Dictionary<SummaryType, List<InvoiceSheetData>>
+        var categorized = new Dictionary<SummaryType, SummaryWorkbook>
         {
-            [SummaryType.Con] = [],
-            [SummaryType.Rinku] = [],
-            [SummaryType.ConFlow] = [],
-            [SummaryType.RinkuFlow] = []
+            [SummaryType.Con] = new SummaryWorkbook("Summary CON"),
+            [SummaryType.Rinku] = new SummaryWorkbook("Summary RINKU"),
+            [SummaryType.ConFlow] = new SummaryWorkbook("Summary CON (Flow)"),
+            [SummaryType.RinkuFlow] = new SummaryWorkbook("Summary RINKU (Flow)")
         };
+        foreach (var summary in categorized.Values)
+        {
+            WritePoSheet(summary.Workbook.Worksheets.Add("PODetail"), poDetails);
+        }
 
+        var poMap = poDetails.ToDictionary(x => x.PoLn, x => x, StringComparer.OrdinalIgnoreCase);
         var processedDate = DateTime.Today;
 
         foreach (var file in files)
@@ -73,12 +79,18 @@ public class Repository_InvConv
                 var invoiceDate = GetDate(invSheet.Cell("G9"));
                 processedDate = invoiceDate;
 
-                var data = BuildInvoiceSheetData(file.FileName, invSheet, siteCode, invoiceDate, poDetails);
-                data.Note = summaryType is SummaryType.Rinku or SummaryType.RinkuFlow
-                    ? $"{invoiceDate:MM/dd/yyyy} RINKU"
-                    : $"{GetConsolidationDate(invoiceDate):MM/dd/yyyy} Consolidation";
+                var sheetInfo = new InvoiceSheetData
+                {
+                    InvoiceName = BuildLegacySheetName(file.FileName),
+                    SiteCode = siteCode,
+                    InvoiceDate = invoiceDate,
+                    Note = summaryType is SummaryType.Rinku or SummaryType.RinkuFlow
+                        ? $"{invoiceDate:MM/dd/yyyy} RINKU"
+                        : $"{GetConsolidationDate(invoiceDate):MM/dd/yyyy} Consolidation"
+                };
 
-                categorized[summaryType].Add(data);
+                CreateInvoiceSheet(categorized[summaryType].Workbook, invSheet, sheetInfo, forRow.Value, poMap);
+                categorized[summaryType].Count++;
 
                 result.TotalInvoices++;
                 switch (summaryType)
@@ -95,10 +107,10 @@ public class Repository_InvConv
             }
         }
 
-        CreateSummaryFile(result, categorized[SummaryType.Con], "Summary CON", processedDate, poDetails);
-        CreateSummaryFile(result, categorized[SummaryType.Rinku], "Summary RINKU", processedDate, poDetails);
-        CreateSummaryFile(result, categorized[SummaryType.ConFlow], "Summary CON (Flow)", processedDate, poDetails);
-        CreateSummaryFile(result, categorized[SummaryType.RinkuFlow], "Summary RINKU (Flow)", processedDate, poDetails);
+        CreateSummaryFile(result, categorized[SummaryType.Con], processedDate);
+        CreateSummaryFile(result, categorized[SummaryType.Rinku], processedDate);
+        CreateSummaryFile(result, categorized[SummaryType.ConFlow], processedDate);
+        CreateSummaryFile(result, categorized[SummaryType.RinkuFlow], processedDate);
 
         if (result.TotalInvoices == 0)
         {
@@ -128,20 +140,26 @@ public class Repository_InvConv
         while (await reader.ReadAsync())
         {
             var poNo = reader["PoNo"]?.ToString() ?? string.Empty;
-            var lnKey = Convert.ToDecimal(reader["LnKey"]).ToString("00");
+            var lnKey = Convert.ToDecimal(reader["LnKey"]).ToString("000000");
             list.Add(new OpenPoRow
             {
                 PoLn = $"{poNo}-{lnKey}",
                 PoNo = poNo,
                 LnKey = lnKey,
+                PoDate = reader["PODate"] as DateTime?,
+                Status = reader["Status"]?.ToString() ?? string.Empty,
                 ItemCode = reader["ItemCode"]?.ToString() ?? string.Empty,
+                ItemDesc = reader["UDF_ITEMDESC"]?.ToString() ?? string.Empty,
                 Whse = reader["Whse"]?.ToString() ?? string.Empty,
                 QtyOrdered = ToDecimal(reader["QtyOrdered"]),
+                QtyRcpt = ToDecimal(reader["QtyRcpt"]),
                 QtyBalance = ToDecimal(reader["QtyBalance"]),
+                QtyInvoiced = ToDecimal(reader["QtyInvoiced"]),
                 UnitCost = ToDecimal(reader["UnitCost"]),
                 LastTotalUnitCost = ToDecimal(reader["LastTotalUnitCost"]),
                 StandardUnitCost = ToDecimal(reader["StandardUnitCost"]),
                 QtyDiscCost = ToDecimal(reader["QtyDiscCost"]),
+                RequiredDate = reader["RequiredDate"] as DateTime?,
                 PromiseDate = reader["PromiseDate"] as DateTime?
             });
         }
@@ -149,120 +167,30 @@ public class Repository_InvConv
         return list;
     }
 
-    private static InvoiceSheetData BuildInvoiceSheetData(
-        string fileName,
-        IXLWorksheet sheet,
-        string siteCode,
-        DateTime invoiceDate,
-        List<OpenPoRow> poRows)
+    private static void CreateSummaryFile(Model_InvConv result, SummaryWorkbook summary, DateTime processedDate)
     {
-        var map = poRows.ToDictionary(x => x.PoLn, x => x, StringComparer.OrdinalIgnoreCase);
-        var data = new InvoiceSheetData
-        {
-            InvoiceName = Path.GetFileNameWithoutExtension(fileName),
-            SiteCode = siteCode,
-            InvoiceDate = invoiceDate
-        };
-
-        var lastRow = sheet.LastRowUsed()?.RowNumber() ?? 21;
-        for (var row = 22; row <= lastRow; row++)
-        {
-            var poLn = sheet.Cell(row, 1).GetString().Trim();
-            if (!poLn.StartsWith("00", StringComparison.OrdinalIgnoreCase))
-            {
-                continue;
-            }
-
-            map.TryGetValue(poLn, out var po);
-            data.Lines.Add(new InvoiceLine
-            {
-                PoLn = poLn,
-                ItemCode = po?.ItemCode ?? string.Empty,
-                InvoiceWh = sheet.Cell(row, 6).GetString(),
-                PoWh = po?.Whse ?? string.Empty,
-                InvoiceQty = sheet.Cell(row, 7).TryGetValue<decimal>(out var qty) ? qty : 0m,
-                PoQty = po?.QtyBalance ?? 0m,
-                InvoiceUnitCost = sheet.Cell(row, 9).TryGetValue<decimal>(out var uc) ? uc : 0m,
-                PoUnitCost = po?.UnitCost ?? 0m,
-                DiscountCost = po?.QtyDiscCost ?? 0m,
-                PromiseDate = po?.PromiseDate
-            });
-        }
-
-        return data;
-    }
-
-    private static void CreateSummaryFile(
-        Model_InvConv result,
-        List<InvoiceSheetData> invoices,
-        string title,
-        DateTime processedDate,
-        List<OpenPoRow> poRows)
-    {
-        if (invoices.Count == 0)
+        if (summary.Count == 0)
         {
             return;
         }
 
-        using var wb = new XLWorkbook();
-        var poSheet = wb.Worksheets.Add("PODetail");
-        WritePoSheet(poSheet, poRows);
-
-        foreach (var inv in invoices)
-        {
-            var name = inv.InvoiceName.Length > 31 ? inv.InvoiceName[..31] : inv.InvoiceName;
-            var ws = wb.Worksheets.Add(name);
-            ws.Cell(1, 1).Value = "Note";
-            ws.Cell(1, 2).Value = inv.Note;
-
-            ws.Cell(3, 1).Value = "PO-Ln";
-            ws.Cell(3, 2).Value = "ItemCode";
-            ws.Cell(3, 3).Value = "Invoice WH";
-            ws.Cell(3, 4).Value = "PO WH";
-            ws.Cell(3, 5).Value = "Invoice Qty";
-            ws.Cell(3, 6).Value = "PO QtyBalance";
-            ws.Cell(3, 7).Value = "Invoice UnitCost";
-            ws.Cell(3, 8).Value = "PO UnitCost";
-            ws.Cell(3, 9).Value = "Discount Cost";
-            ws.Cell(3, 10).Value = "PromiseDate";
-            ws.Range(3, 1, 3, 10).Style.Font.Bold = true;
-
-            var row = 4;
-            foreach (var line in inv.Lines)
-            {
-                ws.Cell(row, 1).Value = line.PoLn;
-                ws.Cell(row, 2).Value = line.ItemCode;
-                ws.Cell(row, 3).Value = line.InvoiceWh;
-                ws.Cell(row, 4).Value = line.PoWh;
-                ws.Cell(row, 5).Value = line.InvoiceQty;
-                ws.Cell(row, 6).Value = line.PoQty;
-                ws.Cell(row, 7).Value = line.InvoiceUnitCost;
-                ws.Cell(row, 8).Value = line.PoUnitCost;
-                ws.Cell(row, 9).Value = line.DiscountCost;
-                ws.Cell(row, 10).Value = line.PromiseDate;
-                row++;
-            }
-
-            ws.Columns().AdjustToContents();
-        }
-
         using var stream = new MemoryStream();
-        wb.SaveAs(stream);
+        summary.Workbook.SaveAs(stream);
         result.Files.Add(new GeneratedSummaryFile
         {
-            FileName = $"{title} {processedDate:yyMMdd}WI.xlsx",
+            FileName = $"{summary.Title} {processedDate:yyMMdd}WI.xlsx",
             Content = stream.ToArray()
         });
 
-        result.Logs.Add($"{title} file was created.");
+        result.Logs.Add($"{summary.Title} file was created.");
     }
 
     private static void WritePoSheet(IXLWorksheet ws, List<OpenPoRow> poRows)
     {
         var headers = new[]
         {
-            "PO-Ln", "PoNo", "LnKey", "ItemCode", "Whse", "QtyOrdered",
-            "QtyBalance", "UnitCost", "LastTotalUnitCost", "StandardUnitCost", "QtyDiscCost", "PromiseDate"
+            "PO-Ln", "PoNo", "LnKey", "PODate", "Status", "ItemCode", "UDF_ITEMDESC", "Whse", "QtyOrdered",
+            "QtyRcpt", "QtyBalance", "QtyInvoiced", "UnitCost", "LastTotalUnitCost", "StandardUnitCost", "QtyDiscCost", "RequiredDate", "PromiseDate"
         };
 
         for (var i = 0; i < headers.Length; i++)
@@ -278,21 +206,96 @@ public class Repository_InvConv
             ws.Cell(row, 1).Value = po.PoLn;
             ws.Cell(row, 2).Value = po.PoNo;
             ws.Cell(row, 3).Value = po.LnKey;
-            ws.Cell(row, 4).Value = po.ItemCode;
-            ws.Cell(row, 5).Value = po.Whse;
-            ws.Cell(row, 6).Value = po.QtyOrdered;
-            ws.Cell(row, 7).Value = po.QtyBalance;
-            ws.Cell(row, 8).Value = po.UnitCost;
-            ws.Cell(row, 9).Value = po.LastTotalUnitCost;
-            ws.Cell(row, 10).Value = po.StandardUnitCost;
-            ws.Cell(row, 11).Value = po.QtyDiscCost;
-            ws.Cell(row, 12).Value = po.PromiseDate;
+            ws.Cell(row, 4).Value = po.PoDate;
+            ws.Cell(row, 5).Value = po.Status;
+            ws.Cell(row, 6).Value = po.ItemCode;
+            ws.Cell(row, 7).Value = po.ItemDesc;
+            ws.Cell(row, 8).Value = po.Whse;
+            ws.Cell(row, 9).Value = po.QtyOrdered;
+            ws.Cell(row, 10).Value = po.QtyRcpt;
+            ws.Cell(row, 11).Value = po.QtyBalance;
+            ws.Cell(row, 12).Value = po.QtyInvoiced;
+            ws.Cell(row, 13).Value = po.UnitCost;
+            ws.Cell(row, 14).Value = po.LastTotalUnitCost;
+            ws.Cell(row, 15).Value = po.StandardUnitCost;
+            ws.Cell(row, 16).Value = po.QtyDiscCost;
+            ws.Cell(row, 17).Value = po.RequiredDate;
+            ws.Cell(row, 18).Value = po.PromiseDate;
+
             row++;
         }
 
         ws.Columns().AdjustToContents();
     }
+    private static void CreateInvoiceSheet(
+            XLWorkbook summaryWorkbook,
+            IXLWorksheet sourceSheet,
+            InvoiceSheetData inv,
+            int forRow,
+            Dictionary<string, OpenPoRow> poMap)
+    {
+        var sheetName = GetUniqueSheetName(summaryWorkbook, inv.InvoiceName);
+        var ws = sourceSheet.CopyTo(summaryWorkbook, sheetName);
 
+        ws.Cell("G20").Value = inv.Note;
+        ws.Cell("G21").Value = ws.Cell(forRow, 2).GetString();
+
+        ws.Column(5).InsertColumnsBefore(2);
+        ws.Cell("E24").Value = "ITEM CODE";
+        ws.Cell("F24").Value = "WH";
+        ws.Range("E24:F24").Style.Font.Bold = true;
+        ws.Range("E24:F24").Style.Font.Underline = XLFontUnderlineValues.Single;
+        ws.Column("E").AdjustToContents();
+        ws.Column("F").Width = 8;
+
+        var lastRow = ws.LastRowUsed()?.RowNumber() ?? 22;
+        for (var row = 22; row <= lastRow; row++)
+        {
+            var poLn = ws.Cell(row, 1).GetString().Trim();
+            if (!poLn.StartsWith("00", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            poMap.TryGetValue(poLn, out var po);
+            ws.Cell(row, 6).Value = po?.Whse ?? string.Empty;
+            ws.Cell(row, 16).Value = po?.ItemCode ?? string.Empty;
+            ws.Cell(row, 17).Value = po?.QtyInvoiced ?? 0m;
+            ws.Cell(row, 18).Value = po?.LastTotalUnitCost ?? 0m;
+            ws.Cell(row, 19).Value = po?.StandardUnitCost ?? 0m;
+            ws.Cell(row, 20).Value = po?.Whse ?? string.Empty;
+            ws.Cell(row, 21).Value = po?.QtyDiscCost ?? 0m;
+            ws.Cell(row, 22).Value = po?.PromiseDate;
+            ws.Cell(row, 5).Value = ws.Cell(row, 12).GetString();
+        }
+
+        ws.PageSetup.PagesWide = 1;
+    }
+
+    private static string GetUniqueSheetName(XLWorkbook wb, string preferredName)
+    {
+        var baseName = preferredName[..Math.Min(preferredName.Length, 31)];
+        var sheetName = baseName;
+        var suffix = 1;
+        while (wb.Worksheets.Contains(sheetName))
+        {
+            var prefix = baseName[..Math.Min(baseName.Length, 28)];
+            sheetName = $"{prefix}_{suffix++}";
+        }
+
+        return sheetName;
+    }
+
+    private static string BuildLegacySheetName(string fileName)
+    {
+        var name = Path.GetFileNameWithoutExtension(fileName);
+        if (name.Length >= 6 && name.StartsWith("I", StringComparison.OrdinalIgnoreCase))
+        {
+            return name.Substring(1, 5);
+        }
+
+        return name[..Math.Min(name.Length, 31)];
+    }
     private static DateTime GetConsolidationDate(DateTime dateTime) => dateTime.DayOfWeek switch
     {
         DayOfWeek.Sunday => dateTime.AddDays(2),
@@ -385,14 +388,20 @@ public class Repository_InvConv
         public required string PoLn { get; init; }
         public required string PoNo { get; init; }
         public required string LnKey { get; init; }
+        public DateTime? PoDate { get; init; }
+        public required string Status { get; init; }
         public required string ItemCode { get; init; }
+        public required string ItemDesc { get; init; }
         public required string Whse { get; init; }
         public decimal QtyOrdered { get; init; }
+        public decimal QtyRcpt { get; init; }   
         public decimal QtyBalance { get; init; }
+        public decimal QtyInvoiced { get; init; }
         public decimal UnitCost { get; init; }
         public decimal LastTotalUnitCost { get; init; }
         public decimal StandardUnitCost { get; init; }
         public decimal QtyDiscCost { get; init; }
+        public DateTime? RequiredDate { get; init; }
         public DateTime? PromiseDate { get; init; }
     }
 
@@ -402,20 +411,18 @@ public class Repository_InvConv
         public required string SiteCode { get; init; }
         public required DateTime InvoiceDate { get; init; }
         public string Note { get; set; } = string.Empty;
-        public List<InvoiceLine> Lines { get; } = [];
     }
 
-    private sealed class InvoiceLine
+    private sealed class SummaryWorkbook
     {
-        public required string PoLn { get; init; }
-        public required string ItemCode { get; init; }
-        public required string InvoiceWh { get; init; }
-        public required string PoWh { get; init; }
-        public decimal InvoiceQty { get; init; }
-        public decimal PoQty { get; init; }
-        public decimal InvoiceUnitCost { get; init; }
-        public decimal PoUnitCost { get; init; }
-        public decimal DiscountCost { get; init; }
-        public DateTime? PromiseDate { get; init; }
+        public SummaryWorkbook(string title)
+        {
+            Title = title;
+            Workbook = new XLWorkbook();
+        }
+
+        public string Title { get; }
+        public XLWorkbook Workbook { get; }
+        public int Count { get; set; }
     }
 }
