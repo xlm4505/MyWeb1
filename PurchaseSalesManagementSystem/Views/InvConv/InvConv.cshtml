@@ -40,8 +40,8 @@
         const messageArea = document.getElementById("messageArea");
 
         const isTargetInvoiceFile = (file) => {
-            const fileName = file.name.toLowerCase();
-            return fileName.endsWith(".xlsx") && !fileName.startsWith("~$");
+            const fileName = file.name;
+            return /^I.*\.xlsx$/i.test(fileName) && !fileName.startsWith("~$");
         };
 
         let selectedInvoiceFiles = [];
@@ -51,7 +51,7 @@
             fileListItems.innerHTML = "";
             if (selectedInvoiceFiles.length === 0) {
                 const li = document.createElement("li");
-                li.textContent = "No matching invoice file found in selected folder.";
+                li.textContent = "No matching invoice file found in selected folder (I*.xlsx).";
                 fileListItems.appendChild(li);
                 return;
             }
@@ -67,7 +67,7 @@
             e.preventDefault();
 
             if (!selectedInvoiceFiles.length) {
-                alert("Select a folder that contains target invoice files (.xlsx).");
+                alert("Select a folder that contains target invoice files (I*.xlsx).");
                 return;
             }
 
