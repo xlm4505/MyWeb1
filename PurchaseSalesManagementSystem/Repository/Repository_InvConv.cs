@@ -262,6 +262,16 @@ public class Repository_InvConv
         ws.Cell("G21").Value = ws.Cell(forRow, 2).GetString();
 
         ws.Column(5).InsertColumnsBefore(2);
+
+        var formattedLastRow = ws.LastRowUsed(XLCellsUsedOptions.All)?.RowNumber()
+                               ?? ws.LastRowUsed()?.RowNumber()
+                               ?? 24;
+        for (var row = 1; row <= formattedLastRow; row++)
+        {
+            ws.Cell(row, 5).Style = ws.Cell(row, 7).Style;
+            ws.Cell(row, 6).Style = ws.Cell(row, 8).Style;
+        }
+
         ws.Cell("E24").Value = "ITEM CODE";
         ws.Cell("F24").Value = "WH";
         ws.Range("E24:F24").Style.Font.Bold = true;
@@ -346,7 +356,6 @@ public class Repository_InvConv
         var upper = value.ToUpperInvariant();
         return upper.StartsWith("MASS F")
                || upper.StartsWith("LIQUID")
-               || upper.StartsWith("LIOUID")
                || upper.StartsWith("CONCEN")
                || upper.StartsWith("VAPORI");
     }
