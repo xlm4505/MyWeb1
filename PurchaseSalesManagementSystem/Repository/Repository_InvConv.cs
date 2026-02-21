@@ -377,8 +377,30 @@ public class Repository_InvConv
         }
 
         ws.PageSetup.PagesWide = 1;
+        //改ページプレビューモード設定
+        ApplyPageBreakPreviewWithRightOffset(sourceSheet, ws, 2);
         ws.Cell("A1").SetActive();
     }
+    private static void ApplyPageBreakPreviewWithRightOffset(IXLWorksheet sourceSheet, IXLWorksheet targetSheet, int rightColumnOffset)
+    {
+        targetSheet.SheetView.View = XLSheetViewOptions.PageBreakPreview;
+
+        if (!sourceSheet.PageSetup.PrintAreas.Any())
+        {
+            return;
+        }
+
+        targetSheet.PageSetup.PrintAreas.Clear();
+        foreach (var printArea in sourceSheet.PageSetup.PrintAreas)
+        {
+            var firstAddress = printArea.RangeAddress.FirstAddress;
+            var lastAddress = printArea.RangeAddress.LastAddress;
+            var lastColumn = Math.Min(lastAddress.ColumnNumber + rightColumnOffset, XLHelper.MaxColumnNumber);
+
+            targetSheet.PageSetup.PrintAreas.Add(targetSheet.Range(firstAddress.RowNumber,firstAddress.ColumnNumber,lastAddress.RowNumber,lastColumn).ToString());
+        }
+    }
+
     private static decimal ConvertToDecimal(string value)
     {
         if (string.IsNullOrEmpty(value))
