@@ -1,9 +1,13 @@
 ﻿using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.Data.SqlClient;
 using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
+using System.Collections.Generic;
 using System.Data;
+using DataTable = System.Data.DataTable;
 
 namespace PurchaseSalesManagementSystem.Repository;
 
@@ -11,6 +15,7 @@ public class Repository_InvConv
 {
     private readonly CreateConnection _connectionFactory;
     private readonly IWebHostEnvironment _env;
+    private static readonly HashSet<string> list = new HashSet<string>{"FCAFCA","FCAFLC", "FCALGR", "FCAUOR", "FNJFLJ", "FNJTNJ", "FTXFLT",  "FTXSTX",  "FTXTTX", "FCHNAL", "FCHNCA", "FCHIFS", "FCHJTX", "FCHNNJ", "FTPXIT",  "FTPNTX",  "FTPUTX"};
 
     public Repository_InvConv(CreateConnection connectionFactory, IWebHostEnvironment env)
     {
@@ -25,18 +30,30 @@ public class Repository_InvConv
 
         var poDetails = await LoadOpenPoDetailsAsync();
         result.Logs.Add($"Open PO data retrieved. ({poDetails.Count} rows)");
+        FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
+        DataTable dt = new DataTable();
+
+        dt = exportToExcel.ConvertToDataTableFast(poDetails);
+        //var excelBytes = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail");
+
         SummaryType? targetSummaryType = null;
         var categorized = new Dictionary<SummaryType, SummaryWorkbook>
         {
-            [SummaryType.Con] = new SummaryWorkbook("Summary CON"),
-            [SummaryType.Rinku] = new SummaryWorkbook("Summary RINKU"),
-            [SummaryType.ConFlow] = new SummaryWorkbook("Summary CON (Flow)"),
-            [SummaryType.RinkuFlow] = new SummaryWorkbook("Summary RINKU (Flow)")
+            [SummaryType.Con] = new SummaryWorkbook("Summary CON", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail")),
+            [SummaryType.Rinku] = new SummaryWorkbook("Summary RINKU", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail")),
+            [SummaryType.ConFlow] = new SummaryWorkbook("Summary CON (Flow)", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail")),
+            [SummaryType.RinkuFlow] = new SummaryWorkbook("Summary RINKU (Flow)", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail"))
+
+            //[SummaryType.Con] = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail"),
+            //[SummaryType.Rinku] = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail"),
+            //[SummaryType.ConFlow] = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail"),
+            //[SummaryType.RinkuFlow] = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail")
         };
-        foreach (var summary in categorized.Values)
-        {
-            WritePoSheet(summary.Workbook.Worksheets.Add("PODetail"), poDetails);
-        }
+        //foreach (var summary in categorized.Values)
+        //{
+        //    WritePoSheet(summary.Workbook.Worksheets.Add("PODetail"), poDetails);
+        //}
+   
 
         var poMap = poDetails.ToDictionary(x => x.PoLn, x => x, StringComparer.OrdinalIgnoreCase);
         var processedDate = DateTime.Today;
@@ -137,7 +154,7 @@ public class Repository_InvConv
         }
 
         var name = Path.GetFileNameWithoutExtension(fileName);
-        return name.Length >= 6 && name.StartsWith("I", StringComparison.OrdinalIgnoreCase);
+        return name.Length >= 6 && name.StartsWith("I", StringComparison.OrdinalIgnoreCase) && int.TryParse(name.AsSpan(1, 5), out _);
     }
 
     private async Task<List<OpenPoRow>> LoadOpenPoDetailsAsync()
@@ -208,45 +225,46 @@ public class Repository_InvConv
 
     private static void WritePoSheet(IXLWorksheet ws, List<OpenPoRow> poRows)
     {
-        var headers = new[]
-        {
-            "PO-Ln", "PoNo", "LnKey", "PODate", "Status", "ItemCode", "UDF_ITEMDESC", "Whse", "QtyOrdered",
-            "QtyRcpt", "QtyBalance", "QtyInvoiced", "UnitCost", "LastTotalUnitCost", "StandardUnitCost", "QtyDiscCost", "RequiredDate", "PromiseDate"
-        };
 
-        for (var i = 0; i < headers.Length; i++)
-        {
-            ws.Cell(1, i + 1).Value = headers[i];
-        }
+        //var headers = new[]
+        //{
+        //    "PO-Ln", "PoNo", "LnKey", "PODate", "Status", "ItemCode", "UDF_ITEMDESC", "Whse", "QtyOrdered",
+        //    "QtyRcpt", "QtyBalance", "QtyInvoiced", "UnitCost", "LastTotalUnitCost", "StandardUnitCost", "QtyDiscCost", "RequiredDate", "PromiseDate"
+        //};
 
-        ws.Range(1, 1, 1, headers.Length).Style.Font.Bold = true;
+        //for (var i = 0; i < headers.Length; i++)
+        //{
+        //    ws.Cell(1, i + 1).Value = headers[i];
+        //}
 
-        var row = 2;
-        foreach (var po in poRows)
-        {
-            ws.Cell(row, 1).Value = po.PoLn;
-            ws.Cell(row, 2).Value = po.PoNo;
-            ws.Cell(row, 3).Value = po.LnKey;
-            ws.Cell(row, 4).Value = po.PoDate;
-            ws.Cell(row, 5).Value = po.Status;
-            ws.Cell(row, 6).Value = po.ItemCode;
-            ws.Cell(row, 7).Value = po.ItemDesc;
-            ws.Cell(row, 8).Value = po.Whse;
-            ws.Cell(row, 9).Value = po.QtyOrdered;
-            ws.Cell(row, 10).Value = po.QtyRcpt;
-            ws.Cell(row, 11).Value = po.QtyBalance;
-            ws.Cell(row, 12).Value = po.QtyInvoiced;
-            ws.Cell(row, 13).Value = po.UnitCost;
-            ws.Cell(row, 14).Value = po.LastTotalUnitCost;
-            ws.Cell(row, 15).Value = po.StandardUnitCost;
-            ws.Cell(row, 16).Value = po.QtyDiscCost;
-            ws.Cell(row, 17).Value = po.RequiredDate;
-            ws.Cell(row, 18).Value = po.PromiseDate;
+        //ws.Range(1, 1, 1, headers.Length).Style.Font.Bold = true;
 
-            row++;
-        }
+        //var row = 2;
+        //foreach (var po in poRows)
+        //{
+        //    ws.Cell(row, 1).Value = po.PoLn;
+        //    ws.Cell(row, 2).Value = po.PoNo;
+        //    ws.Cell(row, 3).Value = po.LnKey;
+        //    ws.Cell(row, 4).Value = po.PoDate;
+        //    ws.Cell(row, 5).Value = po.Status;
+        //    ws.Cell(row, 6).Value = po.ItemCode;
+        //    ws.Cell(row, 7).Value = po.ItemDesc;
+        //    ws.Cell(row, 8).Value = po.Whse;
+        //    ws.Cell(row, 9).Value = po.QtyOrdered;
+        //    ws.Cell(row, 10).Value = po.QtyRcpt;
+        //    ws.Cell(row, 11).Value = po.QtyBalance;
+        //    ws.Cell(row, 12).Value = po.QtyInvoiced;
+        //    ws.Cell(row, 13).Value = po.UnitCost;
+        //    ws.Cell(row, 14).Value = po.LastTotalUnitCost;
+        //    ws.Cell(row, 15).Value = po.StandardUnitCost;
+        //    ws.Cell(row, 16).Value = po.QtyDiscCost;
+        //    ws.Cell(row, 17).Value = po.RequiredDate;
+        //    ws.Cell(row, 18).Value = po.PromiseDate;
 
-        ws.Columns().AdjustToContents();
+        //    row++;
+        //}
+
+        //ws.Columns().AdjustToContents();
     }
     private static void CreateInvoiceSheet(
             XLWorkbook summaryWorkbook,
@@ -260,26 +278,28 @@ public class Repository_InvConv
 
         ws.Cell("G20").Value = inv.Note;
         ws.Cell("G21").Value = ws.Cell(forRow, 2).GetString();
-
+        // E～F 列の位置に、新しい列を挿入する
         ws.Column(5).InsertColumnsBefore(2);
 
-        var formattedLastRow = ws.LastRowUsed(XLCellsUsedOptions.All)?.RowNumber()
-                               ?? ws.LastRowUsed()?.RowNumber()
-                               ?? 24;
-        for (var row = 1; row <= formattedLastRow; row++)
-        {
-            ws.Cell(row, 5).Style = ws.Cell(row, 7).Style;
-            ws.Cell(row, 6).Style = ws.Cell(row, 8).Style;
-        }
+        //var formattedLastRow = ws.LastRowUsed(XLCellsUsedOptions.All)?.RowNumber()
+        //                       ?? ws.LastRowUsed()?.RowNumber()
+        //                       ?? 24;
+        //for (var row = 1; row <= formattedLastRow; row++)
+        //{
+        //    ws.Cell(row, 5).Style = ws.Cell(row, 7).Style;
+        //    ws.Cell(row, 6).Style = ws.Cell(row, 8).Style;
+        //}
 
+        //E24 セルに、文字列 "ITEM CODE" を書き込む
         ws.Cell("E24").Value = "ITEM CODE";
+        //F24 セルに、文字列 "WH" を書き込む
         ws.Cell("F24").Value = "WH";
         ws.Range("E24:F24").Style.Font.Bold = true;
         ws.Range("E24:F24").Style.Font.Underline = XLFontUnderlineValues.Single;
         ws.Column("E").AdjustToContents();
         ws.Column("F").Width = 8;
 
-        var lastRow = ws.LastRowUsed()?.RowNumber() ?? 22;
+        var lastRow = ws.Column("L").LastCellUsed()?.Address.RowNumber ?? 22;
         for (var row = 22; row <= lastRow; row++)
         {
             var poLn = ws.Cell(row, 1).GetString().Trim();
@@ -289,20 +309,84 @@ public class Repository_InvConv
             }
 
             poMap.TryGetValue(poLn, out var po);
+            //F
             ws.Cell(row, 6).Value = po?.Whse ?? string.Empty;
+            //P
             ws.Cell(row, 16).Value = po?.ItemCode ?? string.Empty;
+            //Q
             ws.Cell(row, 17).Value = po is null ? string.Empty : po.QtyInvoiced;
+            //R
             ws.Cell(row, 18).Value = po is null ? string.Empty : po.LastTotalUnitCost;
+            //S
             ws.Cell(row, 19).Value = po is null ? string.Empty : po.StandardUnitCost;
+            //T
             ws.Cell(row, 20).Value = po?.Whse ?? string.Empty;
+            //U
             ws.Cell(row, 21).Value = po is null ? string.Empty : po.QtyDiscCost;
+            //V
             ws.Cell(row, 22).Value = po?.PromiseDate;
-            ws.Cell(row, 5).Value = ws.Cell(row, 12).GetString();
+            string? text = ws.Cell(row, 12).GetText()?.ToString();
+
+            if (text == "#N/A")
+            {
+                //P列データをEへ
+                ws.Cell(row, 5).Value = ws.Cell(row, 16).GetString();
+                ws.Cell(row, 5).Style.Fill.BackgroundColor = XLColor.Orange;
+            }
+            else
+            {
+                //L列データをEへ
+                ws.Cell(row, 5).Value = ws.Cell(row, 12).GetString();
+                string? lText = ws.Cell(row, 12).GetText()?.ToString();
+                string? pText = ws.Cell(row, 16).GetText()?.ToString();
+                //L列とP列のデータがことなる
+                if (!string.Equals(lText, pText, StringComparison.OrdinalIgnoreCase))
+                {
+                    ws.Cell(row, 1).Style.Fill.BackgroundColor = XLColor.Orange;
+                }
+                else {
+                    //F列データリストに存在しないデータ
+                    if (!list.Contains(inv.SiteCode + ws.Cell(row, 6).Value))
+                    {
+                        ws.Cell(row, 6).Style.Fill.BackgroundColor = XLColor.Orange;
+                    }
+                    //G列（7列） と Q列（17列） の“値（Value）”を数値として比較し、G列の方が大きいか
+                    double g = (double)ws.Cell(row, 7).Value;
+                    double q = (double)ws.Cell(row, 17).Value;
+                    if (g>q)
+                    {
+                        ws.Cell(row, 7).Style.Fill.BackgroundColor = XLColor.Orange;
+                    }
+                    else
+                    {
+                        string? text3 = ws.Cell(row, 9).GetText()?.ToString();
+                        decimal id = Math.Round(ConvertToDecimal(text3), 2);
+                        text3 = ws.Cell(row, 18).GetText()?.ToString();
+                        decimal rd = Math.Round(ConvertToDecimal(text3), 2);
+                        if (id!=rd)
+                        {
+                            ws.Cell(row, 9).Style.Fill.BackgroundColor = XLColor.Orange;
+
+                        }
+                    }
+
+                }
+
+            }
+
         }
 
         ws.PageSetup.PagesWide = 1;
+        ws.Cell("A1").SetActive();
     }
-
+    private static decimal ConvertToDecimal(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            value = "0";
+        }
+        return Convert.ToDecimal(value);
+    }
     private static string GetUniqueSheetName(XLWorkbook wb, string preferredName)
     {
         var baseName = preferredName[..Math.Min(preferredName.Length, 31)];
@@ -373,7 +457,7 @@ public class Repository_InvConv
 
     private static int? FindForRow(IXLWorksheet ws)
     {
-        var lastRow = ws.LastRowUsed()?.RowNumber() ?? 19;
+        var lastRow = ws.Column("B").LastCellUsed()?.Address.RowNumber ?? 19;
         for (var row = lastRow; row >= 20; row--)
         {
             if (ws.Cell(row, 2).GetString().StartsWith("FOR ", StringComparison.OrdinalIgnoreCase))
@@ -445,10 +529,10 @@ public class Repository_InvConv
 
     private sealed class SummaryWorkbook
     {
-        public SummaryWorkbook(string title)
+        public SummaryWorkbook(string title, XLWorkbook xlbook)
         {
             Title = title;
-            Workbook = new XLWorkbook();
+            Workbook = xlbook;
         }
 
         public string Title { get; }
