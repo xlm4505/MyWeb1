@@ -43,17 +43,7 @@ public class Repository_InvConv
             [SummaryType.Rinku] = new SummaryWorkbook("Summary RINKU", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail")),
             [SummaryType.ConFlow] = new SummaryWorkbook("Summary CON (Flow)", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail")),
             [SummaryType.RinkuFlow] = new SummaryWorkbook("Summary RINKU (Flow)", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail"))
-
-            //[SummaryType.Con] = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail"),
-            //[SummaryType.Rinku] = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail"),
-            //[SummaryType.ConFlow] = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail"),
-            //[SummaryType.RinkuFlow] = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail")
         };
-        //foreach (var summary in categorized.Values)
-        //{
-        //    WritePoSheet(summary.Workbook.Worksheets.Add("PODetail"), poDetails);
-        //}
-   
 
         var poMap = poDetails.ToDictionary(x => x.PoLn, x => x, StringComparer.OrdinalIgnoreCase);
         var processedDate = DateTime.Today;
@@ -222,50 +212,6 @@ public class Repository_InvConv
 
         result.Logs.Add($"{summary.Title} file was created.");
     }
-
-    private static void WritePoSheet(IXLWorksheet ws, List<OpenPoRow> poRows)
-    {
-
-        //var headers = new[]
-        //{
-        //    "PO-Ln", "PoNo", "LnKey", "PODate", "Status", "ItemCode", "UDF_ITEMDESC", "Whse", "QtyOrdered",
-        //    "QtyRcpt", "QtyBalance", "QtyInvoiced", "UnitCost", "LastTotalUnitCost", "StandardUnitCost", "QtyDiscCost", "RequiredDate", "PromiseDate"
-        //};
-
-        //for (var i = 0; i < headers.Length; i++)
-        //{
-        //    ws.Cell(1, i + 1).Value = headers[i];
-        //}
-
-        //ws.Range(1, 1, 1, headers.Length).Style.Font.Bold = true;
-
-        //var row = 2;
-        //foreach (var po in poRows)
-        //{
-        //    ws.Cell(row, 1).Value = po.PoLn;
-        //    ws.Cell(row, 2).Value = po.PoNo;
-        //    ws.Cell(row, 3).Value = po.LnKey;
-        //    ws.Cell(row, 4).Value = po.PoDate;
-        //    ws.Cell(row, 5).Value = po.Status;
-        //    ws.Cell(row, 6).Value = po.ItemCode;
-        //    ws.Cell(row, 7).Value = po.ItemDesc;
-        //    ws.Cell(row, 8).Value = po.Whse;
-        //    ws.Cell(row, 9).Value = po.QtyOrdered;
-        //    ws.Cell(row, 10).Value = po.QtyRcpt;
-        //    ws.Cell(row, 11).Value = po.QtyBalance;
-        //    ws.Cell(row, 12).Value = po.QtyInvoiced;
-        //    ws.Cell(row, 13).Value = po.UnitCost;
-        //    ws.Cell(row, 14).Value = po.LastTotalUnitCost;
-        //    ws.Cell(row, 15).Value = po.StandardUnitCost;
-        //    ws.Cell(row, 16).Value = po.QtyDiscCost;
-        //    ws.Cell(row, 17).Value = po.RequiredDate;
-        //    ws.Cell(row, 18).Value = po.PromiseDate;
-
-        //    row++;
-        //}
-
-        //ws.Columns().AdjustToContents();
-    }
     private static void CreateInvoiceSheet(
             XLWorkbook summaryWorkbook,
             IXLWorksheet sourceSheet,
@@ -280,15 +226,6 @@ public class Repository_InvConv
         ws.Cell("G21").Value = ws.Cell(forRow, 2).GetString();
         // E～F 列の位置に、新しい列を挿入する
         ws.Column(5).InsertColumnsBefore(2);
-
-        //var formattedLastRow = ws.LastRowUsed(XLCellsUsedOptions.All)?.RowNumber()
-        //                       ?? ws.LastRowUsed()?.RowNumber()
-        //                       ?? 24;
-        //for (var row = 1; row <= formattedLastRow; row++)
-        //{
-        //    ws.Cell(row, 5).Style = ws.Cell(row, 7).Style;
-        //    ws.Cell(row, 6).Style = ws.Cell(row, 8).Style;
-        //}
 
         //E24 セルに、文字列 "ITEM CODE" を書き込む
         ws.Cell("E24").Value = "ITEM CODE";
@@ -379,6 +316,8 @@ public class Repository_InvConv
         ws.PageSetup.PagesWide = 1;
         //改ページプレビューモード設定
         ApplyPageBreakPreviewWithRightOffset(sourceSheet, ws, 2);
+        ws.SelectedRanges.Clear();
+        ws.Range("A1").Select();
         ws.Cell("A1").SetActive();
     }
     private static void ApplyPageBreakPreviewWithRightOffset(IXLWorksheet sourceSheet, IXLWorksheet targetSheet, int rightColumnOffset)
