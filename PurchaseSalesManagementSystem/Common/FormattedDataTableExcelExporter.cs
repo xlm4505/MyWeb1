@@ -76,60 +76,55 @@ namespace PurchaseSalesManagementSystem.Common
                 throw new ArgumentException("DataTableはnullまたは空です。");
             }
 
-            using (var workbook = new XLWorkbook())
+            var workbook = new XLWorkbook();
+
+            // ワークシートを追加
+            var worksheet = workbook.Worksheets.Add(dataTable, sheetName);
+
+            // ヘッダー行のスタイルを設定
+            var headerRow = worksheet.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
+            headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            // データ行のスタイル（行ごとに色を変える）
+            for (int i = 0; i < dataTable.Rows.Count; i++)
             {
-                // ワークシートを追加
-                var worksheet = workbook.Worksheets.Add(dataTable, sheetName);
-
-                // ヘッダー行のスタイルを設定
-                var headerRow = worksheet.Row(1);
-                headerRow.Style.Font.Bold = true;
-                headerRow.Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
-                headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
-                // データ行のスタイル（行ごとに色を変える）
-                for (int i = 0; i < dataTable.Rows.Count; i++)
+                var row = worksheet.Row(i + 2);  // ヘッダー行の次から
+                if (i % 2 == 0)
                 {
-                    var row = worksheet.Row(i + 2);  // ヘッダー行の次から
-                    if (i % 2 == 0)
-                    {
-                        row.Style.Fill.BackgroundColor = XLColor.FromArgb(226, 239, 218);
-                    }
-                }
-
-                // 列のデータ型に基づいた書式設定
-                for (int col = 0; col < dataTable.Columns.Count; col++)
-                {
-                    var column = dataTable.Columns[col];
-                    var xlColumn = worksheet.Column(col + 1);
-
-                    if (column.DataType == typeof(DateTime))
-                    {
-                        xlColumn.Style.DateFormat.Format = "mm/dd/yyyy";
-                    }
-                    else if (column.DataType == typeof(decimal) || column.DataType == typeof(double))
-                    {
-                        xlColumn.Style.NumberFormat.Format = "#,##0.00";
-                    }
-                    else if (column.DataType == typeof(int))
-                    {
-                        xlColumn.Style.NumberFormat.Format = "#,##0";
-                    }
-                }
-
-                // 列幅を自動調整
-                worksheet.Columns().AdjustToContents();
-                // ヘッダー行を固定
-                worksheet.SheetView.FreezeRows(1);
-                // 目盛線（グリッド線）を非表示にする
-                worksheet.ShowGridLines = false;
-
-                using (var stream = new MemoryStream())
-                {
-                    workbook.SaveAs(stream);
-                    return workbook;
+                    row.Style.Fill.BackgroundColor = XLColor.FromArgb(226, 239, 218);
                 }
             }
+
+            // 列のデータ型に基づいた書式設定
+            for (int col = 0; col < dataTable.Columns.Count; col++)
+            {
+                var column = dataTable.Columns[col];
+                var xlColumn = worksheet.Column(col + 1);
+
+                if (column.DataType == typeof(DateTime))
+                {
+                    xlColumn.Style.DateFormat.Format = "mm/dd/yyyy";
+                }
+                else if (column.DataType == typeof(decimal) || column.DataType == typeof(double))
+                {
+                    xlColumn.Style.NumberFormat.Format = "#,##0.00";
+                }
+                else if (column.DataType == typeof(int))
+                {
+                    xlColumn.Style.NumberFormat.Format = "#,##0";
+                }
+            }
+
+            // 列幅を自動調整
+            worksheet.Columns().AdjustToContents();
+            // ヘッダー行を固定
+            worksheet.SheetView.FreezeRows(1);
+            // 目盛線（グリッド線）を非表示にする
+            worksheet.ShowGridLines = false;
+
+            return workbook;
         }
         public DataTable ConvertToDataTableFast<T>(IEnumerable<T> list)
 		{
