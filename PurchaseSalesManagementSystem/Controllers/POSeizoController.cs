@@ -1,7 +1,8 @@
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
-using PurchaseSalesManagementSystem.Repository;
+using Microsoft.Data.SqlClient;
 using PurchaseSalesManagementSystem.Models;
+using PurchaseSalesManagementSystem.Repository;
 
 public class POSeizoController : Controller
 {
@@ -298,6 +299,60 @@ public class POSeizoController : Controller
                 );
             }
         }
+    }
+
+    [HttpPost]
+    public IActionResult RunPrint([FromBody] Model_POSeizo_Check model)
+    {
+        var vendorParam = string.IsNullOrEmpty(model.vendor)
+            ? "00-0000000"
+            : model.vendor;
+
+        DateTime entryDate;
+        if (!DateTime.TryParse(model.poEntryDate, out entryDate))
+        {
+            return Json(new
+            {
+                success = false,
+                message = "Invalid PO Entry Date."
+            });
+        }
+
+        var list = vendorParam == "08-0000250"
+            ? _repo.GetPOSeizo_TKF(vendorParam, model.userName, model.orderStatus, model.poEntryDate).ToList()
+            : _repo.GetPOSeizo_ALL(vendorParam, model.userName, model.orderStatus, model.poEntryDate).ToList();
+
+        if (list == null || !list.Any())
+        {
+            return Json(new
+            {
+                success = false,
+                message = "There's no target data.\nPlease check your parameters\nProcess terminated."
+            });
+        }
+
+        if (model.orderStatus == "New")
+        {
+            try
+            {
+                _repo.UpdatePurchaseOrderStatusToOpen(vendorParam, model.userName, entryDate);
+            }
+            catch (SqlException)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Failed to update PO status."
+                });
+            }
+        }
+
+        return Json(new
+        {
+            success = true,
+            message = "Print process completed.",
+            rows = list.Count
+        });
     }
 
     [HttpPost]

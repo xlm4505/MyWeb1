@@ -202,6 +202,36 @@
                 url += `&poEntryDate=${poEntryDate}`;
                 url += `&vendorName=${vendorName}`;
 
+               const shouldPrint = document.getElementById("printOption").checked;
+
+                        if (shouldPrint) {
+                            fetch("/POSeizo/RunPrint", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    vendor: vendor,
+                                    userName: userName,
+                                    orderStatus: orderStatus,
+                                    poEntryDate: poEntryDate
+                                })
+                            })
+                            .then(printRes => printRes.json())
+                            .then(printResult => {
+                                if (!printResult.success) {
+                                    alert(printResult.message || "Print処理に失敗しました。");
+                                    return;
+                                }
+
+                                window.location.href = url;
+                            })
+                            .catch(() => {
+                                alert("Print処理中に通信エラーが発生しました。");
+                            });
+
+                            return;
+                        }
                 window.location.href = url;
             })
             .catch(() => {

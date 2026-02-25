@@ -243,5 +243,35 @@ namespace PurchaseSalesManagementSystem.Repository
             return result;
         }
 
+        public int UpdatePurchaseOrderStatusToOpen(string vendorNo, string userName, DateTime entryDate)
+        {
+            string sql = @"
+            UPDATE h
+               SET h.OrderStatus = 'O'
+              FROM PO_PurchaseOrderHeader h
+              LEFT JOIN MAS_SYSTEM.dbo.SY_User u
+                ON u.UserKey = h.UserCreatedKey
+             WHERE h.DateCreated = @EntryDate
+               AND h.OrderStatus = 'N'
+               AND (u.FirstName + ' ' + u.LastName) = @UserName
+               AND (@VendorCode = '00-0000000'
+                    OR (h.APDivisionNo + '-' + h.VendorNo) = @VendorCode);";
+
+            using (var conn = _connectionFactory.GetConnection())
+            {
+                conn.Open();
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@EntryDate", entryDate.Date);
+                    cmd.Parameters.AddWithValue("@UserName", userName);
+                    cmd.Parameters.AddWithValue("@VendorCode", vendorNo);
+
+                    return cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+
     }
 }
