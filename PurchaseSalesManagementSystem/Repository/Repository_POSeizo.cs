@@ -245,28 +245,14 @@ namespace PurchaseSalesManagementSystem.Repository
 
         public int UpdatePurchaseOrderStatusToOpen(string vendorNo, string userName, DateTime entryDate)
         {
-            string vendorCon = "";
-            if ("99-9999999".Equals(vendorNo))
-            {
-                vendorCon = " AND PO_PurchaseOrderHeader.APDivisionNo + '-' + PO_PurchaseOrderHeader.VendorNo NOT IN ('06-0000200','08-0000350','08-0000250','14-0000300','10-0000500','08-0000220') ";
-            }
-            else if ("00-0000000".Equals(vendorNo))
-            {
-                vendorCon = "";
-            }
-            else
-            {
-                vendorCon = " AND PO_PurchaseOrderHeader.APDivisionNo + '-' + PO_PurchaseOrderHeader.VendorNo = '" + vendorNo + "' ";
-            }
-            string sql = @"
-            UPDATE PO_PurchaseOrderHeader
-               SET OrderStatus = 'O'
-              FROM PO_PurchaseOrderHeader
-              LEFT JOIN SY_User
-                ON SY_User.UserKey = PO_PurchaseOrderHeader.UserCreatedKey
-             WHERE PO_PurchaseOrderHeader.DateCreated = @EntryDate
-               AND OrderStatus = 'N'
-               AND (FirstName + ' ' + LastName) = @UserName" + vendorCon;
+            string sqlPath = Path.Combine(
+                _env.ContentRootPath,
+                "SQL",
+                "POSeizo",
+                "UpdatePurchaseOrderStatusToOpen.sql"
+            );
+
+            var sql = File.ReadAllText(sqlPath);
 
             using (var conn = _connectionFactory.GetConnection())
             {
