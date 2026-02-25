@@ -1,8 +1,10 @@
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
 using PurchaseSalesManagementSystem.Repository;
+using System.Data;
 using System.Diagnostics;
 
 public class POSeizoController : Controller
@@ -42,10 +44,8 @@ public class POSeizoController : Controller
         string poEntryDate,
         string vendorName)
     {
-        // Vendor が空 → ALL Vendors
         var vendorParam = string.IsNullOrEmpty(vendor) ? "00-0000000" : vendor;
 
-        // SQL 実行
         var list = _repo.GetPOSeizo_TKF(
             vendorParam,
             userName,
@@ -53,94 +53,16 @@ public class POSeizoController : Controller
             poEntryDate
         ).ToList();
 
-        using (var wb = new XLWorkbook())
-        {
-            var ws = wb.Worksheets.Add("PO Seizo");
+        var exportToExcel = new FormattedDataTableExcelExporter();
+        var dt = CreateTkfDataTable(list);
+        var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "PO Seizo");
 
-            int col = 1;
-
-            // ヘッダー
-            ws.Cell(1, col++).Value = "PO";
-            ws.Cell(1, col++).Value = "Unit";
-            ws.Cell(1, col++).Value = "Item Code";
-            ws.Cell(1, col++).Value = "Description";
-            ws.Cell(1, col++).Value = "Customer Part Number";
-            ws.Cell(1, col++).Value = "Customer";
-            ws.Cell(1, col++).Value = "WH Code";
-            ws.Cell(1, col++).Value = "Required Delivery Date";
-            ws.Cell(1, col++).Value = "Ordered Q'ty";
-            ws.Cell(1, col++).Value = "Unit Price";
-            ws.Cell(1, col++).Value = "Amount";
-
-            ws.Range(1, 1, 1, col - 1).Style
-                .Font.SetBold()
-                .Fill.SetBackgroundColor(XLColor.FromArgb(242, 242, 242))
-                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-
-            int row = 2;
-
-            foreach (var d in list)
-            {
-                col = 1;
-
-                ws.Cell(row, col++).Value = d.PO;
-                ws.Cell(row, col++).Value = d.Unit;
-                ws.Cell(row, col++).Value = d.ItemCode;
-                ws.Cell(row, col++).Value = d.Description;
-                ws.Cell(row, col++).Value = d.CustomerPartNumber;
-                ws.Cell(row, col++).Value = d.Customer;
-                ws.Cell(row, col++).Value = d.WHCode;
-
-                ws.Cell(row, col++).Value = d.RequiredDeliveryDate;
-                ws.Cell(row, col).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-
-                ws.Cell(row, col++).Value = d.OrderedQty ?? 0;
-                ws.Cell(row, col++).Value = d.UnitPrice ?? 0;
-                ws.Cell(row, col++).Value = d.Amount ?? 0;
-
-                row++;
-            }
-
-            ws.ShowGridLines = false;
-            var header = ws.Range("A1:K1");
-            header.Style.Font.Bold = true;
-            header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            header.Style.Border.BottomBorder = XLBorderStyleValues.Medium;
-            header.Style.Border.BottomBorderColor = XLColor.Black;
-            header.Style.Fill.BackgroundColor = XLColor.FromArgb(242, 242, 242);
-            var lastRow = ws.LastRowUsed().RowNumber();
-            var bodyRange = ws.Range($"A2:K{lastRow}");
-            var borderColor = XLColor.FromArgb(208, 215, 229);
-
-            bodyRange.Style.Border.LeftBorder = XLBorderStyleValues.Thin;
-            bodyRange.Style.Border.RightBorder = XLBorderStyleValues.Thin;
-            bodyRange.Style.Border.TopBorder = XLBorderStyleValues.Thin;
-            bodyRange.Style.Border.BottomBorder = XLBorderStyleValues.Thin;
-            bodyRange.Style.Border.LeftBorderColor = borderColor;
-            bodyRange.Style.Border.RightBorderColor = borderColor;
-            bodyRange.Style.Border.InsideBorderColor = borderColor;
-            ws.SheetView.FreezeRows(1);
-            ws.Column("H").Style.DateFormat.Format = "MM/dd/yyyy";
-            ws.Columns("J:K").Style.NumberFormat.Format = "#,##0.00";
-            ws.Style.Font.FontName = "Calibri";
-            ws.Style.Font.FontSize = 10;
-            ws.Style.Font.FontName = "Calibri";
-            ws.Style.Font.FontSize = 10;
-            ws.Columns().AdjustToContents();
-            ws.Rows().AdjustToContents();
-
-            using (var stream = new MemoryStream())
-            {
-                wb.SaveAs(stream);
-                return File(
-                    stream.ToArray(),
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    $"{"PO_SeizoExport ["}{vendorName}{"]"}_{DateTime.Now:yyMMdd_HHmmss}.xlsx"
-                );
-            }
-        }
+        return File(
+            excelBytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"{"PO_SeizoExport ["}{vendorName}{"]"}_{DateTime.Now:yyMMdd_HHmmss}.xlsx"
+        );
     }
-
 
     [HttpGet]
     public IActionResult ExportToExcel_ALL(
@@ -164,142 +86,109 @@ public class POSeizoController : Controller
             poEntryDate
         ).ToList();
 
-        using (var wb = new XLWorkbook())
+        var exportToExcel = new FormattedDataTableExcelExporter();
+        var dt = CreateAllDataTable(list);
+        var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "PO Seizo");
+
+        return File(
+            excelBytes,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            $"{"PO_SeizoExport ["}{vendorName}{"]"}_{DateTime.Now:yyMMdd_HHmmss}.xlsx"
+        );
+    }
+
+    private DataTable CreateTkfDataTable(IEnumerable<Model_POSeizo_TKF> list)
+    {
+        DataTable dt = new DataTable();
+        dt.Columns.Add("PO", typeof(string));
+        dt.Columns.Add("Unit", typeof(string));
+        dt.Columns.Add("Item Code", typeof(string));
+        dt.Columns.Add("Description", typeof(string));
+        dt.Columns.Add("Customer Part Number", typeof(string));
+        dt.Columns.Add("Customer", typeof(string));
+        dt.Columns.Add("WH Code", typeof(string));
+        dt.Columns.Add("Required Delivery Date", typeof(DateTime));
+        dt.Columns.Add("Ordered Q'ty", typeof(decimal));
+        dt.Columns.Add("Unit Price", typeof(decimal));
+        dt.Columns.Add("Amount", typeof(decimal));
+
+        foreach (var d in list)
         {
-            var ws = wb.Worksheets.Add("PO Seizo");
-
-            int col = 1;
-
-            // ============================
-            // ヘッダー（通常版 全カラム）
-            // ============================
-            ws.Cell(1, col++).Value = "No";
-            ws.Cell(1, col++).Value = "ItemCode";
-            ws.Cell(1, col++).Value = "Desc";
-            ws.Cell(1, col++).Value = "PartNumber";
-            ws.Cell(1, col++).Value = "Unit";
-            ws.Cell(1, col++).Value = "RequiredDate";
-            ws.Cell(1, col++).Value = "EstDeliveryDate";
-            ws.Cell(1, col++).Value = "QuantityOrdered";
-            ws.Cell(1, col++).Value = "UnitCost";
-            ws.Cell(1, col++).Value = "ExtensionAmt";
-            ws.Cell(1, col++).Value = "SalesOffice";
-            ws.Cell(1, col++).Value = "SalesClass";
-            ws.Cell(1, col++).Value = "Customer";
-            ws.Cell(1, col++).Value = "EndCustmer";
-            ws.Cell(1, col++).Value = "ShipTo";
-            ws.Cell(1, col++).Value = "PO";
-            ws.Cell(1, col++).Value = "Line";
-            ws.Cell(1, col++).Value = "Factory";
-            ws.Cell(1, col++).Value = "Filled";
-            ws.Cell(1, col++).Value = "Confirmed";
-            ws.Cell(1, col++).Value = "Approved";
-            ws.Cell(1, col++).Value = "DateApproved";
-            ws.Cell(1, col++).Value = "Production ControlNotice";
-
-            // ヘッダー
-            ws.Range(1, 1, 1, col - 1).Style
-                .Font.SetBold()
-                .Fill.SetBackgroundColor(XLColor.FromArgb(242, 242, 242))
-                .Alignment.SetHorizontal(XLAlignmentHorizontalValues.Center);
-
-            // ============================
-            // データ行
-            // ============================
-            int row = 2;
-
-            foreach (var d in list)
-            {
-                col = 1;
-
-                ws.Cell(row, col++).Value = d.No;
-
-                ws.Cell(row, col++).Value = d.ItemCode;
-                ws.Cell(row, col++).Value = d.Desc;
-                ws.Cell(row, col++).Value = d.PartNumber;
-                ws.Cell(row, col++).Value = d.Unit;
-
-                ws.Cell(row, col++).Value = d.RequiredDate;
-
-                ws.Cell(row, col++).Value = d.EstDeliveryDate;
-
-                ws.Cell(row, col++).Value = d.QuantityOrdered ?? 0;
-                ws.Cell(row, col++).Value = d.UnitCost ?? 0;
-                ws.Cell(row, col++).Value = d.ExtensionAmt ?? 0;
-
-                ws.Cell(row, col++).Value = d.SalesOffice;
-                ws.Cell(row, col++).Value = d.SalesClass;
-
-                ws.Cell(row, col++).Value = d.Customer;
-                ws.Cell(row, col++).Value = d.EndCustmer;
-                ws.Cell(row, col++).Value = d.ShipTo;
-
-                ws.Cell(row, col++).Value = d.PO;
-                ws.Cell(row, col++).Value = d.Line;
-
-                ws.Cell(row, col++).Value = d.Factory;
-
-                ws.Cell(row, col++).Value = d.Filled;
-                ws.Cell(row, col++).Value = d.Confirmed;
-                ws.Cell(row, col++).Value = d.Approved;
-
-                ws.Cell(row, col++).Value = d.DateApproved;
-
-                ws.Cell(row, col++).Value = d.ProductionControlNotice;
-
-                row++;
-            }
-
-            ws.ShowGridLines = false;
-            var header = ws.Range("A1:Y1");
-            header.Style.Font.Bold = true;
-            header.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            header.Style.Border.BottomBorder = XLBorderStyleValues.Medium;
-            header.Style.Border.BottomBorderColor = XLColor.Black;
-            header.Style.Fill.BackgroundColor = XLColor.FromArgb(242, 242, 242);
-            var lastRow = ws.LastRowUsed().RowNumber();
-            var bodyRange = ws.Range($"A2:Y{lastRow}");
-            var borderColor = XLColor.FromArgb(208, 215, 229);
-
-            bodyRange.Style.Border.LeftBorder = XLBorderStyleValues.Thin;
-            bodyRange.Style.Border.RightBorder = XLBorderStyleValues.Thin;
-            bodyRange.Style.Border.TopBorder = XLBorderStyleValues.Thin;
-            bodyRange.Style.Border.BottomBorder = XLBorderStyleValues.Thin;
-
-            bodyRange.Style.Border.LeftBorderColor = borderColor;
-            bodyRange.Style.Border.RightBorderColor = borderColor;
-            bodyRange.Style.Border.InsideBorderColor = borderColor;
-
-            ws.SheetView.FreezeRows(1);
-            ws.Column("F").Style.DateFormat.Format = "MM/dd/yyyy";
-            ws.Column("V").Style.NumberFormat.Format = "[$-en-US]dd-MMM-yy";
-            ws.Column("X").Style.DateFormat.Format = "MM/dd/yyyy";
-            if (vendorParam == "06-0000200")
-            {
-                ws.Columns("I:J").Style.NumberFormat.Format = "#,##0";
-            }
-            else
-            {
-                ws.Columns("I:J").Style.NumberFormat.Format = "#,##0.00";
-            }
-
-            ws.Style.Font.FontName = "Calibri";
-            ws.Style.Font.FontSize = 10;
-
-            ws.Columns().AdjustToContents();
-            ws.Rows().AdjustToContents();
-
-            using (var stream = new MemoryStream())
-            {
-                wb.SaveAs(stream);
-
-                return File(
-                    stream.ToArray(),
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    $"{"PO_SeizoExport ["}{vendorName}{"]"}_{DateTime.Now:yyMMdd_HHmmss}.xlsx"
-                );
-            }
+            dt.Rows.Add(
+                d.PO,
+                d.Unit,
+                d.ItemCode,
+                d.Description,
+                d.CustomerPartNumber,
+                d.Customer,
+                d.WHCode,
+                d.RequiredDeliveryDate,
+                d.OrderedQty ?? 0,
+                d.UnitPrice ?? 0,
+                d.Amount ?? 0
+            );
         }
+
+        return dt;
+    }
+
+    private DataTable CreateAllDataTable(IEnumerable<Model_POSeizo_ALL> list)
+    {
+        DataTable dt = new DataTable();
+        dt.Columns.Add("No", typeof(decimal));
+        dt.Columns.Add("ItemCode", typeof(string));
+        dt.Columns.Add("Desc", typeof(string));
+        dt.Columns.Add("PartNumber", typeof(string));
+        dt.Columns.Add("Unit", typeof(string));
+        dt.Columns.Add("RequiredDate", typeof(DateTime));
+        dt.Columns.Add("EstDeliveryDate", typeof(string));
+        dt.Columns.Add("QuantityOrdered", typeof(decimal));
+        dt.Columns.Add("UnitCost", typeof(decimal));
+        dt.Columns.Add("ExtensionAmt", typeof(decimal));
+        dt.Columns.Add("SalesOffice", typeof(string));
+        dt.Columns.Add("SalesClass", typeof(string));
+        dt.Columns.Add("Customer", typeof(string));
+        dt.Columns.Add("EndCustmer", typeof(string));
+        dt.Columns.Add("ShipTo", typeof(string));
+        dt.Columns.Add("PO", typeof(string));
+        dt.Columns.Add("Line", typeof(string));
+        dt.Columns.Add("Factory", typeof(string));
+        dt.Columns.Add("Filled", typeof(string));
+        dt.Columns.Add("Confirmed", typeof(string));
+        dt.Columns.Add("Approved", typeof(string));
+        dt.Columns.Add("DateApproved", typeof(DateTime));
+        dt.Columns.Add("Production ControlNotice", typeof(string));
+
+        foreach (var d in list)
+        {
+            dt.Rows.Add(
+                d.No,
+                d.ItemCode,
+                d.Desc,
+                d.PartNumber,
+                d.Unit,
+                d.RequiredDate,
+                d.EstDeliveryDate,
+                d.QuantityOrdered ?? 0,
+                d.UnitCost ?? 0,
+                d.ExtensionAmt ?? 0,
+                d.SalesOffice,
+                d.SalesClass,
+                d.Customer,
+                d.EndCustmer,
+                d.ShipTo,
+                d.PO,
+                d.Line,
+                d.Factory,
+                d.Filled,
+                d.Confirmed,
+                d.Approved,
+                d.DateApproved,
+                d.ProductionControlNotice
+            );
+        }
+
+        return dt;
     }
 
     [HttpPost]
@@ -339,65 +228,65 @@ public class POSeizoController : Controller
         try
         {
             string crystalReportNinja = @"P:\\IT\\Tools\\CrystalReportsNinja";
-        string reportPath = @"P:\\IT\\Crystal\\PO_PurchaseOrder3_Auto.rpt";
-        string newOrder = model.orderStatus == "New" ? "True" : "False";
+            string reportPath = @"P:\\IT\\Crystal\\PO_PurchaseOrder3_Auto.rpt";
+            string newOrder = model.orderStatus == "New" ? "True" : "False";
 
-        string arguments =
-            $"-S VMP-10 " +
-            $"-D MAS_FOA " +
-            $"-U MAS_REPORTS " +
-            $"-P Reporting1 " +
-            $"-F \"{reportPath}\" " +
-            $"-O \"{outputPath}\" " +
-            $"-E pdf " +
-            $"-a \"Entry Date:{model.poEntryDate}\" " +
-            $"-a \"User Name:{model.userName}\" " +
-            $"-a \"New Order:{newOrder}\" " +
-            $"-a \"Vendor Code:{model.vendor}\"";
+            string arguments =
+                $"-S VMP-10 " +
+                $"-D MAS_FOA " +
+                $"-U MAS_REPORTS " +
+                $"-P Reporting1 " +
+                $"-F \"{reportPath}\" " +
+                $"-O \"{outputPath}\" " +
+                $"-E pdf " +
+                $"-a \"Entry Date:{model.poEntryDate}\" " +
+                $"-a \"User Name:{model.userName}\" " +
+                $"-a \"New Order:{newOrder}\" " +
+                $"-a \"Vendor Code:{model.vendor}\"";
 
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = crystalReportNinja,
-            Arguments = arguments,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            CreateNoWindow = true
-        };
-
-        using var process = Process.Start(startInfo);
-        if (process == null)
-        {
-            return StatusCode(500, new
+            var startInfo = new ProcessStartInfo
             {
-                success = false,
-                message = "Failed to start Crystal Reports process."
-            });
-        }
+                FileName = crystalReportNinja,
+                Arguments = arguments,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
 
-        process.WaitForExit();
-
-        if (process.ExitCode != 0 || !System.IO.File.Exists(outputPath))
-        {
-            string error = process.StandardError.ReadToEnd();
-            return StatusCode(500, new
+            using var process = Process.Start(startInfo);
+            if (process == null)
             {
-                success = false,
-                message = $"PDF creation failed. {error}".Trim()
-            });
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Failed to start Crystal Reports process."
+                });
+            }
+
+            process.WaitForExit();
+
+            if (process.ExitCode != 0 || !System.IO.File.Exists(outputPath))
+            {
+                string error = process.StandardError.ReadToEnd();
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = $"PDF creation failed. {error}".Trim()
+                });
+            }
+
+            byte[] pdfBytes = System.IO.File.ReadAllBytes(outputPath);
+            System.IO.File.Delete(outputPath);
+
+            return File(pdfBytes, "application/pdf", outputFileName);
         }
-
-        byte[] pdfBytes = System.IO.File.ReadAllBytes(outputPath);
-        System.IO.File.Delete(outputPath);
-
-        return File(pdfBytes, "application/pdf", outputFileName);
-    }
         catch (Exception ex)
         {
             return StatusCode(500, new
             {
                 success = false,
-                message = $"Print処理に失敗しました: {ex.Message}"
+                message = $"Print: {ex.Message}"
             });
         }
     }
