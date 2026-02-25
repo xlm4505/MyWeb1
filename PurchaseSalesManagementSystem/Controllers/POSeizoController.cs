@@ -304,9 +304,9 @@ public class POSeizoController : Controller
     [HttpPost]
     public IActionResult RunPrint([FromBody] Model_POSeizo_Check model)
     {
-        var vendorParam = string.IsNullOrEmpty(model.vendor)
-            ? "00-0000000"
-            : model.vendor;
+        //var vendorParam = string.IsNullOrEmpty(model.vendor)
+        //    ? "00-0000000"
+        //    : model.vendor;
 
         DateTime entryDate;
         if (!DateTime.TryParse(model.poEntryDate, out entryDate))
@@ -318,24 +318,28 @@ public class POSeizoController : Controller
             });
         }
 
-        var list = vendorParam == "08-0000250"
-            ? _repo.GetPOSeizo_TKF(vendorParam, model.userName, model.orderStatus, model.poEntryDate).ToList()
-            : _repo.GetPOSeizo_ALL(vendorParam, model.userName, model.orderStatus, model.poEntryDate).ToList();
+        //var list = vendorParam == "08-0000250"
+        //    ? _repo.GetPOSeizo_TKF(vendorParam, model.userName, model.orderStatus, model.poEntryDate)
+        //        .Select(x => (object)x)
+        //        .ToList()
+        //    : _repo.GetPOSeizo_ALL(vendorParam, model.userName, model.orderStatus, model.poEntryDate)
+        //        .Select(x => (object)x)
+        //        .ToList();
 
-        if (list == null || !list.Any())
-        {
-            return Json(new
-            {
-                success = false,
-                message = "There's no target data.\nPlease check your parameters\nProcess terminated."
-            });
-        }
+        //if (list == null || !list.Any())
+        //{
+        //    return Json(new
+        //    {
+        //        success = false,
+        //        message = "There's no target data.\nPlease check your parameters\nProcess terminated."
+        //    });
+        //}
 
         if (model.orderStatus == "New")
         {
             try
             {
-                _repo.UpdatePurchaseOrderStatusToOpen(vendorParam, model.userName, entryDate);
+                _repo.UpdatePurchaseOrderStatusToOpen(model.vendor, model.userName, entryDate);
             }
             catch (SqlException)
             {
@@ -351,7 +355,7 @@ public class POSeizoController : Controller
         {
             success = true,
             message = "Print process completed.",
-            rows = list.Count
+            //rows = list.Count
         });
     }
 
