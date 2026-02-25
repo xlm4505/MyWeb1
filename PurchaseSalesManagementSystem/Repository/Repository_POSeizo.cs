@@ -135,7 +135,7 @@ namespace PurchaseSalesManagementSystem.Repository
 
                                 OrderedQty = r.IsDBNull(r.GetOrdinal("OrderedQty"))
                                     ? null
-                                    : r.GetDecimal(r.GetOrdinal("OrderedQty")),
+                                    : (int)r.GetDecimal(r.GetOrdinal("OrderedQty")),
 
                                 UnitPrice = r.IsDBNull(r.GetOrdinal("UnitPrice"))
                                     ? null
@@ -154,7 +154,7 @@ namespace PurchaseSalesManagementSystem.Repository
             return result;
         }
 
-        public IEnumerable<Model_POSeizo_ALL> GetPOSeizo_ALL(string vendorNo, string userName, string orderStatus, string poEntryDate )
+        public IEnumerable<Model_POSeizo_ALL> GetPOSeizo_ALL(string vendorNo, string userName, string orderStatus, string poEntryDate)
         {
             var result = new List<Model_POSeizo_ALL>();
 
@@ -186,7 +186,7 @@ namespace PurchaseSalesManagementSystem.Repository
                             {
                                 No = r.IsDBNull(r.GetOrdinal("No"))
                                     ? null
-                                    : r.GetDecimal(r.GetOrdinal("No")),
+                                    : (int)r.GetDecimal(r.GetOrdinal("No")),
 
                                 ItemCode = r["ItemCode"] as string ?? "",
                                 Desc = r["Desc"] as string ?? "",
@@ -203,7 +203,7 @@ namespace PurchaseSalesManagementSystem.Repository
 
                                 QuantityOrdered = r.IsDBNull(r.GetOrdinal("QuantityOrdered"))
                                     ? null
-                                    : r.GetDecimal(r.GetOrdinal("QuantityOrdered")),
+                                    : (int)r.GetDecimal(r.GetOrdinal("QuantityOrdered")),
 
                                 UnitCost = r.IsDBNull(r.GetOrdinal("UnitCost"))
                                     ? null
@@ -249,14 +249,16 @@ namespace PurchaseSalesManagementSystem.Repository
             if ("99-9999999".Equals(vendorNo))
             {
                 vendorCon = " AND PO_PurchaseOrderHeader.APDivisionNo + '-' + PO_PurchaseOrderHeader.VendorNo NOT IN ('06-0000200','08-0000350','08-0000250','14-0000300','10-0000500','08-0000220') ";
-            } else if ("00-0000000".Equals(vendorNo))
+            }
+            else if ("00-0000000".Equals(vendorNo))
             {
                 vendorCon = "";
-            } else
+            }
+            else
             {
                 vendorCon = " AND PO_PurchaseOrderHeader.APDivisionNo + '-' + PO_PurchaseOrderHeader.VendorNo = '" + vendorNo + "' ";
             }
-                string sql = @"
+            string sql = @"
             UPDATE PO_PurchaseOrderHeader
                SET OrderStatus = 'O'
               FROM PO_PurchaseOrderHeader

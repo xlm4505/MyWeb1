@@ -101,13 +101,6 @@
                     const vendorSelect = document.getElementById("vendorCode");
                     vendorSelect.innerHTML = "";
 
-                    // // ★ 先頭に ALL Vendors を追加
-                    // const allOpt = document.createElement("option");
-                    // allOpt.value = "00-0000000";
-                    // allOpt.textContent = "00-0000000";
-                    // allOpt.dataset.name = "ALL Vendors";
-                    // vendorSelect.appendChild(allOpt);
-
                     // DB Vendor を追加
                     data.forEach(v => {
                         const opt = document.createElement("option");
@@ -153,7 +146,7 @@
         async function downloadFromGetUrl(url) {
             const response = await fetch(url);
             if (!response.ok) {
-                throw new Error("Excelファイルのダウンロードに失敗しました。");
+                throw new Error("Failed to download the Excel file.");
             }
 
             const blob = await response.blob();
@@ -173,7 +166,7 @@
             });
 
             if (!response.ok) {
-                let errorMessage = "Print処理に失敗しました。";
+                let errorMessage = "The print process failed.";
                 try {
                     const json = await response.json();
                     if (json?.message) {
@@ -263,7 +256,7 @@
                     });
                 }
             } catch (error) {
-                alert(error?.message || "通信エラーが発生しました。");
+                alert(error?.message || "A communication error has occurred.");
             }
         });
     </script>
