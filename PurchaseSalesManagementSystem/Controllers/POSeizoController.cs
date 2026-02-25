@@ -108,7 +108,7 @@ public class POSeizoController : Controller
         dt.Columns.Add("Customer", typeof(string));
         dt.Columns.Add("WH Code", typeof(string));
         dt.Columns.Add("Required Delivery Date", typeof(DateTime));
-        dt.Columns.Add("Ordered Q'ty", typeof(decimal));
+        dt.Columns.Add("Ordered Q'ty", typeof(int));
         dt.Columns.Add("Unit Price", typeof(decimal));
         dt.Columns.Add("Amount", typeof(decimal));
 
@@ -135,14 +135,14 @@ public class POSeizoController : Controller
     private DataTable CreateAllDataTable(IEnumerable<Model_POSeizo_ALL> list)
     {
         DataTable dt = new DataTable();
-        dt.Columns.Add("No", typeof(decimal));
+        dt.Columns.Add("No", typeof(int));
         dt.Columns.Add("ItemCode", typeof(string));
         dt.Columns.Add("Desc", typeof(string));
         dt.Columns.Add("PartNumber", typeof(string));
         dt.Columns.Add("Unit", typeof(string));
         dt.Columns.Add("RequiredDate", typeof(DateTime));
         dt.Columns.Add("EstDeliveryDate", typeof(string));
-        dt.Columns.Add("QuantityOrdered", typeof(decimal));
+        dt.Columns.Add("QuantityOrdered", typeof(int));
         dt.Columns.Add("UnitCost", typeof(decimal));
         dt.Columns.Add("ExtensionAmt", typeof(decimal));
         dt.Columns.Add("SalesOffice", typeof(string));
