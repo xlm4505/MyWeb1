@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using PurchaseSalesManagementSystem.Models;
 using PurchaseSalesManagementSystem.Repository;
+using System.Diagnostics;
 
 public class POSeizoController : Controller
 {
@@ -304,36 +305,15 @@ public class POSeizoController : Controller
     [HttpPost]
     public IActionResult RunPrint([FromBody] Model_POSeizo_Check model)
     {
-        //var vendorParam = string.IsNullOrEmpty(model.vendor)
-        //    ? "00-0000000"
-        //    : model.vendor;
+        if (!DateTime.TryParse(model.poEntryDate, out DateTime entryDate))
 
-        DateTime entryDate;
-        if (!DateTime.TryParse(model.poEntryDate, out entryDate))
         {
-            return Json(new
+            return BadRequest(new
             {
                 success = false,
                 message = "Invalid PO Entry Date."
             });
         }
-
-        //var list = vendorParam == "08-0000250"
-        //    ? _repo.GetPOSeizo_TKF(vendorParam, model.userName, model.orderStatus, model.poEntryDate)
-        //        .Select(x => (object)x)
-        //        .ToList()
-        //    : _repo.GetPOSeizo_ALL(vendorParam, model.userName, model.orderStatus, model.poEntryDate)
-        //        .Select(x => (object)x)
-        //        .ToList();
-
-        //if (list == null || !list.Any())
-        //{
-        //    return Json(new
-        //    {
-        //        success = false,
-        //        message = "There's no target data.\nPlease check your parameters\nProcess terminated."
-        //    });
-        //}
 
         if (model.orderStatus == "New")
         {
@@ -343,7 +323,7 @@ public class POSeizoController : Controller
             }
             catch (SqlException)
             {
-                return Json(new
+                return StatusCode(500, new
                 {
                     success = false,
                     message = "Failed to update PO status."
@@ -351,12 +331,75 @@ public class POSeizoController : Controller
             }
         }
 
-        return Json(new
+        string vendorDisplay = string.IsNullOrWhiteSpace(model.vendorName) ? model.vendor : model.vendorName;
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        string outputFileName = $"PurchaseOrder [{vendorDisplay}]_{timestamp}.pdf";
+        string outputPath = Path.Combine(Path.GetTempPath(), outputFileName);
+
+        try
         {
-            success = true,
-            message = "Print process completed.",
-            //rows = list.Count
-        });
+            string crystalReportNinja = @"P:\\IT\\Tools\\CrystalReportsNinja";
+        string reportPath = @"P:\\IT\\Crystal\\PO_PurchaseOrder3_Auto.rpt";
+        string newOrder = model.orderStatus == "New" ? "True" : "False";
+
+        string arguments =
+            $"-S VMP-10 " +
+            $"-D MAS_FOA " +
+            $"-U MAS_REPORTS " +
+            $"-P Reporting1 " +
+            $"-F \"{reportPath}\" " +
+            $"-O \"{outputPath}\" " +
+            $"-E pdf " +
+            $"-a \"Entry Date:{model.poEntryDate}\" " +
+            $"-a \"User Name:{model.userName}\" " +
+            $"-a \"New Order:{newOrder}\" " +
+            $"-a \"Vendor Code:{model.vendor}\"";
+
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = crystalReportNinja,
+            Arguments = arguments,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+
+        using var process = Process.Start(startInfo);
+        if (process == null)
+        {
+            return StatusCode(500, new
+            {
+                success = false,
+                message = "Failed to start Crystal Reports process."
+            });
+        }
+
+        process.WaitForExit();
+
+        if (process.ExitCode != 0 || !System.IO.File.Exists(outputPath))
+        {
+            string error = process.StandardError.ReadToEnd();
+            return StatusCode(500, new
+            {
+                success = false,
+                message = $"PDF creation failed. {error}".Trim()
+            });
+        }
+
+        byte[] pdfBytes = System.IO.File.ReadAllBytes(outputPath);
+        System.IO.File.Delete(outputPath);
+
+        return File(pdfBytes, "application/pdf", outputFileName);
+    }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                success = false,
+                message = $"PrintèàóùÇ…é∏îsÇµÇ‹ÇµÇΩ: {ex.Message}"
+            });
+        }
     }
 
     [HttpPost]

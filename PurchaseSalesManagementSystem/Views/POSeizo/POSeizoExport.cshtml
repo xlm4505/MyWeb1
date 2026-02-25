@@ -150,14 +150,67 @@
                 });
         }
 
-        // RUN → サーバー側 Excel 出力
-        document.getElementById("btnRun").addEventListener("click", () => {
+        async function downloadFromGetUrl(url) {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error("Excelファイルのダウンロードに失敗しました。");
+            }
 
+            const blob = await response.blob();
+            const disposition = response.headers.get("content-disposition") || "";
+            const fileNameMatch = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+            const decodedFileName = fileNameMatch ? decodeURIComponent(fileNameMatch[1]) : "PO_SeizoExport.xlsx";
+            triggerDownload(blob, decodedFileName);
+        }
+
+        async function downloadFromPostUrl(url, payload) {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                let errorMessage = "Print処理に失敗しました。";
+                try {
+                    const json = await response.json();
+                    if (json?.message) {
+                        errorMessage = json.message;
+                    }
+                } catch {
+                    // no-op
+                }
+                throw new Error(errorMessage);
+            }
+
+            const blob = await response.blob();
+            const disposition = response.headers.get("content-disposition") || "";
+            const fileNameMatch = disposition.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+            const decodedFileName = fileNameMatch ? decodeURIComponent(fileNameMatch[1]) : "PurchaseOrder.pdf";
+            triggerDownload(blob, decodedFileName);
+        }
+
+        function triggerDownload(blob, fileName) {
+            const blobUrl = URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = blobUrl;
+            anchor.download = fileName;
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            URL.revokeObjectURL(blobUrl);
+        }
+
+        // RUN → サーバー側で必要ファイルを作成してダウンロード
+        document.getElementById("btnRun").addEventListener("click", async () => {
             const vendor = document.getElementById("vendorCode").value;
             const userName = document.getElementById("userName").value;
             const orderStatus = document.getElementById("orderStatus").value;
             const poEntryDate = document.getElementById("poDate").value;
             const vendorName = document.getElementById("vendorName").value;
+            const shouldPrint = document.getElementById("printOption").checked;
 
             let actionUrl = "";
             let checkUrl = "";
@@ -169,74 +222,49 @@
                 checkUrl = "/POSeizo/CheckData_ALL";
             }
 
+            try {
+                const checkResponse = await fetch(checkUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        vendor: vendor,
+                        userName: userName,
+                        orderStatus: orderStatus,
+                        poEntryDate: poEntryDate
+                    })
+                });
 
-            fetch(checkUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    vendor: vendor,
-                    userName: userName,
-                    orderStatus: orderStatus,
-                    poEntryDate: poEntryDate
-                })
-            })
-            .then(res => res.json())
-            .then(res => {
-                if (!res.success) {
-                    // ★ ② データがない場合
-                    alert(res.message);
+                const checkResult = await checkResponse.json();
+                if (!checkResult.success) {
+                    alert(checkResult.message);
                     return;
                 }
 
-                // ★ ③ データがある場合 → ダウンロード実行
-                let url = `${actionUrl}?reportName=POSeizo`;
-
+                let excelUrl = `${actionUrl}?reportName=POSeizo`;
                 if (vendor !== "00-0000000") {
-                    url += `&vendor=${vendor}`;
+                    excelUrl += `&vendor=${vendor}`;
                 }
+                excelUrl += `&userName=${encodeURIComponent(userName)}`;
+                excelUrl += `&orderStatus=${orderStatus}`;
+                excelUrl += `&poEntryDate=${poEntryDate}`;
+                excelUrl += `&vendorName=${encodeURIComponent(vendorName)}`;
 
-                url += `&userName=${encodeURIComponent(userName)}`;
-                url += `&orderStatus=${orderStatus}`;
-                url += `&poEntryDate=${poEntryDate}`;
-                url += `&vendorName=${vendorName}`;
+                await downloadFromGetUrl(excelUrl);
 
-               const shouldPrint = document.getElementById("printOption").checked;
-
-                        if (shouldPrint) {
-                            fetch("/POSeizo/RunPrint", {
-                                method: "POST",
-                                headers: {
-                                    "Content-Type": "application/json"
-                                },
-                                body: JSON.stringify({
-                                    vendor: vendor,
-                                    userName: userName,
-                                    orderStatus: orderStatus,
-                                    poEntryDate: poEntryDate
-                                })
-                            })
-                            .then(printRes => printRes.json())
-                            .then(printResult => {
-                                if (!printResult.success) {
-                                    alert(printResult.message || "Print処理に失敗しました。");
-                                    return;
-                                }
-
-                                window.location.href = url;
-                            })
-                            .catch(() => {
-                                alert("Print処理中に通信エラーが発生しました。");
-                            });
-
-                            return;
-                        }
-                window.location.href = url;
-            })
-            .catch(() => {
-                alert("通信エラーが発生しました。");
-            });
+                if (shouldPrint) {
+                    await downloadFromPostUrl("/POSeizo/RunPrint", {
+                        vendor: vendor,
+                        vendorName: vendorName,
+                        userName: userName,
+                        orderStatus: orderStatus,
+                        poEntryDate: poEntryDate
+                    });
+                }
+            } catch (error) {
+                alert(error?.message || "通信エラーが発生しました。");
+            }
         });
     </script>
 
