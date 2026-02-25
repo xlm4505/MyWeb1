@@ -12,7 +12,7 @@
 
         public DateTime? RequiredDeliveryDate { get; set; }
 
-        public decimal? OrderedQty { get; set; }
+        public int? OrderedQty { get; set; }
 
         public decimal? UnitPrice { get; set; }
         public decimal? Amount { get; set; }

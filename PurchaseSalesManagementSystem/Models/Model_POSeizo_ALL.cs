@@ -2,7 +2,7 @@
 {
     public class Model_POSeizo_ALL
     {
-        public decimal? No { get; set; } 
+        public int? No { get; set; } 
 
         public string ItemCode { get; set; } = "";
         public string Desc { get; set; } = "";
@@ -14,7 +14,7 @@
 
         public string EstDeliveryDate { get; set; } = "";
 
-        public decimal? QuantityOrdered { get; set; }
+        public int? QuantityOrdered { get; set; }
 
         public decimal? UnitCost { get; set; }
 
