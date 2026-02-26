@@ -62,7 +62,7 @@ namespace PurchaseSalesManagementSystem.Controllers
                     var onHandShortage = _repo.GetOnHandShortage().ToList();
                     return ExportOnHandShortage(onHandShortage, reportName);
 
-                case "ProjectPartOpenOrderVolume":
+                case "Open Order Volume by Month":
                     var projectPartOpenOrderVolume = _repo.GetProjectPartOpenOrderVolume().ToList();
                     return ExportProjectPartOpenOrderVolume(projectPartOpenOrderVolume, reportName);
 
@@ -248,7 +248,56 @@ namespace PurchaseSalesManagementSystem.Controllers
         {
             var exportToExcel = new FormattedDataTableExcelExporter();
             var dt = exportToExcel.ConvertToDataTableFast(data);
+            if (dt.Columns.Contains("OnHand_Reg"))
+            {
+                dt.Columns["OnHand_Reg"]!.ColumnName = "OnHand(Reg)";
+            }
+            if (dt.Columns.Contains("OpenPO_Reg"))
+            {
+                dt.Columns["OpenPO_Reg"]!.ColumnName = "OpenPO(Reg)";
+            }
+            if (dt.Columns.Contains("OpenSO_Reg"))
+            {
+                dt.Columns["OpenSO_Reg"]!.ColumnName = "OpenSO(Reg)";
+            }
+            if (dt.Columns.Contains("Available_Reg"))
+            {
+                dt.Columns["Available_Reg"]!.ColumnName = "Available(Reg)";
+            }
+            if (dt.Columns.Contains("OnHand_Ex"))
+            {
+                dt.Columns["OnHand_Ex"]!.ColumnName = "OnHand(Ex)";
+            }
+            if (dt.Columns.Contains("OpenPO_Ex"))
+            {
+                dt.Columns["OpenPO_Ex"]!.ColumnName = "OpenPO(Ex)";
+            }
+            if (dt.Columns.Contains("OpenSO_Ex"))
+            {
+                dt.Columns["OpenSO_Ex"]!.ColumnName = "OpenSO(Ex)";
+            }
+            if (dt.Columns.Contains("Available_Ex"))
+            {
+                dt.Columns["Available_Ex"]!.ColumnName = "Available(Ex)";
+            }
+            if (dt.Columns.Contains("OnHand_Total"))
+            {
+                dt.Columns["OnHand_Total"]!.ColumnName = "OnHand(Total)";
+            }
+            if (dt.Columns.Contains("OpenPO_Total"))
+            {
+                dt.Columns["OpenPO_Total"]!.ColumnName = "OpenPO(Total)";
+            }
+            if (dt.Columns.Contains("OpenSO_Total"))
+            {
+                dt.Columns["OpenSO_Total"]!.ColumnName = "OpenSO(Total)";
+            }
+            if (dt.Columns.Contains("Available_Total"))
+            {
+                dt.Columns["Available_Total"]!.ColumnName = "Available(Total)";
+            }
             var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC");
+ 
             var worksheet = workbook.Worksheet("SQL-EXEC");
 
             int lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 1;
