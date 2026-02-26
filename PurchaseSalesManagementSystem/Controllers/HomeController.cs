@@ -248,13 +248,17 @@ namespace PurchaseSalesManagementSystem.Controllers
         {
             var exportToExcel = new FormattedDataTableExcelExporter();
             var dt = exportToExcel.ConvertToDataTableFast(data);
-            var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "SQL-EXEC");
+            var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC");
+            var worksheet = workbook.Worksheet("SQL-EXEC");
 
-            return File(
-                excelBytes,
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                $"{reportName}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
-            );
+            int lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 1;
+            int endColumn = Math.Min(15, dt.Columns.Count);
+            if (lastRow >= 2 && endColumn >= 4)
+            {
+                worksheet.Range(2, 4, lastRow, endColumn).Style.NumberFormat.Format = "#,###_);[Red]-#,##0;";
+            }
+
+            return SaveExcel(workbook, reportName);
         }
 
         private void SetMediumBorder(IXLWorksheet ws, string columnLetter, int lastRow)
@@ -297,7 +301,7 @@ namespace PurchaseSalesManagementSystem.Controllers
                 return File(
                     stream.ToArray(),
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    $"{reportName}_{DateTime.Now:yyMMdd_HHmmss}.xlsx"
+                    $"{reportName}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
                 );
             }
         }
