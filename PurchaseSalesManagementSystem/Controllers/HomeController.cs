@@ -58,7 +58,7 @@ namespace PurchaseSalesManagementSystem.Controllers
                     var byMonth = _repo.GetInventoryForecastingByMonth().ToList();
                     return ExportInventoryForecastByMonth(byMonth, reportName);
 
-                case "OnHandShortageCheckList":
+                case "OnHand Shortage Check List":
                     var onHandShortage = _repo.GetOnHandShortage().ToList();
                     return ExportOnHandShortage(onHandShortage, reportName);
 
