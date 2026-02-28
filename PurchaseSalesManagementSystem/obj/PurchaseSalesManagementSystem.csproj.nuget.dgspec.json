@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\SRC\\PurchaseSalesManagementSystem\\PurchaseSalesManagementSystem.csproj": {}
+    "C:\\SRC_Github\\PurchaseSalesManagementSystem\\PurchaseSalesManagementSystem.csproj": {}
   },
   "projects": {
-    "C:\\SRC\\PurchaseSalesManagementSystem\\PurchaseSalesManagementSystem.csproj": {
+    "C:\\SRC_Github\\PurchaseSalesManagementSystem\\PurchaseSalesManagementSystem.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\SRC\\PurchaseSalesManagementSystem\\PurchaseSalesManagementSystem.csproj",
+        "projectUniqueName": "C:\\SRC_Github\\PurchaseSalesManagementSystem\\PurchaseSalesManagementSystem.csproj",
         "projectName": "PurchaseSalesManagementSystem",
-        "projectPath": "C:\\SRC\\PurchaseSalesManagementSystem\\PurchaseSalesManagementSystem.csproj",
+        "projectPath": "C:\\SRC_Github\\PurchaseSalesManagementSystem\\PurchaseSalesManagementSystem.csproj",
         "packagesPath": "C:\\Users\\LIU\\.nuget\\packages\\",
-        "outputPath": "C:\\SRC\\PurchaseSalesManagementSystem\\obj\\",
+        "outputPath": "C:\\SRC_Github\\PurchaseSalesManagementSystem\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -11,133 +11,137 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = PurchaseSalesManagementSystem
 build_property.RootNamespace = PurchaseSalesManagementSystem
-build_property.ProjectDir = C:\SRC\PurchaseSalesManagementSystem\
+build_property.ProjectDir = C:\SRC_Github\PurchaseSalesManagementSystem\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 9.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = C:\SRC\PurchaseSalesManagementSystem
+build_property.MSBuildProjectDirectory = C:\SRC_Github\PurchaseSalesManagementSystem
 build_property._RazorSourceGeneratorDebug = 
 build_property.EffectiveAnalysisLevelStyle = 10.0
 build_property.EnableCodeStyleSeverity = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/Account/Login.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/Account/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQWNjb3VudFxMb2dpbi5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/CISummary/CISummary.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/CISummary/CISummary.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ0lTdW1tYXJ5XENJU3VtbWFyeS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/FOAInventory/FOAInventory.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/FOAInventory/FOAInventory.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcRk9BSW52ZW50b3J5XEZPQUludmVudG9yeS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/Home/Index.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/Home/Menu.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/Home/Menu.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxNZW51LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/Home/Privacy.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/ItemCodeMaster/ItemCodeMaster.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/InvConv/InvConv.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSW52Q29udlxJbnZDb252LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/ItemCodeMaster/ItemCodeMaster.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSXRlbUNvZGVNYXN0ZXJcSXRlbUNvZGVNYXN0ZXIuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/ITUpload/ITUpload.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/ITUpload/ITUpload.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSVRVcGxvYWRcSVRVcGxvYWQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/KatsuoIssueDate/KatsuoIssueDate.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/KatsuoIssueDate/KatsuoIssueDate.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcS2F0c3VvSXNzdWVEYXRlXEthdHN1b0lzc3VlRGF0ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/KatsuoUploadCheck/KatsuoUploadCheck.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/KatsuoUploadCheck/KatsuoUploadCheck.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcS2F0c3VvVXBsb2FkQ2hlY2tcS2F0c3VvVXBsb2FkQ2hlY2suY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/MF_SalesPerson/MF_SalesPerson.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/MF_SalesPerson/MF_SalesPerson.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTUZfU2FsZXNQZXJzb25cTUZfU2FsZXNQZXJzb24uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/MonthlySalesSummary/MonthlySalesSummary.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/MonthlySalesSummary/MonthlySalesSummary.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW9udGhseVNhbGVzU3VtbWFyeVxNb250aGx5U2FsZXNTdW1tYXJ5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/NittsuInventoryCheck/NittsuInventoryCheck.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/NittsuInventoryCheck/NittsuInventoryCheck.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTml0dHN1SW52ZW50b3J5Q2hlY2tcTml0dHN1SW52ZW50b3J5Q2hlY2suY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/OrderForExport/OrderForExport.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/OrderForExport/OrderForExport.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcT3JkZXJGb3JFeHBvcnRcT3JkZXJGb3JFeHBvcnQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/POList/POListExport.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/POList/POListExport.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUE9MaXN0XFBPTGlzdEV4cG9ydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/PoManagement/PendingInvoiceUpload.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/PoManagement/PendingInvoiceUpload.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUG9NYW5hZ2VtZW50XFBlbmRpbmdJbnZvaWNlVXBsb2FkLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/POSeizo/POSeizoExport.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/POSeizo/POSeizoExport.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUE9TZWl6b1xQT1NlaXpvRXhwb3J0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/PurchaseOrderReceiptHistory/PurchaseOrderReceiptHistory.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/PurchaseOrderReceiptHistory/PurchaseOrderReceiptHistory.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHVyY2hhc2VPcmRlclJlY2VpcHRIaXN0b3J5XFB1cmNoYXNlT3JkZXJSZWNlaXB0SGlzdG9yeS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/PurchaseOrder/PurchaseOrderExport.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/PurchaseOrder/PurchaseOrderExport.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHVyY2hhc2VPcmRlclxQdXJjaGFzZU9yZGVyRXhwb3J0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/PurchaseReceipt/PurchaseReceipt.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/PurchaseReceipt/PurchaseReceipt.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHVyY2hhc2VSZWNlaXB0XFB1cmNoYXNlUmVjZWlwdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/RAUpload/RAUpload.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/RAUpload/RAUpload.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUkFVcGxvYWRcUkFVcGxvYWQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/ReceivingActive/ReceivingActive.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/ReceivingActive/ReceivingActive.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmVjZWl2aW5nQWN0aXZlXFJlY2VpdmluZ0FjdGl2ZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/SafetyStockMaintenance/SafetyStockMaintenance.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/SafetyStockMaintenance/SafetyStockMaintenance.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FmZXR5U3RvY2tNYWludGVuYW5jZVxTYWZldHlTdG9ja01haW50ZW5hbmNlLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/SalesHistoryDetail/SalesHistoryDetail.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/SalesHistoryDetail/SalesHistoryDetail.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2FsZXNIaXN0b3J5RGV0YWlsXFNhbGVzSGlzdG9yeURldGFpbC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/Shared/Error.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/Shared/_ValidationScriptsPartial.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/Tbl_Vendor/Tbl_Vendor.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/Tbl_Vendor/Tbl_Vendor.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGJsX1ZlbmRvclxUYmxfVmVuZG9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/_ViewImports.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/_ViewStart.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/SRC/PurchaseSalesManagementSystem/Views/Shared/_Layout.cshtml]
+[C:/SRC_Github/PurchaseSalesManagementSystem/Views/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-a5ouwyqwcg
