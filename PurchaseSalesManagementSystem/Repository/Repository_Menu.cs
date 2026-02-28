@@ -246,24 +246,6 @@ namespace PurchaseSalesManagementSystem.Repository
                 {
                     while (r.Read())
                     {
-                        // 月別数量
-                        var m = new int?[12];
-                        for (int i = 0; i < 12; i++)
-                        {
-                            var col = $"M{i}";
-                            int ordinal = r.GetOrdinal(col);
-
-                            if (r.IsDBNull(ordinal))
-                            {
-                                m[i] = null;
-                            }
-                            else
-                            {
-                                // decimal → int 
-                                m[i] = Convert.ToInt32(r.GetValue(ordinal));
-                            }
-                        }
-
                         result.Add(new Model_ProjectPartOpenOrderVolume
                         {
                             ItemCode = r["ItemCode"]?.ToString() ?? "",
@@ -309,11 +291,45 @@ namespace PurchaseSalesManagementSystem.Repository
                             Available = r.IsDBNull(r.GetOrdinal("Available"))
                                 ? 0
                                 : Convert.ToInt32(r.GetValue(r.GetOrdinal("Available"))),
+                            MonthlyQty0 = r.IsDBNull(r.GetOrdinal("M0"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M0"))),
+                            MonthlyQty1 = r.IsDBNull(r.GetOrdinal("M1"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M1"))),
+                            MonthlyQty2 = r.IsDBNull(r.GetOrdinal("M2"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M2"))),
+                            MonthlyQty3 = r.IsDBNull(r.GetOrdinal("M3"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M3"))),
+                            MonthlyQty4 = r.IsDBNull(r.GetOrdinal("M4"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M4"))),
+                            MonthlyQty5 = r.IsDBNull(r.GetOrdinal("M5"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M5"))),
+                            MonthlyQty6 = r.IsDBNull(r.GetOrdinal("M6"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M6"))),
+                            MonthlyQty7 = r.IsDBNull(r.GetOrdinal("M7"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M7"))),
+                            MonthlyQty8 = r.IsDBNull(r.GetOrdinal("M8"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M8"))),
+                            MonthlyQty9 = r.IsDBNull(r.GetOrdinal("M9"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M9"))),
+                            MonthlyQty10 = r.IsDBNull(r.GetOrdinal("M10"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M10"))),
+                            MonthlyQty11 = r.IsDBNull(r.GetOrdinal("M11"))
+                                ? 0
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("M11"))),
                             Total = r.IsDBNull(r.GetOrdinal("Total"))
                                 ? 0
-                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("Total"))),
-
-                            MonthlyQty = m 
+                                : Convert.ToInt32(r.GetValue(r.GetOrdinal("Total")))
                         });
                     }
                 }

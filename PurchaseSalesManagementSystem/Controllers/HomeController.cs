@@ -329,6 +329,54 @@ namespace PurchaseSalesManagementSystem.Controllers
         {
             var exportToExcel = new FormattedDataTableExcelExporter();
             var dt = exportToExcel.ConvertToDataTableFast(data);
+            if (dt.Columns.Contains("MonthlyQty0"))
+            {
+                dt.Columns["MonthlyQty0"]!.ColumnName = DateTime.Today.AddMonths(-4).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty1"))
+            {
+                dt.Columns["MonthlyQty1"]!.ColumnName = DateTime.Today.AddMonths(-3).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty2"))
+            {
+                dt.Columns["MonthlyQty2"]!.ColumnName = DateTime.Today.AddMonths(-2).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty3"))
+            {
+                dt.Columns["MonthlyQty3"]!.ColumnName = DateTime.Today.AddMonths(-1).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty4"))
+            {
+                dt.Columns["MonthlyQty4"]!.ColumnName = DateTime.Today.ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty5"))
+            {
+                dt.Columns["MonthlyQty5"]!.ColumnName = DateTime.Today.AddMonths(1).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty6"))
+            {
+                dt.Columns["MonthlyQty6"]!.ColumnName = DateTime.Today.AddMonths(2).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty7"))
+            {
+                dt.Columns["MonthlyQty7"]!.ColumnName = DateTime.Today.AddMonths(3).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty8"))
+            {
+                dt.Columns["MonthlyQty8"]!.ColumnName = DateTime.Today.AddMonths(4).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty9"))
+            {
+                dt.Columns["MonthlyQty9"]!.ColumnName = DateTime.Today.AddMonths(5).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty10"))
+            {
+                dt.Columns["MonthlyQty10"]!.ColumnName = DateTime.Today.AddMonths(6).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty11"))
+            {
+                dt.Columns["MonthlyQty11"]!.ColumnName = DateTime.Today.AddMonths(7).ToString("yyyy-MM");
+            }
             var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "SQL-EXEC");
 
             return File(

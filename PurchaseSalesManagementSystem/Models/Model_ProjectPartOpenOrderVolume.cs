@@ -16,10 +16,20 @@
         public int OpenSO2 { get; set; }
         public int Surplus2 { get; set; }   
         public int Available { get; set; }
+        public int MonthlyQty0 { get; set; }
+        public int MonthlyQty1 { get; set; }
+        public int MonthlyQty2 { get; set; }
+        public int MonthlyQty3 { get; set; }
+        public int MonthlyQty4 { get; set; }
+        public int MonthlyQty5 { get; set; }
+        public int MonthlyQty6 { get; set; }
+        public int MonthlyQty7 { get; set; }
+        public int MonthlyQty8 { get; set; }
+        public int MonthlyQty9 { get; set; }
+        public int MonthlyQty10 { get; set; }
+        public int MonthlyQty11 { get; set; }
         public int Total { get; set; }
 
-
-        public int?[] MonthlyQty { get; set; } = new int?[12];
     }
 
 }
