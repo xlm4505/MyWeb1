@@ -54,13 +54,37 @@ public class POSeizoController : Controller
         ).ToList();
 
         var exportToExcel = new FormattedDataTableExcelExporter();
-        var dt = CreateTkfDataTable(list);
+        var dt = exportToExcel.ConvertToDataTableFast(list);
+        if (dt.Columns.Contains("ItemCode"))
+        {
+            dt.Columns["ItemCode"]!.ColumnName = "Item Code";
+        }
+        if (dt.Columns.Contains("CustomerPartNumber"))
+        {
+            dt.Columns["CustomerPartNumber"]!.ColumnName = "Customer Part Number";
+        }
+        if (dt.Columns.Contains("WHCode"))
+        {
+            dt.Columns["WHCode"]!.ColumnName = "WH Code";
+        }
+        if (dt.Columns.Contains("RequiredDeliveryDate"))
+        {
+            dt.Columns["RequiredDeliveryDate"]!.ColumnName = "Required Delivery Date";
+        }
+        if (dt.Columns.Contains("OrderedQty"))
+        {
+            dt.Columns["OrderedQty"]!.ColumnName = "Ordered Q'ty";
+        }
+        if (dt.Columns.Contains("UnitPrice"))
+        {
+            dt.Columns["UnitPrice"]!.ColumnName = "Unit Price";
+        }
         var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "PO Seizo");
 
         return File(
             excelBytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"{"PO_SeizoExport ["}{vendorName}{"]"}_{DateTime.Now:yyMMdd_HHmmss}.xlsx"
+            $"{"PO_SeizoExport ["}{vendorName}{"]"}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
         );
     }
 
@@ -87,14 +111,16 @@ public class POSeizoController : Controller
         ).ToList();
 
         var exportToExcel = new FormattedDataTableExcelExporter();
-        var dt = CreateAllDataTable(list);
-        var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "PO Seizo");
+        var dt = exportToExcel.ConvertToDataTableFast(list);
+        if (dt.Columns.Contains("ProductionControlNotice"))
+        {
+            dt.Columns["ProductionControlNotice"]!.ColumnName = "Production ControlNotice";
+        }
 
-        return File(
-            excelBytes,
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"{"PO_SeizoExport ["}{vendorName}{"]"}_{DateTime.Now:yyMMdd_HHmmss}.xlsx"
-        );
+        var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PO Seizo");
+        reportName = "PO_SeizoExport [" + vendorName + "]";
+        return SaveExcel(workbook, reportName);
+
     }
 
     private DataTable CreateTkfDataTable(IEnumerable<Model_POSeizo_TKF> list)
@@ -350,5 +376,20 @@ public class POSeizoController : Controller
         {
             success = true
         });
+    }
+    // =========================
+    // ã§í ï€ë∂èàóù
+    // =========================
+    private ActionResult SaveExcel(XLWorkbook workbook, string reportName)
+    {
+        using (var stream = new MemoryStream())
+        {
+            workbook.SaveAs(stream);
+            return File(
+                stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"{reportName}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
+            );
+        }
     }
 }

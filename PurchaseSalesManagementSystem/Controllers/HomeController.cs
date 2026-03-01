@@ -377,26 +377,13 @@ namespace PurchaseSalesManagementSystem.Controllers
             {
                 dt.Columns["MonthlyQty11"]!.ColumnName = DateTime.Today.AddMonths(7).ToString("yyyy-MM");
             }
-            var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC");
-            var worksheet = workbook.Worksheet("SQL-EXEC");
+            var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "SQL-EXEC");
 
-            worksheet.Row(1).InsertRowsAbove(1);
-
-            var totalHeaderRange = worksheet.Range("E1:H1");
-            totalHeaderRange.Merge();
-            totalHeaderRange.Value = "Total";
-
-            var onHoldHeaderRange = worksheet.Range("I1:L1");
-            onHoldHeaderRange.Merge();
-            onHoldHeaderRange.Value = "On Hold";
-
-            worksheet.Range("E1:L1").Style.Font.Bold = true;
-            worksheet.Range("E1:L1").Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
-            worksheet.Range("E1:L1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-            worksheet.Range("E1:L1").Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-            worksheet.SheetView.FreezeRows(2);
-
-            return SaveExcel(workbook, reportName);
+            return File(
+                excelBytes,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"{reportName}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
+            );
         }
 
 
