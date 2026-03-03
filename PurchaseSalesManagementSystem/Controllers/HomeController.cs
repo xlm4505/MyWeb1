@@ -329,6 +329,38 @@ namespace PurchaseSalesManagementSystem.Controllers
         {
             var exportToExcel = new FormattedDataTableExcelExporter();
             var dt = exportToExcel.ConvertToDataTableFast(data);
+            //if (dt.Columns.Contains("OnHand1"))
+            //{
+            //    dt.Columns["OnHand1"]!.ColumnName = "OnHand";
+            //}
+            //if (dt.Columns.Contains("OpenPO1"))
+            //{
+            //    dt.Columns["OpenPO1"]!.ColumnName = "OpenPO";
+            //}
+            //if (dt.Columns.Contains("OpenSO1"))
+            //{
+            //    dt.Columns["OpenSO1"]!.ColumnName = "OpenSO";
+            //}
+            //if (dt.Columns.Contains("Surplus1"))
+            //{
+            //    dt.Columns["Surplus1"]!.ColumnName = "Surplus";
+            //}
+            //if (dt.Columns.Contains("OnHand2"))
+            //{
+            //    dt.Columns["OnHand2"]!.ColumnName = "OnHand";
+            //}
+            //if (dt.Columns.Contains("OpenPO2"))
+            //{
+            //    dt.Columns["OpenPO2"]!.ColumnName = "OpenPO";
+            //}
+            //if (dt.Columns.Contains("OpenSO2"))
+            //{
+            //    dt.Columns["OpenSO2"]!.ColumnName = "OpenSO";
+            //}
+            //if (dt.Columns.Contains("Surplus2"))
+            //{
+            //    dt.Columns["Surplus2"]!.ColumnName = "Surplus";
+            //}
             if (dt.Columns.Contains("MonthlyQty0"))
             {
                 dt.Columns["MonthlyQty0"]!.ColumnName = DateTime.Today.AddMonths(-4).ToString("yyyy-MM");
