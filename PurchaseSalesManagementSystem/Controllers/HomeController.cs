@@ -427,6 +427,15 @@ namespace PurchaseSalesManagementSystem.Controllers
             worksheet.Range("E1:L1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             worksheet.Range("E1:L1").Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
             worksheet.SheetView.FreezeRows(2);
+            if (dt.Columns.Contains("OnHand1"))
+            {
+                worksheet.Cell(2, dt.Columns["OnHand1"]!.Ordinal + 1).Value = "OnHand";
+            }
+
+            if (dt.Columns.Contains("OnHand2"))
+            {
+                worksheet.Cell(2, dt.Columns["OnHand2"]!.Ordinal + 1).Value = "OnHand";
+            }
 
             return SaveExcel(workbook, reportName);
         }
