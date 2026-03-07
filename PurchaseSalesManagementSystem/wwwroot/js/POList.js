@@ -2,7 +2,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     const columns = [
-        "PoNo", "LnKey", "PODate", "Status", "Vendor", "VendorName", "ItemCode", "ItemDesc",
+        "PoNo", "LnKey", "PODate", "Status", "Vendor", "VendorName", "ItemCode", "UDF_ITEMDESC",
         "QtyOrdered", "QtyRcpt", "QtyBalance", "QtyInvoiced", "UnitCost", "Amount", "RequiredDate"
     ];
 
@@ -31,17 +31,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
                     addCell(trMain, v.poNo);
                     addCell(trMain, v.lnKey);
+                    addCell(trMain, formatDate(v.poDate));
                     addCell(trMain, v.status);
                     addCell(trMain, v.vendor);
                     addCell(trMain, v.vendorName);
                     addCell(trMain, v.itemCode);
-                    addCell(trMain, v.itemDesc);
+                    addCell(trMain, v.udF_ITEMDESC ?? v.udef_ITEMDESC ?? v.udf_ITEMDESC ?? v.itemDesc);
                     addCell(trMain, v.qtyOrdered);
                     addCell(trMain, v.qtyRcpt);
                     addCell(trMain, v.qtyBalance);
                     addCell(trMain, v.qtyInvoiced);
                     addCell(trMain, v.unitCost);
                     addCell(trMain, v.amount);
+                    addCell(trMain, formatDate(v.requiredDate));
 
                     gridMain.appendChild(trMain);
                     rowCount++;
@@ -75,4 +77,21 @@ function addCell(row, value) {
     const td = document.createElement("td");
     td.textContent = value ?? "";
     row.appendChild(td);
+}
+function formatDate(value) {
+    if (!value) {
+        return "";
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
 }
