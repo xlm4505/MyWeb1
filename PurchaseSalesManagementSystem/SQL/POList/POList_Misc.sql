@@ -22,6 +22,7 @@ WHERE
   AND PO_PurchaseOrderDetail.ItemCode = CI_Item.ItemCode
   AND PO_PurchaseOrderDetail.ItemCode LIKE '/%'
   AND PO_PurchaseOrderHeader.PurchaseOrderDate >= {d '2016-01-01'}
+  AND (@PurchaseOrderNo IS NULL OR PO_PurchaseOrderHeader.PurchaseOrderNo = @PurchaseOrderNo)
 ORDER BY
   PO_PurchaseOrderDetail.ItemCode,
   PO_PurchaseOrderDetail.UDF_PROMISE_DATE,

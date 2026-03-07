@@ -17,7 +17,7 @@ builder.Services.AddScoped<Repository_PurchaseOrder>();
 builder.Services.AddScoped<Repository_POSeizo>();
 builder.Services.AddScoped<Repository_OrderForExport>();
 builder.Services.AddScoped<Repository_InvConv>();
-
+builder.Services.AddScoped<Repository_POList>();
 
 var app = builder.Build();
 

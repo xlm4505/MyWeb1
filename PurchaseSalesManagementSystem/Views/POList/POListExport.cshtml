@@ -47,7 +47,7 @@
         <div class="d-flex align-items-center gap-3 mb-3">
             <label id="searchLabel" for="search">PurchaseOrderNo:</label>
             <input type="text" id="search" class="form-control w-auto">
-            <button class="btn btn-primary" onclick="searchItems()">Search</button>
+            <button class="btn btn-primary" id="btnSearch">Search</button>
         </div>
     </div>
 
@@ -70,145 +70,13 @@
     <!-- 操作ボタン -->
     <div style="max-width:900px; margin-left:0; margin-right:auto;">
         <div class="mt-4">
-            <button id="btnExport" class="btn btn-success" onclick="exportTable()" disabled>
+            <button id="btnExport" class="btn btn-success" disabled>
                 Export to Excel
             </button>
         </div>
     </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <script>
-        // カラム定義
-        const columnsMisc = [
-            "PONo", "LnKey", "PODate", "Status", "Vendor", "VendorName", "ItemCode", "ItemDesc", "QtyOrdered", "QtyRcpt", "QtyBalance", "QtyInvoiced", "UnitCost", "Amount", "RequiredDate"
-        ];
-        const columnsAll = [
-            "VendorNo", "PO-Ln", "PONo", "LnKey", "PODate", "Status", "ItemCode", "ItemDesc", "Whse", "Ordered", "Received", "Balance", "Invoiced", "UnitCost", "StdUnitCost", "LastCost", "AvgCost", "VenCost(CM)", "RequiredDate", "PromiseDate", "SalesOrderNo"
-        ];
-
-        // 現在のカラムセット
-        let currentColumns = columnsMisc;
-
-        // ヘッダー生成
-        function createHeader(tableId, columns) {
-            const thead = document.querySelector(`#${tableId} thead tr`);
-            thead.innerHTML = "";
-            columns.forEach(col => {
-                const th = document.createElement("th");
-                th.textContent = col;
-                thead.appendChild(th);
-            });
-        }
-
-        // プルダウン変更イベント
-        document.getElementById("selectA").addEventListener("change", function () {
-            const label = document.getElementById("searchLabel");
-            if (this.value === "Misc") {
-                currentColumns = columnsMisc;
-            } else {
-                currentColumns = columnsAll;
-            }
-            // ヘッダー更新
-            createHeader("gridMain", currentColumns);
-            createHeader("gridExcluded", currentColumns);
-            // データを空にする
-            document.querySelector("#gridMain tbody").innerHTML = "";
-            document.querySelector("#gridExcluded tbody").innerHTML = "";
-
-            // 入力欄をクリア
-            document.getElementById("search").value = "";
-
-            // Exportボタンも無効化
-            document.getElementById("btnExport").disabled = true;
-        });
-
-        // 検索処理
-        function searchItems() {
-            const keyword = document.getElementById("search").value.toLowerCase();
-            const gridMain = document.querySelector("#gridMain tbody");
-            const gridExcluded = document.querySelector("#gridExcluded tbody");
-            gridMain.innerHTML = "";
-            gridExcluded.innerHTML = "";
-
-            let rowCount = 0;
-
-            for (let i = 1; i <= 10; i++) {
-                const VendorNo = `V${String(i).padStart(4, '0')}`;
-                const PONo = `${String(i).padStart(4, '0')}`;
-                const LnKey = `${String(i).padStart(4, '0')}`;
-                const itemCode = `A${String(i).padStart(4, '0')}`;
-                const itemDesc = `Widget ${i}`;
-
-                //if (keyword && !(searchLabel.toLowerCase().includes(keyword) || Name.toLowerCase().includes(keyword))) continue;
-                if (keyword && !PONo.toLowerCase().includes(keyword)) continue;
-
-                let row;
-                if (currentColumns === columnsAll) {
-                    row = [VendorNo, LnKey, PONo, LnKey, "2025/11/30", "New", itemCode, itemDesc, "wh001", "10", "10", "0", "10", "100.00", "100.00", "100.00", "100.00", "100.00", "2025/11/29", "2025/11/29", "S001"];
-                } else {
-                    row = [PONo, LnKey, "2025/11/29", "New", "Vendor001", "Vendor", itemCode, itemDesc, "10", "10", "10", "10", "100.00", "1000.00", "2025/11/29"];
-                }
-
-                const trMain = document.createElement("tr");
-                row.forEach(cell => {
-                    const td = document.createElement("td");
-                    td.textContent = cell;
-                    trMain.appendChild(td);
-                });
-                gridMain.appendChild(trMain);
-
-                const trEx = document.createElement("tr");
-                row.forEach(cell => {
-                    const td = document.createElement("td");
-                    td.textContent = cell;
-                    trEx.appendChild(td);
-                });
-                gridExcluded.appendChild(trEx);
-
-                rowCount++;
-            }
-
-            document.getElementById("btnExport").disabled = (rowCount === 0);
-        }
-
-        // Excel出力
-        //function exportTable() {
-        //    const table = document.getElementById("gridMain");
-        //    const wb = XLSX.utils.book_new();
-        //    const ws = XLSX.utils.table_to_sheet(table);
-
-        //    const range = XLSX.utils.decode_range(ws['!ref']);
-        //    ws['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
-
-        //    XLSX.utils.book_append_sheet(wb, ws, "POList");
-        //    const filename = "PO_List_export_" + new Date().toISOString().slice(0, 19).replace(/[-T:]/g, "") + ".xlsx";
-        //    XLSX.writeFile(wb, filename);
-        //}
-        function exportTable() {
-            const table = document.getElementById("gridMain");
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.table_to_sheet(table);
-
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            ws['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
-
-            XLSX.utils.book_append_sheet(wb, ws, "POList");
-
-            // ★ プルダウンの選択値を取得
-            const target = document.getElementById("selectA").value;
-
-            // ★ ファイル名に選択値を組み込む
-            const filename = target + "_PO_List_" +
-                new Date().toISOString().slice(0, 19).replace(/[-T:]/g, "") + ".xlsx";
-
-            XLSX.writeFile(wb, filename);
-        }
-
-        // 初期化
-        createHeader("gridMain", currentColumns);
-        createHeader("gridExcluded", currentColumns);
-    </script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/POList.js"></script>
 </body>
 </html>
