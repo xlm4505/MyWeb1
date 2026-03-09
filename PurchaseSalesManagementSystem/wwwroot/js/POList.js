@@ -18,7 +18,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const exportTarget = document.getElementById("selectA").value;
 
         loadHeader(getColumnsByTarget(exportTarget));
-    document.getElementById("selectA").addEventListener("change", () => {
         document.querySelector("#gridMain tbody").innerHTML = "";
         document.getElementById("search").value = "";
         document.getElementById("btnExport").disabled = true;
