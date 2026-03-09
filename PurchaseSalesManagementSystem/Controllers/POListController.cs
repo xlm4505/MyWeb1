@@ -36,20 +36,22 @@ public class POListController : Controller
     [HttpGet]
     public IActionResult ExportToExcel(string purchaseOrderNo, string exportTarget)
     {
-        var poList;
+        DataTable dt;
         if ("Misc".Equals(exportTarget, StringComparison.OrdinalIgnoreCase))
         {
-            poList = _repo.GetPOListDataMisc(purchaseOrderNo, exportTarget).ToList;
+            var poList = _repo.GetPOListDataMisc(purchaseOrderNo, exportTarget).ToList();
+            FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
+            dt = exportToExcel.ConvertToDataTableFast(poList);
         }
         else
         {
-            poList = _repo.GetPOListDataAllVendors(purchaseOrderNo, exportTarget);
+            var poList = _repo.GetPOListDataAllVendors(purchaseOrderNo, exportTarget).ToList();
+            FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
+            dt = exportToExcel.ConvertToDataTableFast(poList);
 
         }
-
-        FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
-        DataTable dt = exportToExcel.ConvertToDataTableFast(poList);
-        var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "Report");
+        FormattedDataTableExcelExporter exportToExcelFinal = new FormattedDataTableExcelExporter();
+        var excelBytes = exportToExcelFinal.ExportDataTableWithFormatting(dt, "Report");
 
         return File(excelBytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
