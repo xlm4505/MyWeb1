@@ -20,14 +20,32 @@ public class POListController : Controller
     [HttpGet]
     public IActionResult GetPOListData(string purchaseOrderNo, string exportTarget)
     {
-        var poList = _repo.GetPOListData(purchaseOrderNo, exportTarget);
-        return Json(poList);
+        if ("Misc".Equals(exportTarget, StringComparison.OrdinalIgnoreCase))
+        {
+            var poList = _repo.GetPOListDataMisc(purchaseOrderNo, exportTarget);
+
+            return Json(poList);
+        }
+        else
+        {
+            var poList = _repo.GetPOListDataAllVendors(purchaseOrderNo, exportTarget);
+            return Json(poList);
+        }
     }
 
     [HttpGet]
     public IActionResult ExportToExcel(string purchaseOrderNo, string exportTarget)
     {
-        var poList = _repo.GetPOListData(purchaseOrderNo, exportTarget);
+        var poList;
+        if ("Misc".Equals(exportTarget, StringComparison.OrdinalIgnoreCase))
+        {
+            poList = _repo.GetPOListDataMisc(purchaseOrderNo, exportTarget).ToList;
+        }
+        else
+        {
+            poList = _repo.GetPOListDataAllVendors(purchaseOrderNo, exportTarget);
+
+        }
 
         FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
         DataTable dt = exportToExcel.ConvertToDataTableFast(poList);

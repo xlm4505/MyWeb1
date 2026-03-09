@@ -1,6 +1,6 @@
 ﻿namespace PurchaseSalesManagementSystem.Models
 {
-    public class Model_POList
+    public class Model_POList_Misc
     {
         public string PoNo { get; set; } = "";
         public string LnKey { get; set; } = "";
