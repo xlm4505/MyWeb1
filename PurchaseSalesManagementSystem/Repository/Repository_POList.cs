@@ -148,7 +148,7 @@ namespace PurchaseSalesManagementSystem.Repository
                                 AvgCost = reader.IsDBNull(reader.GetOrdinal("AvgCost"))
                                     ? null
                                     : reader.GetDecimal(reader.GetOrdinal("AvgCost")),
-                                AvgCostVenCostCM = reader.IsDBNull(reader.GetOrdinal("VenCost(CM)"))
+                                VenCostCM = reader.IsDBNull(reader.GetOrdinal("VenCost(CM)"))
                                     ? null
                                     : reader.GetDecimal(reader.GetOrdinal("VenCost(CM)")),
                                 RequiredDate = reader.IsDBNull(reader.GetOrdinal("RequiredDate"))

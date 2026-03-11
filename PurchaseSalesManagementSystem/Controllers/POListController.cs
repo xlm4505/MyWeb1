@@ -37,21 +37,31 @@ public class POListController : Controller
     public IActionResult ExportToExcel(string purchaseOrderNo, string exportTarget)
     {
         DataTable dt;
+        var excelBytes;
+
+        FormattedDataTableExcelExporter exportToExcelFinal = new FormattedDataTableExcelExporter();
+        FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
         if ("Misc".Equals(exportTarget, StringComparison.OrdinalIgnoreCase))
         {
             var poList = _repo.GetPOListDataMisc(purchaseOrderNo, exportTarget).ToList();
-            FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
             dt = exportToExcel.ConvertToDataTableFast(poList);
+            excelBytes = exportToExcelFinal.ExportDataTableWithFormatting(dt, "CustItem", "PO");
         }
         else
         {
             var poList = _repo.GetPOListDataAllVendors(purchaseOrderNo, exportTarget).ToList();
-            FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
             dt = exportToExcel.ConvertToDataTableFast(poList);
+            if (dt.Columns.Contains("POLn"))
+            {
+                dt.Columns["POLn"].ColumnName = "PO-Ln";
+            }
 
+            if (dt.Columns.Contains("VenCostCM"))
+            {
+                dt.Columns["VenCostCM"].ColumnName = "VenCost(CM)";
+            }
+            excelBytes = exportToExcelFinal.ExportDataTableWithFormatting(dt, "OpenPOAll", "PO");
         }
-        FormattedDataTableExcelExporter exportToExcelFinal = new FormattedDataTableExcelExporter();
-        var excelBytes = exportToExcelFinal.ExportDataTableWithFormatting(dt, "Report");
 
         return File(excelBytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

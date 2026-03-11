@@ -19,7 +19,7 @@
         public decimal? StdUnitCost { get; set; }
         public decimal? LastCost { get; set; }
         public decimal? AvgCost { get; set; }
-        public decimal? AvgCostVenCostCM { get; set; }
+        public decimal? VenCostCM { get; set; }
         public DateTime? RequiredDate { get; set; }
         public DateTime? PromiseDate { get; set; }
         public string SalesOrderNo { get; set; } = "";

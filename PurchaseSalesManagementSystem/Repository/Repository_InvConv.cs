@@ -35,10 +35,10 @@ public class Repository_InvConv
         SummaryType? targetSummaryType = null;
         var categorized = new Dictionary<SummaryType, SummaryWorkbook>
         {
-            [SummaryType.Con] = new SummaryWorkbook("Summary CON", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail")),
-            [SummaryType.Rinku] = new SummaryWorkbook("Summary RINKU", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail")),
-            [SummaryType.ConFlow] = new SummaryWorkbook("Summary CON (Flow)", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail")),
-            [SummaryType.RinkuFlow] = new SummaryWorkbook("Summary RINKU (Flow)", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail"))
+            [SummaryType.Con] = new SummaryWorkbook("Summary CON", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail","PO")),
+            [SummaryType.Rinku] = new SummaryWorkbook("Summary RINKU", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail", "PO")),
+            [SummaryType.ConFlow] = new SummaryWorkbook("Summary CON (Flow)", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail", "PO")),
+            [SummaryType.RinkuFlow] = new SummaryWorkbook("Summary RINKU (Flow)", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail", "PO"))
         };
 
         var poMap = poDetails.ToDictionary(x => x.PoLn, x => x, StringComparer.OrdinalIgnoreCase);

@@ -68,7 +68,7 @@ public class PurchaseOrderController : Controller
 
         dt = exportToExcel.ConvertToDataTableFast(purchaseOrder);
 
-        var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "PO");
+        var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "PO", "PO");
 
         string fillName = "";
         if ("Valves".Equals(productType))

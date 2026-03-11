@@ -79,7 +79,7 @@ public class POSeizoController : Controller
         {
             dt.Columns["UnitPrice"]!.ColumnName = "Unit Price";
         }
-        var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "PO Seizo");
+        var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "PO Seizo", "PO");
 
         return File(
             excelBytes,
@@ -117,7 +117,7 @@ public class POSeizoController : Controller
             dt.Columns["ProductionControlNotice"]!.ColumnName = "Production ControlNotice";
         }
 
-        var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PO Seizo");
+        var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PO Seizo", "PO");
         var worksheet = workbook.Worksheet("PO Seizo");
         worksheet.Column(1).Style.NumberFormat.Format = "#,##0";
         worksheet.Column(8).Style.NumberFormat.Format = "#,##0";

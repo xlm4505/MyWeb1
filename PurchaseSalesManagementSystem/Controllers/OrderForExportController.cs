@@ -40,7 +40,7 @@ public class OrderForExportController : Controller
 
 		dt = exportToExcel.ConvertToDataTableFast(orderData);
 
-		var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt,"Report");
+		var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt,"Report", "SO");
 
 		return File(excelBytes,
 			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

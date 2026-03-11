@@ -296,7 +296,7 @@ namespace PurchaseSalesManagementSystem.Controllers
             {
                 dt.Columns["Available_Total"]!.ColumnName = "Available(Total)";
             }
-            var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC");
+            var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC","PO");
  
             var worksheet = workbook.Worksheet("SQL-EXEC");
 
@@ -378,7 +378,7 @@ namespace PurchaseSalesManagementSystem.Controllers
             {
                 dt.Columns["MonthlyQty11"]!.ColumnName = DateTime.Today.AddMonths(7).ToString("yyyy-MM");
             }
-            var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC");
+            var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC","PO");
             var worksheet = workbook.Worksheet("SQL-EXEC");
 
             worksheet.Row(1).InsertRowsAbove(1);
@@ -392,7 +392,7 @@ namespace PurchaseSalesManagementSystem.Controllers
             onHoldHeaderRange.Value = "On Hold";
 
             worksheet.Range("E1:L1").Style.Font.Bold = true;
-            worksheet.Range("E1:L1").Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
+            worksheet.Range("E1:L1").Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
             worksheet.Range("E1:L1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             worksheet.Range("E1:L1").Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
             worksheet.SheetView.FreezeRows(2);
