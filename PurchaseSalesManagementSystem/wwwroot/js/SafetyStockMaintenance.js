@@ -1,0 +1,145 @@
+let currentRows = [];
+
+function getRowKey(row) {
+    return `${row.itemCode}|${row.procType}|${row.arDivisionNo}|${row.customerNo}|${row.warehouseCode}|${row.itemNo}`;
+}
+
+function escapeHtml(value) {
+    if (value === null || value === undefined) {
+        return "";
+    }
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+}
+
+function renderTable(records) {
+    currentRows = records || [];
+
+    const body = document.getElementById("dataBody");
+    body.innerHTML = "";
+
+    currentRows.forEach((row, index) => {
+        const rowKey = getRowKey(row);
+        body.insertAdjacentHTML(
+            "beforeend",
+            `<tr>
+                <td>${escapeHtml(row.itemCode)}</td>
+                <td>${escapeHtml(row.procType)}</td>
+                <td>${escapeHtml(row.arDivisionNo)}</td>
+                <td>${escapeHtml(row.customerNo)}</td>
+                <td>${escapeHtml(row.warehouseCode)}</td>
+                <td><input type="number" step="0.01" class="form-control" id="qty_${index}" value="${escapeHtml(row.quantity)}"></td>
+                <td>${escapeHtml(row.itemNo)}</td>
+                <td><input type="text" class="form-control" id="comment_${index}" value="${escapeHtml(row.comment)}"></td>
+                <td><input type="checkbox" id="chk_${index}" data-key="${escapeHtml(rowKey)}"></td>
+            </tr>`
+        );
+    });
+
+    document.getElementById("actionArea").style.display = currentRows.length > 0 ? "block" : "none";
+}
+
+async function searchItems() {
+    const itemCode = document.getElementById("searchCode").value.trim();
+    const query = itemCode ? `?itemCode=${encodeURIComponent(itemCode)}` : "";
+
+    const response = await fetch(`/SafetyStockMaintenance/Search${query}`);
+    if (!response.ok) {
+        alert("Search failed.");
+        return;
+    }
+
+    const data = await response.json();
+    renderTable(data);
+}
+
+function getSelectedRows() {
+    const selected = [];
+
+    currentRows.forEach((row, index) => {
+        const check = document.getElementById(`chk_${index}`);
+        if (!check || !check.checked) {
+            return;
+        }
+
+        const qty = parseFloat(document.getElementById(`qty_${index}`).value);
+        const comment = document.getElementById(`comment_${index}`).value ?? "";
+
+        selected.push({
+            itemCode: row.itemCode,
+            procType: row.procType,
+            arDivisionNo: row.arDivisionNo,
+            customerNo: row.customerNo,
+            warehouseCode: row.warehouseCode,
+            quantity: Number.isNaN(qty) ? 0 : qty,
+            itemNo: row.itemNo,
+            comment: comment
+        });
+    });
+
+    return selected;
+}
+
+async function updateSelected() {
+    const selected = getSelectedRows();
+    if (selected.length === 0) {
+        alert("Select rows to update.");
+        return;
+    }
+
+    const response = await fetch("/SafetyStockMaintenance/Update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(selected)
+    });
+
+    if (!response.ok) {
+        alert("Update failed.");
+        return;
+    }
+
+    const result = await response.json();
+    alert(`Updated ${result.updatedCount} row(s).`);
+    await searchItems();
+}
+
+async function deleteSelected() {
+    const selected = getSelectedRows();
+    if (selected.length === 0) {
+        alert("Select rows to delete.");
+        return;
+    }
+
+    if (!confirm(`Delete ${selected.length} selected row(s)?`)) {
+        return;
+    }
+
+    const response = await fetch("/SafetyStockMaintenance/Delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(selected)
+    });
+
+    if (!response.ok) {
+        alert("Delete failed.");
+        return;
+    }
+
+    const result = await response.json();
+    alert(`Deleted ${result.deletedCount} row(s).`);
+    await searchItems();
+}
+
+document.getElementById("searchForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    await searchItems();
+});
+
+window.addEventListener("DOMContentLoaded", async () => {
+    await searchItems();
+});
