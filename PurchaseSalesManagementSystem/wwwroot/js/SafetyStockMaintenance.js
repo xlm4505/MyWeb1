@@ -1,9 +1,5 @@
 let currentRows = [];
 
-function getRowKey(row) {
-    return `${row.itemCode}|${row.procType}|${row.arDivisionNo}|${row.customerNo}|${row.warehouseCode}|${row.itemNo}`;
-}
-
 function escapeHtml(value) {
     if (value === null || value === undefined) {
         return "";
@@ -35,8 +31,8 @@ function renderTable(records) {
                 <td>${escapeHtml(row.warehouseCode)}</td>
                 <td><input type="number" step="0.01" class="form-control" id="qty_${index}" value="${escapeHtml(row.quantity)}"></td>
                 <td>${escapeHtml(row.itemNo)}</td>
-                <td><input type="text" class="form-control" id="comment_${index}" value="${escapeHtml(row.comment)}"></td>
-                <td><input type="checkbox" id="chk_${index}" data-key="${escapeHtml(rowKey)}"></td>
+                <td>${escapeHtml(row.comment)}</td>
+                <td><input type="checkbox" id="chk_${index}"></td>
             </tr>`
         );
     });
@@ -68,17 +64,10 @@ function getSelectedRows() {
         }
 
         const qty = parseFloat(document.getElementById(`qty_${index}`).value);
-        const comment = document.getElementById(`comment_${index}`).value ?? "";
 
         selected.push({
             itemCode: row.itemCode,
-            procType: row.procType,
-            arDivisionNo: row.arDivisionNo,
-            customerNo: row.customerNo,
-            warehouseCode: row.warehouseCode,
-            quantity: Number.isNaN(qty) ? 0 : qty,
-            itemNo: row.itemNo,
-            comment: comment
+            quantity: Number.isNaN(qty) ? 0 : qty
         });
     });
 
