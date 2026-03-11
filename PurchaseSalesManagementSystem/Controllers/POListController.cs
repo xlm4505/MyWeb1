@@ -37,7 +37,7 @@ public class POListController : Controller
     public IActionResult ExportToExcel(string purchaseOrderNo, string exportTarget)
     {
         DataTable dt;
-        var excelBytes;
+        byte[] excelBytes;
 
         FormattedDataTableExcelExporter exportToExcelFinal = new FormattedDataTableExcelExporter();
         FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
