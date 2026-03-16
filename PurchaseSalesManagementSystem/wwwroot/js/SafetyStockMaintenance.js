@@ -49,13 +49,9 @@ function sanitizeQuantityInput(event) {
         return;
     }
 
-    if (!/^\d+$/.test(value)) {
-        input.value = "";
-        return;
-    }
-
-    if (value.length > 7) {
-        input.value = value.slice(0, 7);
+    const digitsOnly = value.replace(/\D/g, "").slice(0, 7);
+    if (digitsOnly !== value) {
+        input.value = digitsOnly;
     }
 }
 
@@ -82,7 +78,7 @@ function getSelectedRows() {
             return;
         }
 
-        const qty = parseFloat(document.getElementById(`qty_${index}`).value);
+        const qty = parseInt(document.getElementById(`qty_${index}`).value, 10);
 
         selected.push({
             itemCode: row.itemCode,
