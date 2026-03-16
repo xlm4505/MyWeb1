@@ -20,7 +20,6 @@ function renderTable(records) {
     body.innerHTML = "";
 
     currentRows.forEach((row, index) => {
-        const rowKey = getRowKey(row);
         body.insertAdjacentHTML(
             "beforeend",
             `<tr>
