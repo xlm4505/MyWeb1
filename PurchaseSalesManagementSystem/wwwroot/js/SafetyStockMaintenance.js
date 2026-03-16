@@ -28,7 +28,7 @@ function renderTable(records) {
                 <td>${escapeHtml(row.arDivisionNo)}</td>
                 <td>${escapeHtml(row.customerNo)}</td>
                 <td>${escapeHtml(row.warehouseCode)}</td>
-                <td><input type="number" step="0.01" class="form-control" id="qty_${index}" value="${escapeHtml(row.quantity)}"></td>
+                <td><input type="text" inputmode="numeric" class="form-control qty-input" id="qty_${index}" value="${escapeHtml(row.quantity)}"></td>
                 <td>${escapeHtml(row.itemNo)}</td>
                 <td>${escapeHtml(row.comment)}</td>
                 <td><input type="checkbox" id="chk_${index}"></td>
@@ -37,6 +37,26 @@ function renderTable(records) {
     });
 
     document.getElementById("actionArea").style.display = currentRows.length > 0 ? "block" : "none";
+}
+function sanitizeQuantityInput(event) {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.classList.contains("qty-input")) {
+        return;
+    }
+
+    const value = input.value;
+    if (value === "") {
+        return;
+    }
+
+    if (!/^\d+$/.test(value)) {
+        input.value = "";
+        return;
+    }
+
+    if (value.length > 7) {
+        input.value = value.slice(0, 7);
+    }
 }
 
 async function searchItems() {
@@ -128,3 +148,4 @@ document.getElementById("searchForm").addEventListener("submit", async function 
     await searchItems();
 });
 
+document.getElementById("dataBody").addEventListener("input", sanitizeQuantityInput);
