@@ -128,6 +128,3 @@ document.getElementById("searchForm").addEventListener("submit", async function 
     await searchItems();
 });
 
-window.addEventListener("DOMContentLoaded", async () => {
-    await searchItems();
-});
