@@ -55,23 +55,15 @@ const itemCodeMasterHeaderGroups = [
 document.addEventListener("DOMContentLoaded", () => {
     const btnSearch = document.getElementById("btnSearch");
     const btnExport = document.getElementById("btnExport");
-    const itemCodeInput = document.getElementById("itemCode");
 
     loadHeader(itemCodeMasterColumns);
 
     btnSearch.addEventListener("click", loadItemCodeMasterData);
-    itemCodeInput.addEventListener("keydown", event => {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            loadItemCodeMasterData();
-        }
-    });
 
     btnExport.addEventListener("click", () => {
         window.location.href = `/ItemCodeMaster/ExportToExcel?${buildQueryString()}`;
     });
 
-    loadItemCodeMasterData();
 });
 
 function buildQueryString() {
