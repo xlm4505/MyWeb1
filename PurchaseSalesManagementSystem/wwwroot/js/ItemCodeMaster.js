@@ -41,7 +41,17 @@
     "Contract",
     "Class 6"
 ];
-
+const itemCodeMasterHeaderGroups = [
+    { title: "", span: 1 },
+    { title: "Product Information", span: 10 },
+    { title: "Unit Price / Cost", span: 6 },
+    { title: "Inventory (Regular Items)", span: 5 },
+    { title: "Inventory (Excluded Items)", span: 5 },
+    { title: "Last Transaction Date", span: 2 },
+    { title: "", span: 1 },
+    { title: "Database Access Information", span: 4 },
+    { title: "Master Price List", span: 7 }
+];
 document.addEventListener("DOMContentLoaded", () => {
     const btnSearch = document.getElementById("btnSearch");
     const btnExport = document.getElementById("btnExport");
@@ -102,14 +112,30 @@ function loadItemCodeMasterData() {
         });
 }
 function loadHeader(columns) {
-    const thead = document.querySelector("#gridMain thead tr");
+    const thead = document.querySelector("#gridMain thead");
     thead.innerHTML = "";
+
+    const groupRow = document.createElement("tr");
+    groupRow.classList.add("header-group-row");
+
+    itemCodeMasterHeaderGroups.forEach(group => {
+        const th = document.createElement("th");
+        th.colSpan = group.span;
+        th.textContent = group.title;
+        groupRow.appendChild(th);
+    });
+
+    const detailRow = document.createElement("tr");
+    detailRow.classList.add("header-detail-row");
 
     columns.forEach(column => {
         const th = document.createElement("th");
         th.textContent = column;
-        thead.appendChild(th);
+        detailRow.appendChild(th);
     });
+
+    thead.appendChild(groupRow);
+    thead.appendChild(detailRow);
 }
 
 function addCell(row, value) {
