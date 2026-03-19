@@ -21,6 +21,7 @@ builder.Services.AddScoped<Repository_POList>();
 builder.Services.AddScoped<Repository_SafetyStockMaintenance>();
 builder.Services.AddScoped<Repository_Tbl_VendorMaintenance>();
 builder.Services.AddScoped<Repository_MF_SalesPerson>();
+builder.Services.AddScoped<Repository_ItemCodeMaster>();
 
 var app = builder.Build();
 
