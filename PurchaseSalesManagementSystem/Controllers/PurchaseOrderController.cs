@@ -34,24 +34,6 @@ public class PurchaseOrderController : Controller
     public IActionResult ExportToExcel(string reportName, string vendor, string productType, string vendorName)
     {
 
-
-        // Mass Flow ÇÃÇ∆Ç´ÇæÇØ
-        Dictionary<string, string> salesPersonMap = new();
-
-        if (productType != "Valves")
-        {
-            salesPersonMap = _repo
-            .GetAllSalesPersons()
-            .OrderBy(x => x.CustomerCode)
-            .ThenBy(x => x.SalesPerson)
-            .GroupBy(x => x.CustomerCode)
-            .ToDictionary(
-                g => g.Key,
-                g => g.First().SalesPerson
-            );
-        }
-
-
         // SQL é¿çs
         var vendorParam = string.IsNullOrEmpty(vendor) ? "00-0000000" : vendor;
 
