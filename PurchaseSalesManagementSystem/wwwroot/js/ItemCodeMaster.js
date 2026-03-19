@@ -1,7 +1,53 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+﻿const itemCodeMasterColumns = [
+    "ItemCode",
+    "ItemDesc",
+    "ItemDesc2",
+    "Category",
+    "ProductLineDesc",
+    "ProductType",
+    "Inactive",
+    "Weight(lb)",
+    "Whse",
+    "PrimaryVendor",
+    "QtyDisc",
+    "StdSalesPrice",
+    "StdUnitCost",
+    "LastCost",
+    "AvgCost",
+    "VenCost(USD)",
+    "VenCost(JPY)",
+    "OnHand",
+    "OpenSO",
+    "Available",
+    "OpenPO",
+    "(InShip)",
+    "OnHand ",
+    "OpenSO ",
+    "Available ",
+    "OpenPO ",
+    "(InShip) ",
+    "LastSold",
+    "LastReceipt",
+    "ExtendedDescriptionText",
+    "DateCreated",
+    "UserCreated",
+    "DateUpdated",
+    "UserUpdated",
+    "List COP",
+    "Standard",
+    "Discount",
+    "Class 4",
+    "Class 5",
+    "Contract",
+    "Class 6"
+];
+
+document.addEventListener("DOMContentLoaded", () => {
     const btnSearch = document.getElementById("btnSearch");
     const btnExport = document.getElementById("btnExport");
     const itemCodeInput = document.getElementById("itemCode");
+
+    loadHeader(itemCodeMasterColumns);
 
     btnSearch.addEventListener("click", loadItemCodeMasterData);
     itemCodeInput.addEventListener("keydown", event => {
@@ -12,45 +58,35 @@
     });
 
     btnExport.addEventListener("click", () => {
-        const itemCode = document.getElementById("itemCode").value;
-        const excludeInactiveItems = document.getElementById("excludeInactiveItems").checked;
-        const url = `/ItemCodeMaster/ExportToExcel?itemCode=${encodeURIComponent(itemCode)}&excludeInactiveItems=${excludeInactiveItems}`;
-
-        window.location.href = url;
+        window.location.href = `/ItemCodeMaster/ExportToExcel?${buildQueryString()}`;
     });
 
     loadItemCodeMasterData();
 });
 
-function loadItemCodeMasterData() {
+function buildQueryString() {
     const itemCode = document.getElementById("itemCode").value;
     const excludeInactiveItems = document.getElementById("excludeInactiveItems").checked;
-    const url = `/ItemCodeMaster/GetItemCodeMasterData?itemCode=${encodeURIComponent(itemCode)}&excludeInactiveItems=${excludeInactiveItems}`;
 
-    fetch(url)
+    return `itemCode=${encodeURIComponent(itemCode)}&excludeInactiveItems=${excludeInactiveItems}`;
+}
+
+function loadItemCodeMasterData() {
+    fetch(`/ItemCodeMaster/GetItemCodeMasterData?${buildQueryString()}`)
         .then(res => res.json())
         .then(data => {
-            const thead = document.querySelector("#gridMain thead tr");
             const tbody = document.querySelector("#gridMain tbody");
-            const recordCount = document.getElementById("recordCount");
             const btnExport = document.getElementById("btnExport");
 
-            thead.innerHTML = "";
+            loadHeader(itemCodeMasterColumns);
             tbody.innerHTML = "";
 
             if (!Array.isArray(data) || data.length === 0) {
-                recordCount.textContent = "0 records";
                 btnExport.disabled = true;
                 return;
             }
 
             const columns = Object.keys(data[0]);
-
-            columns.forEach(column => {
-                const th = document.createElement("th");
-                th.textContent = column;
-                thead.appendChild(th);
-            });
 
             data.forEach(row => {
                 const tr = document.createElement("tr");
@@ -62,9 +98,18 @@ function loadItemCodeMasterData() {
                 tbody.appendChild(tr);
             });
 
-            recordCount.textContent = `${data.length} records`;
             btnExport.disabled = false;
         });
+}
+function loadHeader(columns) {
+    const thead = document.querySelector("#gridMain thead tr");
+    thead.innerHTML = "";
+
+    columns.forEach(column => {
+        const th = document.createElement("th");
+        th.textContent = column;
+        thead.appendChild(th);
+    });
 }
 
 function addCell(row, value) {

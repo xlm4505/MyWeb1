@@ -37,8 +37,6 @@ Layout = null;
                 <label class="form-check-label" for="excludeInactiveItems">Exclude inactive items</label>
             </div>
             <button class="btn btn-primary" id="btnSearch">Search</button>
-            <button class="btn btn-success" id="btnExport" disabled>Export to Excel</button>
-            <span class="text-muted" id="recordCount"></span>
         </div>
     </div>
 
@@ -48,7 +46,11 @@ Layout = null;
             <tbody></tbody>
         </table>
     </div>
-
+    <div style="max-width:900px; margin-left:0; margin-right:auto;">
+        <div class="mt-4">
+            <button class="btn btn-success" id="btnExport" disabled>Export to Excel</button>
+        </div>
+    </div>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/ItemCodeMaster.js"></script>
 </body>
