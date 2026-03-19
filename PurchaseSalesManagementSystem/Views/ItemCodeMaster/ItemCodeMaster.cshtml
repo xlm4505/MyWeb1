@@ -29,8 +29,14 @@ Layout = null;
     </nav>
 
     <div style="max-width:900px; margin-left:0; margin-right:auto;">
-        <div class="d-flex align-items-center gap-3 mb-3">
-            <button class="btn btn-primary" id="btnLoad">Load Data</button>
+        <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
+            <label for="itemCode" class="mb-0">Item Code:</label>
+            <input type="text" id="itemCode" class="form-control w-auto">
+            <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" id="excludeInactiveItems">
+                <label class="form-check-label" for="excludeInactiveItems">Exclude inactive items</label>
+            </div>
+            <button class="btn btn-primary" id="btnSearch">Search</button>
             <button class="btn btn-success" id="btnExport" disabled>Export to Excel</button>
             <span class="text-muted" id="recordCount"></span>
         </div>

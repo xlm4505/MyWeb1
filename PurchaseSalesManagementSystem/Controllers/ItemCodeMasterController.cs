@@ -17,16 +17,16 @@ public class ItemCodeMasterController : Controller
     }
 
     [HttpGet]
-    public IActionResult GetItemCodeMasterData()
+    public IActionResult GetItemCodeMasterData(string? itemCode, bool excludeInactiveItems = false)
     {
-        var itemCodeMaster = _repo.GetItemCodeMasterData();
+        var itemCodeMaster = _repo.GetItemCodeMasterData(itemCode, excludeInactiveItems);
         return Json(itemCodeMaster);
     }
 
     [HttpGet]
-    public IActionResult ExportToExcel()
+    public IActionResult ExportToExcel(string? itemCode, bool excludeInactiveItems = false)
     {
-        var dataTable = _repo.GetItemCodeMasterDataTable();
+        var dataTable = _repo.GetItemCodeMasterDataTable(itemCode, excludeInactiveItems);
         var exportToExcel = new FormattedDataTableExcelExporter();
         var excelBytes = exportToExcel.ExportDataTableWithFormatting(dataTable, "ItemCodeMaster", "PO");
 

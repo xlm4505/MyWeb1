@@ -15,9 +15,9 @@ namespace PurchaseSalesManagementSystem.Repository
             _env = env;
         }
 
-        public List<Dictionary<string, object?>> GetItemCodeMasterData()
+        public List<Dictionary<string, object?>> GetItemCodeMasterData(string? itemCode, bool excludeInactiveItems)
         {
-            var dataTable = GetItemCodeMasterDataTable();
+            var dataTable = GetItemCodeMasterDataTable(itemCode, excludeInactiveItems);
             var result = new List<Dictionary<string, object?>>();
 
             foreach (DataRow row in dataTable.Rows)
@@ -35,7 +35,7 @@ namespace PurchaseSalesManagementSystem.Repository
             return result;
         }
 
-        public DataTable GetItemCodeMasterDataTable()
+        public DataTable GetItemCodeMasterDataTable(string? itemCode, bool excludeInactiveItems)
         {
             string sqlPath = Path.Combine(
                 _env.ContentRootPath,
@@ -51,6 +51,10 @@ namespace PurchaseSalesManagementSystem.Repository
             conn.Open();
 
             using var cmd = new SqlCommand(sql, conn);
+            cmd.Parameters.AddWithValue("@ItemCode",
+                string.IsNullOrWhiteSpace(itemCode) ? DBNull.Value : itemCode.Trim());
+            cmd.Parameters.AddWithValue("@ExcludeInactiveItems", excludeInactiveItems ? "Y" : "N");
+
             using var reader = cmd.ExecuteReader();
             dataTable.Load(reader);
 

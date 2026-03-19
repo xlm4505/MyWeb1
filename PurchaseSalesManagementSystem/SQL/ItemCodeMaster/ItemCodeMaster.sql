@@ -104,4 +104,6 @@ LEFT JOIN SY_User AS User2
   ON CI_Item.UserUpdatedKey = User2.UserKey
 WHERE
   ItemType = 1
+  AND (@ItemCode IS NULL OR CI_Item.ItemCode LIKE '%' + @ItemCode + '%')
+  AND (@ExcludeInactiveItems <> 'Y' OR CI_Item.InactiveItem = 'Y')
 ORDER BY CI_Item.ItemCode;

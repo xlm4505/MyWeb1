@@ -1,17 +1,33 @@
 ﻿document.addEventListener("DOMContentLoaded", () => {
-    const btnLoad = document.getElementById("btnLoad");
+    const btnSearch = document.getElementById("btnSearch");
     const btnExport = document.getElementById("btnExport");
+    const itemCodeInput = document.getElementById("itemCode");
 
-    btnLoad.addEventListener("click", loadItemCodeMasterData);
+    btnSearch.addEventListener("click", loadItemCodeMasterData);
+    itemCodeInput.addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            loadItemCodeMasterData();
+        }
+    });
+
     btnExport.addEventListener("click", () => {
-        window.location.href = "/ItemCodeMaster/ExportToExcel";
+        const itemCode = document.getElementById("itemCode").value;
+        const excludeInactiveItems = document.getElementById("excludeInactiveItems").checked;
+        const url = `/ItemCodeMaster/ExportToExcel?itemCode=${encodeURIComponent(itemCode)}&excludeInactiveItems=${excludeInactiveItems}`;
+
+        window.location.href = url;
     });
 
     loadItemCodeMasterData();
 });
 
 function loadItemCodeMasterData() {
-    fetch("/ItemCodeMaster/GetItemCodeMasterData")
+    const itemCode = document.getElementById("itemCode").value;
+    const excludeInactiveItems = document.getElementById("excludeInactiveItems").checked;
+    const url = `/ItemCodeMaster/GetItemCodeMasterData?itemCode=${encodeURIComponent(itemCode)}&excludeInactiveItems=${excludeInactiveItems}`;
+
+    fetch(url)
         .then(res => res.json())
         .then(data => {
             const thead = document.querySelector("#gridMain thead tr");
