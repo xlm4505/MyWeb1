@@ -2,10 +2,8 @@
 {
     public class Model_Tbl_VendorMaintenance
     {
-        public string APDivisionNo { get; set; }
-        public string VendorNo { get; set; }
-        public string VendorName { get; set; }
-
+        public string APDivisionNo { get; set; } = string.Empty;
+        public string VendorNo { get; set; } = string.Empty;
+        public string VendorName { get; set; } = string.Empty;
     }
 }
-

@@ -74,8 +74,8 @@ namespace PurchaseSalesManagementSystem.Repository
                     {
                         list.Add(new Model_SalesPerson
                         {
-                            SalesPerson = reader["SalesPerson"] as string ?? "",
-                            CustomerNo = reader["CustomerCode"] as string ?? ""
+                            CustomerCode = reader["CustomerCode"] as string ?? string.Empty,
+                            SalesPerson = reader["SalesPerson"] as string ?? string.Empty
                         });
                     }
                 }
@@ -139,9 +139,9 @@ namespace PurchaseSalesManagementSystem.Repository
             if (productType != "Valves")
             {
                 salesPersonMap = GetAllSalesPersons()
-                .OrderBy(x => x.CustomerNo)
+                .OrderBy(x => x.CustomerCode)
                 .ThenBy(x => x.SalesPerson)
-                .GroupBy(x => x.CustomerNo)
+                .GroupBy(x => x.CustomerCode)
                 .ToDictionary(
                     g => g.Key,
                     g => g.First().SalesPerson

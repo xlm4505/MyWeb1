@@ -42,9 +42,9 @@ public class PurchaseOrderController : Controller
         {
             salesPersonMap = _repo
             .GetAllSalesPersons()
-            .OrderBy(x => x.CustomerNo)     
-            .ThenBy(x => x.SalesPerson)      
-            .GroupBy(x => x.CustomerNo)
+            .OrderBy(x => x.CustomerCode)
+            .ThenBy(x => x.SalesPerson)
+            .GroupBy(x => x.CustomerCode)
             .ToDictionary(
                 g => g.Key,
                 g => g.First().SalesPerson

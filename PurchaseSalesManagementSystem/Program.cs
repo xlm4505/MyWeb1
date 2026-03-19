@@ -19,6 +19,8 @@ builder.Services.AddScoped<Repository_OrderForExport>();
 builder.Services.AddScoped<Repository_InvConv>();
 builder.Services.AddScoped<Repository_POList>();
 builder.Services.AddScoped<Repository_SafetyStockMaintenance>();
+builder.Services.AddScoped<Repository_Tbl_VendorMaintenance>();
+builder.Services.AddScoped<Repository_MF_SalesPerson>();
 
 var app = builder.Build();
 

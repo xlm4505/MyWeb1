@@ -2,10 +2,8 @@
 {
     public class Model_SalesPerson
     {
-        public string SalesPerson { get; set; }
+        public string CustomerCode { get; set; } = string.Empty;
 
-        public string CustomerNo { get; set; }
-
+        public string SalesPerson { get; set; } = string.Empty;
     }
 }
-
