@@ -41,8 +41,8 @@ public class ItemCodeMasterController : Controller
     private static byte[] ExportItemCodeMasterExcel(DataTable dataTable)
     {
         var exporter = new FormattedDataTableExcelExporter();
-        using var workbook = exporter.ExportDataTableWithFormattingForWorkbook(dataTable, "ItemCodeMaster", "PO");
-        var worksheet = workbook.Worksheet("ItemCodeMaster");
+        using var workbook = exporter.ExportDataTableWithFormattingForWorkbook(dataTable, "ItemCode", "PO");
+        var worksheet = workbook.Worksheet("ItemCode");
 
         worksheet.Row(1).InsertRowsAbove(1);
         worksheet.SheetView.FreezeRows(2);
@@ -80,9 +80,6 @@ public class ItemCodeMasterController : Controller
         worksheet.Row(1).Height = 22;
         worksheet.Row(2).Height = 22;
         worksheet.Columns().AdjustToContents();
-
-        var weightColumn = worksheet.Column("H");
-        weightColumn.Style.NumberFormat.Format = "#,##0.00";
 
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
