@@ -6,9 +6,11 @@ namespace PurchaseSalesManagementSystem.Common
     public class CreateConnection
     {
         private readonly string _connectionString;
+        private readonly IConfiguration _configuration;
 
         public CreateConnection(IConfiguration configuration)
         {
+            _configuration = configuration;
             _connectionString = configuration.GetConnectionString("MyDB");
         }
 
@@ -16,5 +18,12 @@ namespace PurchaseSalesManagementSystem.Common
         {
             return new SqlConnection(_connectionString);
         }
+
+        public SqlConnection GetConnection(string connectionName)
+        {
+            var connStr = _configuration.GetConnectionString(connectionName);
+            return new SqlConnection(connStr);
+        }
+
     }
 }

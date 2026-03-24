@@ -115,6 +115,9 @@ namespace PurchaseSalesManagementSystem.Repository
 
                 using (var cmd = new SqlCommand(sql, conn))
                 {
+
+                    cmd.CommandTimeout = 300;
+
                     // @YM0 ～ @YM8 をセット
                     for (int i = 0; i < yyyymm.Count; i++)
                     {
@@ -238,6 +241,9 @@ namespace PurchaseSalesManagementSystem.Repository
             using (var conn = _connectionFactory.GetConnection())
             using (var cmd = new SqlCommand(sql, conn))
             {
+
+                cmd.CommandTimeout = 300;
+
                 for (int i = 0; i < 12; i++)
                     cmd.Parameters.AddWithValue($"@YM{i}", yyyymm[i]);
 

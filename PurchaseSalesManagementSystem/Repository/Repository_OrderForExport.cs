@@ -34,6 +34,9 @@ namespace PurchaseSalesManagementSystem.Repository
 
                 using (var cmd = new SqlCommand(sql, conn))
                 {
+
+                    cmd.CommandTimeout = 300;
+
                     if (salesOrderNo != null)
                     {
 						cmd.Parameters.AddWithValue("@SalesOrderNo", salesOrderNo);
@@ -103,7 +106,7 @@ namespace PurchaseSalesManagementSystem.Repository
 										? null
 										: reader.GetDecimal(reader.GetOrdinal("UnitCost")),
 								PurchaseOrderNo = reader["PurchaseOrderNo"] as string ?? "",
-								Udf_custpono = reader["UDF_CUSTPONO"] as string ?? "",
+								UDF_CUSTPONO = reader["UDF_CUSTPONO"] as string ?? "",
 								InternalNotes = reader["InternalNotes"] as string ?? "",
 							});
 						}

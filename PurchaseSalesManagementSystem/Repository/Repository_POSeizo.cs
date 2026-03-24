@@ -32,7 +32,7 @@ namespace PurchaseSalesManagementSystem.Repository
             var sql = File.ReadAllText(sqlPath);
 
 
-            using (var conn = _connectionFactory.GetConnection())
+            using (var conn = _connectionFactory.GetConnection("FUJIKINDB"))
             {
                 conn.Open();
 
@@ -41,11 +41,15 @@ namespace PurchaseSalesManagementSystem.Repository
                 {
                     while (reader.Read())
                     {
-                        list.Add(new Model_Vendor
+                        if (!"99-9999999".Equals(reader["VendorCode"]))
                         {
-                            VendorNo = reader["VendorCode"] as string ?? "",
-                            VendorName = reader["VendorName"] as string ?? ""
-                        });
+                            list.Add(new Model_Vendor
+                            {
+                                VendorNo = reader["VendorCode"] as string ?? "",
+                                VendorName = reader["VendorName"] as string ?? ""
+                            });
+
+                        }
                     }
                 }
             }
@@ -106,6 +110,9 @@ namespace PurchaseSalesManagementSystem.Repository
 
                 using (var cmd = new SqlCommand(sql, conn))
                 {
+
+                    cmd.CommandTimeout = 300;
+
                     cmd.Parameters.AddWithValue("@VendorCode", vendorNo);
                     cmd.Parameters.AddWithValue("@UserName", userName);
                     cmd.Parameters.AddWithValue("@OrderStatus", orderStatus);
@@ -173,6 +180,8 @@ namespace PurchaseSalesManagementSystem.Repository
 
                 using (var cmd = new SqlCommand(sql, conn))
                 {
+                    cmd.CommandTimeout = 300;
+
                     cmd.Parameters.AddWithValue("@VendorCode", vendorNo);
                     cmd.Parameters.AddWithValue("@UserName", userName);
                     cmd.Parameters.AddWithValue("@OrderStatus", orderStatus);

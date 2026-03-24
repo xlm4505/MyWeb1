@@ -29,7 +29,7 @@ namespace PurchaseSalesManagementSystem.Repository
 
             var sql = File.ReadAllText(sqlPath);
 
-            using (var conn = _connectionFactory.GetConnection())
+            using (var conn = _connectionFactory.GetConnection("FUJIKINDB"))
             {
                 conn.Open();
 
@@ -63,7 +63,7 @@ namespace PurchaseSalesManagementSystem.Repository
 
             var sql = File.ReadAllText(sqlPath);
 
-            using (var conn = _connectionFactory.GetConnection())
+            using (var conn = _connectionFactory.GetConnection("FUJIKINDB"))
             {
                 conn.Open();
 
@@ -156,6 +156,8 @@ namespace PurchaseSalesManagementSystem.Repository
                 using (var cmd = new SqlCommand(sql, conn))
                 {
 
+                    cmd.CommandTimeout = 300;
+                    
                     if (!"00-0000000".Equals(vendorNo)) {
                         cmd.Parameters.AddWithValue("@VendorNo", vendorNo);
                     }

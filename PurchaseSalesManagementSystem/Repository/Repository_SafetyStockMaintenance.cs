@@ -35,6 +35,9 @@ namespace PurchaseSalesManagementSystem.Repository
 
                 using (var cmd = new SqlCommand(sql, conn))
                 {
+
+                    cmd.CommandTimeout = 300;
+
                     cmd.Parameters.AddWithValue("@ItemCode", itemCode?.Trim() ?? string.Empty);
 
                     using (var reader = cmd.ExecuteReader())

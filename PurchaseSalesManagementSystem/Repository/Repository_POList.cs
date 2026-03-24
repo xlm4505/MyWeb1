@@ -34,6 +34,9 @@ namespace PurchaseSalesManagementSystem.Repository
 
                 using (var cmd = new SqlCommand(sql, conn))
                 {
+
+                    cmd.CommandTimeout = 300;
+
                     cmd.Parameters.AddWithValue(
                         "@PurchaseOrderNo",
                         string.IsNullOrWhiteSpace(purchaseOrderNo) ? DBNull.Value : purchaseOrderNo);

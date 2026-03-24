@@ -1,4 +1,4 @@
-UPDATE FUJIKIN.dbo.Tbl_Vendor
+UPDATE dbo.Tbl_Vendor
 SET
     APDivisionNo = @APDivisionNo,
     VendorNo = @VendorNo,
