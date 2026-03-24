@@ -1,7 +1,8 @@
 SELECT
+    ID,
     APDivisionNo,
     VendorNo,
     VendorName
 FROM FUJIKIN.dbo.Tbl_Vendor
-WHERE (@VendorNo = '' OR VendorNo = @VendorNo)
-ORDER BY VendorNo;
+WHERE (@ID = '' OR ID = @ID)
+ORDER BY ID;

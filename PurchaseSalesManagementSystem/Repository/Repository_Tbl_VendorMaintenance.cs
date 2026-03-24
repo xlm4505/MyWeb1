@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.Data.SqlClient;
 using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
 
@@ -15,7 +16,7 @@ namespace PurchaseSalesManagementSystem.Repository
             _env = env;
         }
 
-        public IEnumerable<Model_Tbl_VendorMaintenance> GetVendors(string? vendorNo)
+        public IEnumerable<Model_Tbl_VendorMaintenance> GetVendors(string? id)
         {
             var list = new List<Model_Tbl_VendorMaintenance>();
 
@@ -34,7 +35,7 @@ namespace PurchaseSalesManagementSystem.Repository
 
                 using (var cmd = new SqlCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("@VendorNo", vendorNo?.Trim() ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@ID", id?.Trim() ?? string.Empty);
 
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -42,6 +43,7 @@ namespace PurchaseSalesManagementSystem.Repository
                         {
                             list.Add(new Model_Tbl_VendorMaintenance
                             {
+                                ID = Convert.ToString(reader["ID"]) ?? string.Empty,
                                 APDivisionNo = reader["APDivisionNo"] as string ?? string.Empty,
                                 VendorNo = reader["VendorNo"] as string ?? string.Empty,
                                 VendorName = reader["VendorName"] as string ?? string.Empty
@@ -82,7 +84,7 @@ namespace PurchaseSalesManagementSystem.Repository
                         cmd.Parameters.AddWithValue("@VendorName", item.VendorName ?? string.Empty);
                         cmd.Parameters.AddWithValue("@APDivisionNo", item.APDivisionNo ?? string.Empty);
                         cmd.Parameters.AddWithValue("@VendorNo", item.VendorNo ?? string.Empty);
-
+                        cmd.Parameters.AddWithValue("@ID", item.ID ?? string.Empty);
                         affectedRows += cmd.ExecuteNonQuery();
                     }
                 }
@@ -116,9 +118,7 @@ namespace PurchaseSalesManagementSystem.Repository
                 {
                     using (var cmd = new SqlCommand(sql, conn))
                     {
-                        cmd.Parameters.AddWithValue("@APDivisionNo", item.APDivisionNo ?? string.Empty);
-                        cmd.Parameters.AddWithValue("@VendorNo", item.VendorNo ?? string.Empty);
-
+                        cmd.Parameters.AddWithValue("@ID", item.ID ?? string.Empty);
                         affectedRows += cmd.ExecuteNonQuery();
                     }
                 }

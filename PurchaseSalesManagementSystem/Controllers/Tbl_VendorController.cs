@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.AspNetCore.Mvc;
 using PurchaseSalesManagementSystem.Models;
 using PurchaseSalesManagementSystem.Repository;
@@ -17,9 +18,9 @@ public class Tbl_VendorController : Controller
     }
 
     [HttpGet]
-    public IActionResult Search(string? vendorNo)
+    public IActionResult Search(string? id)
     {
-        var items = _repo.GetVendors(vendorNo);
+        var items = _repo.GetVendors(id);
         return Json(items);
     }
 

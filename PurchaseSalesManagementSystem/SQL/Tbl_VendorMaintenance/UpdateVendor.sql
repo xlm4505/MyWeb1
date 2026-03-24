@@ -1,4 +1,6 @@
 UPDATE FUJIKIN.dbo.Tbl_Vendor
-SET VendorName = @VendorName
-WHERE APDivisionNo = @APDivisionNo
-  AND VendorNo = @VendorNo;
+SET
+    APDivisionNo = @APDivisionNo,
+    VendorNo = @VendorNo,
+    VendorName = @VendorName
+WHERE ID = @ID;

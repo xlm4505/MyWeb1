@@ -23,9 +23,10 @@ function renderTable(records) {
         body.insertAdjacentHTML(
             "beforeend",
             `<tr>
-                <td>${escapeHtml(row.apDivisionNo)}</td>
-                <td>${escapeHtml(row.vendorNo)}</td>
-                <td><input type="text" class="form-control" id="name_${index}" value="${escapeHtml(row.vendorName)}"></td>
+                <td>${escapeHtml(row.id)}</td>
+                <td><input type="text" inputmode="numeric" class="form-control number50-input" id="apDivisionNo_${index}" value="${escapeHtml(row.apDivisionNo)}"></td>
+                <td><input type="text" inputmode="numeric" class="form-control number50-input" id="vendorNo_${index}" value="${escapeHtml(row.vendorNo)}"></td>
+                <td><input type="text" maxlength="100" class="form-control" id="name_${index}" value="${escapeHtml(row.vendorName)}"></td>
                 <td><input type="checkbox" id="chk_${index}"></td>
             </tr>`
         );
@@ -33,10 +34,21 @@ function renderTable(records) {
 
     document.getElementById("actionArea").style.display = currentRows.length > 0 ? "block" : "none";
 }
+function sanitizeNumber50Input(event) {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.classList.contains("number50-input")) {
+        return;
+    }
+
+    const digitsOnly = input.value.replace(/\D/g, "").slice(0, 50);
+    if (digitsOnly !== input.value) {
+        input.value = digitsOnly;
+    }
+}
 
 async function searchItems() {
-    const vendorNo = document.getElementById("searchCode").value.trim();
-    const query = vendorNo ? `?vendorNo=${encodeURIComponent(vendorNo)}` : "";
+    const id = document.getElementById("searchCode").value.trim();
+    const query = id ? `?id=${encodeURIComponent(id)}` : "";
 
     const response = await fetch(`/Tbl_Vendor/Search${query}`);
     if (!response.ok) {
@@ -58,9 +70,10 @@ function getSelectedRows() {
         }
 
         selected.push({
-            apDivisionNo: row.apDivisionNo,
-            vendorNo: row.vendorNo,
-            vendorName: document.getElementById(`name_${index}`).value.trim()
+            id: row.id,
+            apDivisionNo: document.getElementById(`apDivisionNo_${index}`).value.trim(),
+            vendorNo: document.getElementById(`vendorNo_${index}`).value.trim(),
+            vendorName: document.getElementById(`name_${index}`).value.trim().slice(0, 100)
         });
     });
 
@@ -121,3 +134,5 @@ document.getElementById("searchForm").addEventListener("submit", async function 
     e.preventDefault();
     await searchItems();
 });
+
+document.getElementById("dataBody").addEventListener("input", sanitizeNumber50Input);
