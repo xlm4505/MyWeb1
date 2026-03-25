@@ -8,7 +8,7 @@
         public string CustomerNo { get; set; } = string.Empty;
         public string WarehouseCode { get; set; } = string.Empty;
         public decimal Quantity { get; set; }
-        public string ItemNo { get; set; } = string.Empty;
+        public decimal ItemNo { get; set; } 
         public string Comment { get; set; } = string.Empty;
     }
 }

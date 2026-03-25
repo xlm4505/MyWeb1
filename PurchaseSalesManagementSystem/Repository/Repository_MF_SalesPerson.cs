@@ -27,7 +27,7 @@ namespace PurchaseSalesManagementSystem.Repository
 
             var sql = File.ReadAllText(sqlPath);
 
-            using (var conn = _connectionFactory.GetConnection())
+            using (var conn = _connectionFactory.GetConnection("FUJIKINDB"))
             {
                 conn.Open();
 
@@ -69,7 +69,7 @@ namespace PurchaseSalesManagementSystem.Repository
             var sql = File.ReadAllText(sqlPath);
             var affectedRows = 0;
 
-            using (var conn = _connectionFactory.GetConnection())
+            using (var conn = _connectionFactory.GetConnection("FUJIKINDB"))
             {
                 conn.Open();
 
@@ -105,7 +105,7 @@ namespace PurchaseSalesManagementSystem.Repository
             var sql = File.ReadAllText(sqlPath);
             var affectedRows = 0;
 
-            using (var conn = _connectionFactory.GetConnection())
+            using (var conn = _connectionFactory.GetConnection("FUJIKINDB"))
             {
                 conn.Open();
 

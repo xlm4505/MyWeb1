@@ -54,7 +54,9 @@ namespace PurchaseSalesManagementSystem.Repository
                                 Quantity = reader.IsDBNull(reader.GetOrdinal("Quantity"))
                                     ? 0
                                     : Convert.ToDecimal(reader["Quantity"]),
-                                ItemNo = reader["ItemNo"] as string ?? string.Empty,
+                                ItemNo = reader.IsDBNull(reader.GetOrdinal("ItemNo"))
+                                    ? 0
+                                    : Convert.ToDecimal(reader["ItemNo"]), //reader["ItemNo"] as string ?? string.Empty,
                                 Comment = reader["Comment"] as string ?? string.Empty
                             });
                         }
