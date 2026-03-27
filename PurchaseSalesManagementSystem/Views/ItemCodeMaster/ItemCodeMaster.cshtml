@@ -1,61 +1,69 @@
-﻿﻿@{
-Layout = null;
+﻿@{
+    Layout = null;
 }
+
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Item Code Master - Fujikin</title>
+    <title> Item Code Master - Fujikin</title>
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="~/lib/xlsx/xlsx.full.min.js"></script>
     <style>
-        .table-wrapper {
+        .table-container {
             max-height: 500px;
-            overflow: auto;
-            background-color: #fff;
+            overflow-y: auto;
+            overflow-x: auto;
+            display: block;
+        }
+
+        #gridMain thead th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            white-space: nowrap;
         }
 
         table th, table td {
             white-space: nowrap;
         }
-
-        #gridMain thead th {
-            text-align: center;
-            vertical-align: middle;
-        }
-
     </style>
 </head>
-<body class="p-4 bg-light">
+<body class="p-4">
+
+    <!-- ナビバー -->
     <nav class="navbar navbar-dark bg-dark mb-4">
         <div class="container-fluid">
             <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
-            <span class="text-white">Item Code Master</span>
+            <span class="text-white"> Item Code Master</span>
         </div>
     </nav>
 
-    <div style="max-width:900px; margin-left:0; margin-right:auto;">
-        <div class="d-flex align-items-center gap-3 mb-3 flex-wrap">
-            <label for="itemCode" class="mb-0">Item Code:</label>
-            <input type="text" id="itemCode" class="form-control w-auto">
-            <div class="form-check mb-0">
-                <input class="form-check-input" type="checkbox" id="excludeInactiveItems">
-                <label class="form-check-label" for="excludeInactiveItems">Exclude inactive items</label>
-            </div>
-            <button class="btn btn-primary" id="btnSearch">Search</button>
+    <!-- 検索フォーム -->
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <label for="itemNo">itemCode:</label>
+        <input type="text" id="itemNo" class="form-control w-auto">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="chkInactive">
+            <label class="form-check-label" for="chkInactive">Exclude inactive items</label>
         </div>
+        <button class="btn btn-primary" id="btnSearch">Search</button>
     </div>
 
-    <div class="table-wrapper mt-3">
-        <table class="table table-bordered table-sm mb-0" id="gridMain">
-            <thead></thead>
+    <div class="table-container">
+        <table class="table table-bordered table-sm" id="gridMain">
+            <thead><tr></tr></thead>
             <tbody></tbody>
         </table>
     </div>
-    <div style="max-width:900px; margin-left:0; margin-right:auto;">
-        <div class="mt-4">
-            <button class="btn btn-success" id="btnExport" disabled>Export to Excel</button>
-        </div>
+
+    <!-- 操作ボタン -->
+    <div class="mt-4">
+        <button id="btnExport" class="btn btn-success">
+            Export to Excel
+        </button>
     </div>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/ItemCodeMaster.js"></script>
