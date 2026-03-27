@@ -9,9 +9,19 @@
     <title>Tbl_Vendor Maintenance</title>
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
-        .result-grid-container {
+        .table-container {
             max-height: 500px;
             overflow-y: auto;
+            overflow-x: auto;
+            display: block;
+        }
+
+        #gridMain thead th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            white-space: nowrap;
         }
 
         table th, table td {
@@ -36,8 +46,8 @@
             <button type="submit" class="btn btn-primary">Search</button>
         </form>
 
-        <div class="result-grid-container">
-            <table class="table table-bordered table-sm mb-0">
+        <div class="table-container">
+            <table class="table table-bordered table-sm" id="gridMain">
                 <thead>
                     <tr>
                         <th>ID</th>
