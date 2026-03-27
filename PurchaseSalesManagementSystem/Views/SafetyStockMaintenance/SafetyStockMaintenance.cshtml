@@ -9,15 +9,24 @@
     <title>dbo_U_ForecastItem Maintenance</title>
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <style>
-        .results-container {
+        .table-container {
             max-height: 500px;
             overflow-y: auto;
+            overflow-x: auto;
+            display: block;
         }
 
-            .results-container table th,
-            .results-container table td {
-                white-space: nowrap;
-            }
+        #gridMain thead th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            white-space: nowrap;
+        }
+
+        table th, table td {
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body class="p-4 bg-light">
@@ -37,8 +46,8 @@
             <button type="submit" class="btn btn-primary">Search</button>
         </form>
 
-        <div class="results-container">
-            <table class="table table-bordered table-sm mb-0">
+        <div class="table-container">
+            <table class="table table-bordered table-sm" id="gridMain">
                 <thead>
                     <tr>
                         <th>ItemCode</th>

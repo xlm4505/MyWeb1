@@ -11,9 +11,19 @@
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
     <script src="~/lib/xlsx/xlsx.full.min.js"></script>
     <style>
-        .tab-content {
+        .table-container {
             max-height: 500px;
             overflow-y: auto;
+            overflow-x: auto;
+            display: block;
+        }
+
+        #gridMain thead th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            white-space: nowrap;
         }
 
         table th, table td {
@@ -52,19 +62,11 @@
     </div>
 
     <!-- 検索結果エリア -->
-    <div class="tab-content mt-3">
-        <div class="tab-pane fade show active" id="main">
-            <table class="table table-bordered table-sm" id="gridMain">
-                <thead><tr></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
-        <div class="tab-pane fade" id="excluded">
-            <table class="table table-bordered table-sm" id="gridExcluded">
-                <thead><tr></tr></thead>
-                <tbody></tbody>
-            </table>
-        </div>
+    <div class="table-container">
+        <table class="table table-bordered table-sm" id="gridMain">
+            <thead><tr></tr></thead>
+            <tbody></tbody>
+        </table>
     </div>
 
     <!-- 操作ボタン -->
