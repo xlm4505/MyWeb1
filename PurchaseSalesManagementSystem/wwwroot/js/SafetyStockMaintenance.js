@@ -1,5 +1,12 @@
 let currentRows = [];
-
+const alphaNumericFieldRules = {
+    addItemCode: 30,
+    addProcType: 1,
+    addArDivisionNo: 2,
+    addCustomerNo: 20,
+    addWarehouseCode: 3,
+    addComment: 30
+};
 function escapeHtml(value) {
     if (value === null || value === undefined) {
         return "";
@@ -70,7 +77,22 @@ function sanitizeSevenDigitNumberInput(event) {
         input.value = digitsOnly;
     }
 }
+function sanitizeAlphaNumericInput(event) {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) {
+        return;
+    }
 
+    const maxLength = alphaNumericFieldRules[input.id];
+    if (!maxLength) {
+        return;
+    }
+
+    const sanitized = input.value.replace(/[^A-Za-z0-9]/g, "").slice(0, maxLength);
+    if (sanitized !== input.value) {
+        input.value = sanitized;
+    }
+}
 function openAddModal() {
     document.getElementById("addItemCode").value = "";
     document.getElementById("addProcType").value = "";
@@ -91,11 +113,43 @@ function closeAddModal() {
 function validateAddForm() {
     const itemCode = document.getElementById("addItemCode").value.trim();
     const procType = document.getElementById("addProcType").value.trim();
+    const arDivisionNo = document.getElementById("addArDivisionNo").value.trim();
+    const customerNo = document.getElementById("addCustomerNo").value.trim();
+    const warehouseCode = document.getElementById("addWarehouseCode").value.trim();
     const quantity = document.getElementById("addQuantity").value.trim();
     const itemNo = document.getElementById("addItemNo").value.trim();
-
+    const comment = document.getElementById("addComment").value.trim();
     if (!itemCode || !procType || !quantity) {
         alert("ItemCode, ProcType and Quantity are required.");
+        return false;
+    }
+    if (!/^[A-Za-z0-9]{1,30}$/.test(itemCode)) {
+        alert("ItemCode must be half-width alphanumeric and up to 30 characters.");
+        return false;
+    }
+
+    if (!/^[A-Za-z0-9]{1}$/.test(procType)) {
+        alert("ProcType must be 1 half-width alphanumeric character.");
+        return false;
+    }
+
+    if (arDivisionNo && !/^[A-Za-z0-9]{1,2}$/.test(arDivisionNo)) {
+        alert("ARDivisionNo must be half-width alphanumeric and up to 2 characters.");
+        return false;
+    }
+
+    if (customerNo && !/^[A-Za-z0-9]{1,20}$/.test(customerNo)) {
+        alert("CustomerNo must be half-width alphanumeric and up to 20 characters.");
+        return false;
+    }
+
+    if (warehouseCode && !/^[A-Za-z0-9]{1,3}$/.test(warehouseCode)) {
+        alert("WarehouseCode must be half-width alphanumeric and up to 3 characters.");
+        return false;
+    }
+
+    if (comment && !/^[A-Za-z0-9]{1,30}$/.test(comment)) {
+        alert("Comment must be half-width alphanumeric and up to 30 characters.");
         return false;
     }
 
@@ -251,3 +305,4 @@ document.getElementById("addButton").addEventListener("click", openAddModal);
 document.getElementById("okAddButton").addEventListener("click", addItem);
 document.getElementById("closeAddButton").addEventListener("click", requestCloseAddModal);
 document.getElementById("addModal").addEventListener("input", sanitizeSevenDigitNumberInput);
+document.getElementById("addModal").addEventListener("input", sanitizeAlphaNumericInput);
