@@ -1,0 +1,22 @@
+INSERT INTO dbo.U_ForecastItem
+(
+    ItemCode,
+    ProcType,
+    ARDivisionNo,
+    CustomerNo,
+    WarehouseCode,
+    Quantity,
+    ItemNo,
+    [Comment]
+)
+VALUES
+(
+    @ItemCode,
+    @ProcType,
+    @ARDivisionNo,
+    @CustomerNo,
+    @WarehouseCode,
+    @Quantity,
+    @ItemNo,
+    @Comment
+);

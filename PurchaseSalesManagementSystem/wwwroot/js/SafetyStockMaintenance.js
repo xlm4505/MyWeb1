@@ -54,7 +54,109 @@ function sanitizeQuantityInput(event) {
         input.value = digitsOnly;
     }
 }
+function sanitizeSevenDigitNumberInput(event) {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.classList.contains("modal-number-7")) {
+        return;
+    }
 
+    const value = input.value;
+    if (value === "") {
+        return;
+    }
+
+    const digitsOnly = value.replace(/\D/g, "").slice(0, 7);
+    if (digitsOnly !== value) {
+        input.value = digitsOnly;
+    }
+}
+
+function openAddModal() {
+    document.getElementById("addItemCode").value = "";
+    document.getElementById("addProcType").value = "";
+    document.getElementById("addArDivisionNo").value = "";
+    document.getElementById("addCustomerNo").value = "";
+    document.getElementById("addWarehouseCode").value = "";
+    document.getElementById("addQuantity").value = "";
+    document.getElementById("addItemNo").value = "";
+    document.getElementById("addComment").value = "";
+
+    document.getElementById("addModal").style.display = "block";
+}
+
+function closeAddModal() {
+    document.getElementById("addModal").style.display = "none";
+}
+
+function validateAddForm() {
+    const itemCode = document.getElementById("addItemCode").value.trim();
+    const procType = document.getElementById("addProcType").value.trim();
+    const quantity = document.getElementById("addQuantity").value.trim();
+    const itemNo = document.getElementById("addItemNo").value.trim();
+
+    if (!itemCode || !procType || !quantity) {
+        alert("ItemCode, ProcType and Quantity are required.");
+        return false;
+    }
+
+    if (!/^\d{1,7}$/.test(quantity)) {
+        alert("Quantity must be numeric and up to 7 digits.");
+        return false;
+    }
+
+    if (itemNo && !/^\d{1,7}$/.test(itemNo)) {
+        alert("ItemNo must be numeric and up to 7 digits.");
+        return false;
+    }
+
+    return true;
+}
+
+async function addItem() {
+    if (!validateAddForm()) {
+        return;
+    }
+
+    if (!confirm("Do you want to register this data?")) {
+        return;
+    }
+
+    const payload = {
+        itemCode: document.getElementById("addItemCode").value.trim(),
+        procType: document.getElementById("addProcType").value.trim(),
+        arDivisionNo: document.getElementById("addArDivisionNo").value.trim(),
+        customerNo: document.getElementById("addCustomerNo").value.trim(),
+        warehouseCode: document.getElementById("addWarehouseCode").value.trim(),
+        quantity: parseInt(document.getElementById("addQuantity").value.trim(), 10),
+        itemNo: document.getElementById("addItemNo").value.trim() === ""
+            ? 0
+            : parseInt(document.getElementById("addItemNo").value.trim(), 10),
+        comment: document.getElementById("addComment").value.trim()
+    };
+
+    const response = await fetch("/SafetyStockMaintenance/Add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        alert("Data registration failed.");
+        return;
+    }
+
+    alert("Data has been registered.");
+    closeAddModal();
+    await searchItems();
+}
+
+function requestCloseAddModal() {
+    if (!confirm("Do you want to close this screen?")) {
+        return;
+    }
+
+    closeAddModal();
+}
 async function searchItems() {
     const itemCode = document.getElementById("searchCode").value.trim();
     const query = itemCode ? `?itemCode=${encodeURIComponent(itemCode)}` : "";
@@ -145,3 +247,7 @@ document.getElementById("searchForm").addEventListener("submit", async function 
 });
 
 document.getElementById("dataBody").addEventListener("input", sanitizeQuantityInput);
+document.getElementById("addButton").addEventListener("click", openAddModal);
+document.getElementById("okAddButton").addEventListener("click", addItem);
+document.getElementById("closeAddButton").addEventListener("click", requestCloseAddModal);
+document.getElementById("addModal").addEventListener("input", sanitizeSevenDigitNumberInput);

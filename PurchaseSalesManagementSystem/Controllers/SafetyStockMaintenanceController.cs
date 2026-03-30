@@ -47,4 +47,23 @@ public class SafetyStockMaintenanceController : Controller
         var deletedCount = _repo.DeleteForecastItems(items);
         return Json(new { success = true, deletedCount });
     }
+
+    [HttpPost]
+    public IActionResult Add([FromBody] Model_SafetyStockMaintenance? item)
+    {
+        if (item == null)
+        {
+            return BadRequest(new { success = false, message = "No data to register." });
+        }
+
+        if (string.IsNullOrWhiteSpace(item.ItemCode)
+            || string.IsNullOrWhiteSpace(item.ProcType)
+            || item.Quantity < 0)
+        {
+            return BadRequest(new { success = false, message = "ItemCode, ProcType and Quantity are required." });
+        }
+
+        _repo.InsertForecastItem(item);
+        return Json(new { success = true });
+    }
 }

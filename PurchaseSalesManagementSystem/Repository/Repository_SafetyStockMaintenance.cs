@@ -137,6 +137,35 @@ namespace PurchaseSalesManagementSystem.Repository
 
             return affectedRows;
         }
+        public int InsertForecastItem(Model_SafetyStockMaintenance item)
+        {
+            string sqlPath = Path.Combine(
+                _env.ContentRootPath,
+                "SQL",
+                "SafetyStockMaintenance",
+                "InsertForecastItem.sql"
+            );
 
+            var sql = File.ReadAllText(sqlPath);
+
+            using (var conn = _connectionFactory.GetConnection())
+            {
+                conn.Open();
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ItemCode", item.ItemCode ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@ProcType", item.ProcType ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@ARDivisionNo", item.ARDivisionNo ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@CustomerNo", item.CustomerNo ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@WarehouseCode", item.WarehouseCode ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@Quantity", item.Quantity);
+                    cmd.Parameters.AddWithValue("@ItemNo", item.ItemNo);
+                    cmd.Parameters.AddWithValue("@Comment", item.Comment ?? string.Empty);
+
+                    return cmd.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }
