@@ -206,7 +206,17 @@ async function addItem() {
     });
 
     if (!response.ok) {
-        alert("Data registration failed.");
+        let message = "Data registration failed.";
+        try {
+            const errorResult = await response.json();
+            if (errorResult && errorResult.message) {
+                message = errorResult.message;
+            }
+        } catch (error) {
+            // ignore JSON parse errors and keep default message
+        }
+
+        alert(message);
         return;
     }
 

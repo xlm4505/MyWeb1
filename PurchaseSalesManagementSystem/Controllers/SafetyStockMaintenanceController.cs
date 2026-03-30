@@ -72,6 +72,10 @@ public class SafetyStockMaintenanceController : Controller
         {
             return BadRequest(new { success = false, message = "Alphanumeric field format is invalid." });
         }
+        if (_repo.ExistsForecastItemByItemCode(item.ItemCode))
+        {
+            return BadRequest(new { success = false, message = "The entered ItemCode already exists." });
+        }
         _repo.InsertForecastItem(item);
         return Json(new { success = true });
     }

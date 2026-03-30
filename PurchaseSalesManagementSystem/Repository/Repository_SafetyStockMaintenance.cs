@@ -167,5 +167,23 @@ namespace PurchaseSalesManagementSystem.Repository
                 }
             }
         }
+        public bool ExistsForecastItemByItemCode(string itemCode)
+        {
+            const string sql = @"
+SELECT TOP (1) 1
+FROM dbo.U_ForecastItem
+WHERE ItemCode = @ItemCode;";
+
+            using (var conn = _connectionFactory.GetConnection())
+            {
+                conn.Open();
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ItemCode", itemCode?.Trim() ?? string.Empty);
+                    return cmd.ExecuteScalar() != null;
+                }
+            }
+        }
     }
 }
