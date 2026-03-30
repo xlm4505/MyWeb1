@@ -119,8 +119,19 @@ function validateAddForm() {
     const quantity = document.getElementById("addQuantity").value.trim();
     const itemNo = document.getElementById("addItemNo").value.trim();
     const comment = document.getElementById("addComment").value.trim();
-    if (!itemCode || !procType || !quantity) {
-        alert("ItemCode, ProcType and Quantity are required.");
+    const requiredChecks = [
+        { value: itemCode, fieldId: "addItemCode", message: "ItemCode is required." },
+        { value: procType, fieldId: "addProcType", message: "ProcType is required." },
+        { value: quantity, fieldId: "addQuantity", message: "Quantity is required." }
+    ];
+
+    for (const check of requiredChecks) {
+        if (check.value) {
+            continue;
+        }
+
+        alert(check.message);
+        document.getElementById(check.fieldId).focus();
         return false;
     }
     if (!/^[A-Za-z0-9]{1,30}$/.test(itemCode)) {
@@ -201,7 +212,6 @@ async function addItem() {
 
     alert("Data has been registered.");
     closeAddModal();
-    await searchItems();
 }
 
 function requestCloseAddModal() {
