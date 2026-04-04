@@ -24,13 +24,23 @@ function renderTable(records) {
             "beforeend",
             `<tr>
                 <td>${escapeHtml(row.customerCode)}</td>
-                <td><input type="text" class="form-control" id="sp_${index}" value="${escapeHtml(row.salesPerson)}"></td>
+                <td><input type="text" class="form-control" id="sp_${index}" value="${escapeHtml(row.salesPerson)}" maxlength="50" pattern="[A-Za-z0-9]*"></td>
                 <td><input type="checkbox" id="chk_${index}"></td>
             </tr>`
         );
     });
 
     document.getElementById("actionArea").style.display = currentRows.length > 0 ? "block" : "none";
+    currentRows.forEach((_, index) => {
+        const salesPersonInput = document.getElementById(`sp_${index}`);
+        if (!salesPersonInput) {
+            return;
+        }
+
+        salesPersonInput.addEventListener("input", function () {
+            this.value = this.value.replace(/[^A-Za-z0-9]/g, "").slice(0, 50);
+        });
+    });
 }
 
 async function searchItems() {
@@ -71,7 +81,11 @@ async function updateSelected() {
         alert("Select rows to update.");
         return;
     }
-
+    const invalidRow = selected.find((row) => !salesPersonRegex.test(row.salesPerson ?? ""));
+    if (invalidRow) {
+        alert("SalesPerson must be up to 50 half-width alphanumeric characters.");
+        return;
+    }
     const response = await fetch("/MF_SalesPerson/Update", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -79,7 +93,8 @@ async function updateSelected() {
     });
 
     if (!response.ok) {
-        alert("Update failed.");
+        const error = await response.json().catch(() => null);
+        alert(error?.message || "Update failed.");
         return;
     }
 
