@@ -1,5 +1,5 @@
 let currentRows = [];
-
+const salesPersonRegex = /^[A-Za-z0-9]{0,50}$/;
 function escapeHtml(value) {
     if (value === null || value === undefined) {
         return "";

@@ -12,6 +12,15 @@
         .result-grid-container {
             max-height: 500px;
             overflow-y: auto;
+            overflow-x: auto;
+            display: block;
+        }
+
+        #gridMain thead th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
         }
 
         table th, table td {
@@ -37,7 +46,7 @@
         </form>
 
         <div class="result-grid-container">
-            <table class="table table-bordered table-sm mb-0">
+            <table class="table table-bordered table-sm mb-0" id="gridMain">
                 <thead>
                     <tr>
                         <th>CustomerCode</th>
