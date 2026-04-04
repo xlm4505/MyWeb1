@@ -169,10 +169,14 @@ namespace PurchaseSalesManagementSystem.Repository
         }
         public bool ExistsForecastItemByItemCode(string itemCode)
         {
-            const string sql = @"
-SELECT TOP (1) 1
-FROM dbo.U_ForecastItem
-WHERE ItemCode = @ItemCode;";
+            string sqlPath = Path.Combine(
+                  _env.ContentRootPath,
+                  "SQL",
+                  "SafetyStockMaintenance",
+                  "ExistsForecastItemByItemCode.sql"
+              );
+
+            var sql = File.ReadAllText(sqlPath);
 
             using (var conn = _connectionFactory.GetConnection())
             {
