@@ -16,11 +16,15 @@ public class PurchaseReceiptController : Controller
 {
 
     private readonly Repository_PurchaseReceiptTK _repo;
+    private readonly Repository_PurchaseReceiptCheckFJK _repo_checkFJK;
     public PurchaseReceiptController(Repository_PurchaseReceiptTK repo)
     {
         _repo = repo;
     }
-
+    public PurchaseReceiptController(Repository_PurchaseReceiptCheckFJK repo)
+    {
+        _repo_checkFJK = repo;
+    }
 
     public IActionResult PurchaseReceipt()
     {
@@ -213,6 +217,31 @@ public class PurchaseReceiptController : Controller
         {
             return StatusCode(500, ex.Message);
         }
+    }
+    [HttpPost]
+    public IActionResult CheckFJK(List<IFormFile> files)
+    {
+        if (files.Count == 0)
+        {
+            return BadRequest("No files uploaded.");
+        }
+
+        var conversion = await _repo_checkFJK.ConvertInvoicesAsync(files);
+        if (conversion.HasError)
+        {
+            return BadRequest(string.Join(Environment.NewLine, conversion.Errors));
+        }
+
+        var summaryFile = conversion.Files.FirstOrDefault();
+        if (summaryFile is null)
+        {
+            return BadRequest("No summary file was generated.");
+        }
+
+        return File(
+            summaryFile.Content,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            summaryFile.FileName);
     }
 
 

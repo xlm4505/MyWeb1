@@ -7,13 +7,13 @@ using DataTable = System.Data.DataTable;
 
 namespace PurchaseSalesManagementSystem.Repository;
 
-public class Repository_InvConv
+public class Repository_PurchaseReceiptCheckFJK
 {
     private readonly CreateConnection _connectionFactory;
     private readonly IWebHostEnvironment _env;
     private static readonly HashSet<string> list = new HashSet<string>{"FCAFCA","FCAFLC", "FCALGR", "FCAUOR", "FNJFLJ", "FNJTNJ", "FTXFLT",  "FTXSTX",  "FTXTTX", "FCHNAL", "FCHNCA", "FCHIFS", "FCHJTX", "FCHNNJ", "FTPXIT",  "FTPNTX",  "FTPUTX"};
 
-    public Repository_InvConv(CreateConnection connectionFactory, IWebHostEnvironment env)
+    public Repository_PurchaseReceiptCheckFJK(CreateConnection connectionFactory, IWebHostEnvironment env)
     {
         _connectionFactory = connectionFactory;
         _env = env;

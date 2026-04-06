@@ -3,9 +3,9 @@ using PurchaseSalesManagementSystem.Repository;
 
 public class InvConvController : Controller
 {
-    private readonly Repository_InvConv _repo;
+    private readonly Repository_PurchaseReceiptCheckFJK _repo;
 
-    public InvConvController(Repository_InvConv repo)
+    public InvConvController(Repository_PurchaseReceiptCheckFJK repo)
     {
         _repo = repo;
     }
