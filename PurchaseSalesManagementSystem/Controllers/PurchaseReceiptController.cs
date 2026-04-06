@@ -17,13 +17,12 @@ public class PurchaseReceiptController : Controller
 
     private readonly Repository_PurchaseReceiptTK _repo;
     private readonly Repository_PurchaseReceiptCheckFJK _repo_checkFJK;
-    public PurchaseReceiptController(Repository_PurchaseReceiptTK repo)
+    public PurchaseReceiptController(
+        Repository_PurchaseReceiptTK repo,
+        Repository_PurchaseReceiptCheckFJK repoCheckFJK)
     {
         _repo = repo;
-    }
-    public PurchaseReceiptController(Repository_PurchaseReceiptCheckFJK repo)
-    {
-        _repo_checkFJK = repo;
+        _repo_checkFJK = repoCheckFJK;
     }
 
     public IActionResult PurchaseReceipt()
@@ -219,7 +218,7 @@ public class PurchaseReceiptController : Controller
         }
     }
     [HttpPost]
-    public IActionResult CheckFJK(List<IFormFile> files)
+    public async Task<IActionResult> CheckFJK(List<IFormFile> files)
     {
         if (files.Count == 0)
         {
