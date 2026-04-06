@@ -46,9 +46,7 @@ public class PurchaseOrderController : Controller
         }
 
         FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
-        DataTable dt = new DataTable();
-
-        dt = exportToExcel.ConvertToDataTableFast(purchaseOrder);
+        DataTable dt = exportToExcel.ConvertToDataTableFast(purchaseOrder);
 
         var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "PO", "PO");
 
@@ -87,7 +85,8 @@ public class PurchaseOrderController : Controller
                 int take = Math.Min(50, remain);
 
                 result.Add(new Model_PurchaseOrder
-                {
+                {  
+                    Seq = d.Seq,
                     ConfirmTo = d.ConfirmTo,
                     SalesPerson = d.SalesPerson,
                     ItemCode = d.ItemCode,

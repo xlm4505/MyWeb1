@@ -1,4 +1,4 @@
-﻿@{
+@{
     Layout = null;
 }
 
@@ -14,7 +14,17 @@
         .tab-content {
             max-height: 500px;
             overflow-y: auto;
+			overflow-x: auto;
+			display: block;
         }
+
+		#gridMain thead th {
+			position: sticky;
+			top: 0;
+			background: white;
+			z-index: 10;
+			white-space: nowrap;
+		}
 
         table th, table td {
             white-space: nowrap;
@@ -39,11 +49,12 @@
     </div>
 
     <!-- タブ -->
-    <div class="tab-content mt-3">
-        <div class="tab-pane fade show active" id="main">
-            <table class="table table-bordered table-sm" id="gridMain"><thead><tr></tr></thead><tbody></tbody></table>
-        </div>
-    </div>
+	<div class="table-container">
+		<table class="table table-bordered table-sm" id="gridMain">
+			<thead><tr></tr></thead>
+			<tbody></tbody>
+		</table>
+	</div>
 
     <!-- 操作ボタン -->
     <div class="mt-4">

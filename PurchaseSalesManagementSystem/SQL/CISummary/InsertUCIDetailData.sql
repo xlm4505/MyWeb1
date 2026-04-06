@@ -1,0 +1,60 @@
+﻿/* ============================================================
+   InsertUCIDetailData SQL
+============================================================ */
+INSERT 
+INTO U_CIDetailData( 
+  DocType
+  , EntryDate
+  , ShipDate
+  , NewFileName
+  , OriginalFileName
+  , [FOA_CI#]
+  , ShipTo1
+  , ShipTo2
+  , Attn
+  , ShipVia
+  , Account
+  , Requestor
+  , ItemCode
+  , Whse1
+  , Whse2
+  , TranQty
+  , SalesOrderNo
+  , CustomerPONo
+  , [LineNo]
+  , FujikinPartNo
+  , CustomerPartNo
+  , Category
+  , Tariff
+  , UnitPrice
+  , TotalPrice
+  , Instrucstions
+) 
+VALUES ( 
+  @DocType
+  , @EntryDate
+  , @ShipDate
+  , @NewFileName
+  , @OriginalFileName
+  , @FOA_CI
+  , @ShipTo1
+  , @ShipTo2
+  , @Attn
+  , @ShipVia
+  , @Account
+  , @RequestedBy
+  , @ItemCode
+  , @Whse1
+  , @Whse2
+  , @TranQty
+  , @SalesOrderNo
+  , @CustomerPONo
+  , @LineNo
+  , @FujikinPartNo
+  , @CustomerPartNo
+  , @Category
+  , @Tariff
+  , @UnitPrice
+  , @TotalPrice
+  , @Instrucstions
+);

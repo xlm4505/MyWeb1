@@ -35,12 +35,50 @@ public class OrderForExportController : Controller
 		// 出力データ取得
 		var orderData = _repo.GetOrderData(salesOrderNo);
 
+		var orderDataForExcel = orderData.Select(m => new
+		{
+			m.SalesOffice,
+			m.SalesOrderNo,
+			m.OrderDate,
+			m.OrderType,
+			m.OrderStatus,
+			m.CustomerPONo,
+			m.CustomerNo,
+			m.BillToName,
+			m.ShipToCity,
+			m.ShipVia,
+			m.HeaderComment,
+			m.CustPO_Ln,
+			m.ItemCode,
+			m.ItemDescription,
+			m.AliasItemNo,
+			m.Whs,
+			m.Weight,
+			m.Ordded,
+			m.Shipped,
+			m.BO,
+			m.UnitPrice,
+			m.ExtensionAmt,
+			m.ReqDate,
+			m.PushOut,
+			m.PromiseDate,
+			m.CommitDate,
+			m.DeliveryDate,
+			m.CommentText,
+			m.UnitCost,
+			m.PurchaseOrderNo,
+			m.UDF_CUSTPONO,
+			m.InternalNotes
+		});
+
 		FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
 		DataTable dt = new DataTable();
 
-		dt = exportToExcel.ConvertToDataTableFast(orderData);
+		dt = exportToExcel.ConvertToDataTableFast(orderDataForExcel);
 
-		var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt,"Report", "SO");
+		var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt,"Report","SO");
+
+
 
 		return File(excelBytes,
 			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

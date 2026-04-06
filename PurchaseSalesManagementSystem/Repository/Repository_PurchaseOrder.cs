@@ -164,8 +164,8 @@ namespace PurchaseSalesManagementSystem.Repository
 
                     // cmd.Parameters.AddWithValue("@ProductType", productType);
                     var Seq = 0;
-                    var VendorNoTmp = "";
-                    var CustomerNoTmp = "";
+                    var VendorNoTmp = "?";
+                    var CustomerNoTmp = "?";
                     using (var r = cmd.ExecuteReader())
                     {
                         while (r.Read())
@@ -222,14 +222,6 @@ namespace PurchaseSalesManagementSystem.Repository
                             modelPurchaseOrder.CustomerPONo = (object)r["CustomerPONo"] as string ?? "";
 
                             result.Add(modelPurchaseOrder);
-
-                            if (modelPurchaseOrder.PurchaseOrderQty >50 )
-                            {
-                                var copy = new Model_PurchaseOrder(modelPurchaseOrder);
-                                copy.PurchaseOrderQty = modelPurchaseOrder.PurchaseOrderQty - 50;
-                                result.Add(copy);
-                            }
-
                         }
                     }
                 }

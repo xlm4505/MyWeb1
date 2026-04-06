@@ -1,20 +1,26 @@
-using Microsoft.AspNetCore.Mvc;
-using PurchaseSalesManagementSystem.Models;
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Microsoft.AspNetCore.Mvc;
+using OfficeOpenXml;
 using PurchaseSalesManagementSystem.Common;
+using PurchaseSalesManagementSystem.Models;
 using PurchaseSalesManagementSystem.Repository;
+
 namespace PurchaseSalesManagementSystem.Controllers
 {
     public class HomeController : Controller
     {
 
         private readonly Repository_Menu _repo;
-        public HomeController(Repository_Menu repo)
+		private readonly IWebHostEnvironment _env;
+		public HomeController(Repository_Menu repo, IWebHostEnvironment env)
         {
             _repo = repo;
-        }
+			_env = env;
+		}
 
         public IActionResult Index()
         {
@@ -23,8 +29,8 @@ namespace PurchaseSalesManagementSystem.Controllers
 
         public IActionResult Menu()
         {
-            // ÉçÉOÉCÉìÇµÇƒÇ¢Ç»Ç¢èÍçáÇÕÉçÉOÉCÉìâÊñ Ç÷
-            var user = HttpContext.Session.GetString("LoginUser");
+			// „É≠„Ç∞„Ç§„É≥„Åó„Å¶„ÅÑ„Å™„ÅÑÂ†¥Âêà„ÅØ„É≠„Ç∞„Ç§„É≥ÁîªÈù¢„Å∏
+			var user = HttpContext.Session.GetString("LoginUser");
             if (string.IsNullOrEmpty(user))
             {
                 return RedirectToAction("Login", "Account");
@@ -66,7 +72,11 @@ namespace PurchaseSalesManagementSystem.Controllers
                     var projectPartOpenOrderVolume = _repo.GetProjectPartOpenOrderVolume().ToList();
                     return ExportProjectPartOpenOrderVolume(projectPartOpenOrderVolume, reportName);
 
-                default:
+                case "Combine shipping list":
+					var combineShippingList = _repo.GetCombineShippingList().ToList();
+					return ExportCombineShippingList(combineShippingList);
+
+				default:
                     return StatusCode(
                         400,
                         $"Invalid report name: {reportName}"
@@ -140,8 +150,8 @@ namespace PurchaseSalesManagementSystem.Controllers
                         ws.Cell(row, col++).Value = item.MonthlyQty?[i];
                     }
 
-                    // Total ÇÕ Excel Ç≈åvéZ
-                    string startAddr = ws.Cell(row, monthStartCol).Address.ToStringRelative();
+					// Total „ÅØ Excel „ÅßË®àÁÆó
+					string startAddr = ws.Cell(row, monthStartCol).Address.ToStringRelative();
                     string endAddr = ws.Cell(row, monthStartCol + yyyymm.Count - 1).Address.ToStringRelative();
                     ws.Cell(row, totalCol).FormulaA1 = $"SUM({startAddr}:{endAddr})";
 
@@ -162,8 +172,8 @@ namespace PurchaseSalesManagementSystem.Controllers
             List<Model_InventoryForecastByMonth> data,
             string reportName)
         {
-            // YM0 Å` YM8Åiï\é¶ópÅj
-            var yyyymm = new List<string>();
+			// YM0 ÔΩû YM8ÔºàË°®Á§∫Áî®Ôºâ
+			var yyyymm = new List<string>();
             for (int i = -1; i <= 7; i++)
             {
                 yyyymm.Add(DateTime.Today.AddMonths(i).ToString("yyyy-MM"));
@@ -218,14 +228,14 @@ namespace PurchaseSalesManagementSystem.Controllers
                     ws.Cell(row, col++).Value = item.Surplus;
                     ws.Cell(row, col++).Value = item.DataType;
 
-                    // M0 Å` M8
-                    for (int i = 0; i < 9; i++)
+					// M0 ÔΩû M8
+					for (int i = 0; i < 9; i++)
                     {
                         ws.Cell(row, col++).Value = item.MonthlyQty?[i];
                     }
 
-                    // TotalÅiExcelåvéZÅj
-                    string startAddr = ws.Cell(row, monthStartCol).Address.ToStringRelative();
+					// TotalÔºàExcelË®àÁÆóÔºâ
+					string startAddr = ws.Cell(row, monthStartCol).Address.ToStringRelative();
                     string endAddr = ws.Cell(row, monthStartCol + 8).Address.ToStringRelative();
                     ws.Cell(row, totalCol).FormulaA1 = $"SUM({startAddr}:{endAddr})";
 
@@ -435,16 +445,43 @@ namespace PurchaseSalesManagementSystem.Controllers
             }
             return SaveExcel(workbook, reportName);
         }
+		private ActionResult ExportCombineShippingList(List<Model_CombineShippingList> data)
+		{
+			var exportToExcel = new FormattedDataTableExcelExporter();
+			var dt = exportToExcel.ConvertToDataTableFast(data);
 
+			string templatePath = Path.Combine(
+				_env.ContentRootPath,
+				"ExcelTemplate",
+				"CombineShippingList",
+				"Combine_ShippingList (for Rinku)_V1.2.xlsm");
 
-        // =========================
-        // ã§í ï€ë∂èàóù
-        // =========================
-        private ActionResult SaveExcel(XLWorkbook workbook, string reportName)
+			ExcelPackage.License.SetNonCommercialOrganization("Fujikin of America, Inc.");
+			using (var package = new ExcelPackage(new FileInfo(templatePath)))
+			{
+				var workbook = package.Workbook;
+
+				workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(workbook, dt, "PODetail", "PO");
+
+				var stream = new MemoryStream();
+				package.SaveAs(stream);
+				stream.Position = 0;
+
+				return File(stream.ToArray(),
+					"application/vnd.ms-excel.sheet.macroEnabled.12",
+                    $"Combine_ShippingList (for Rinku)_V1.2- {DateTime.Now:MMddyy}.xlsm");
+			}
+		}
+
+		// =========================
+		// ÂÖ±ÈÄö‰øùÂ≠òÂá¶ÁêÜ
+		// =========================
+		private ActionResult SaveExcel(XLWorkbook workbook, string reportName)
         {
             using (var stream = new MemoryStream())
             {
                 workbook.SaveAs(stream);
+                
                 return File(
                     stream.ToArray(),
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -452,5 +489,5 @@ namespace PurchaseSalesManagementSystem.Controllers
                 );
             }
         }
-    }
+	}
 }

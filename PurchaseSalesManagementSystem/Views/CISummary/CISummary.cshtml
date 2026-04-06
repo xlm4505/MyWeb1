@@ -31,7 +31,7 @@
         </div>
 
         <!-- アップロードボタン -->
-        <button class="btn btn-primary" onclick="uploadFile('Katsuo Upload and Check')">Convert</button>
+        <button class="btn btn-primary" id="btnUpload">Convert</button>
     </div>
 
     <!-- メッセージ表示 -->
@@ -47,60 +47,7 @@
         </ul>
     </div>
 
-    <script>
-        // ファイル選択時に一覧を表示
-        document.getElementById("fileInput").addEventListener("change", function () {
-            const fileListItems = document.getElementById("fileListItems");
-            fileListItems.innerHTML = "";
-            if (this.files.length === 0) {
-                const li = document.createElement("li");
-                li.textContent = "No File Selected";
-                fileListItems.appendChild(li);
-            } else {
-                for (const file of this.files) {
-                    const li = document.createElement("li");
-                    li.textContent = file.name;
-                    fileListItems.appendChild(li);
-                }
-            }
-        });
-
-        function uploadFile(buttonName) {
-            const fileInput = document.getElementById("fileInput");
-            const messageArea = document.getElementById("messageArea");
-
-            if (!fileInput.files.length) {
-                alert("Select entry File");
-                return;
-            }
-
-            // メッセージ表示：アップロード開始
-            messageArea.textContent = "Upload Start...";
-
-            // ダミー処理：少し待ってから完了メッセージとチェックリスト表示
-            setTimeout(() => {
-                messageArea.textContent = "Upload OK！CheckList OK";
-                document.getElementById("checklist").style.display = "block";
-
-                // Excel生成（チェックリスト＋ボタン名）
-                const data = [
-                    ["Check List", buttonName],
-                    ["File Count", fileInput.files.length],
-                    ["Step1", "OK"],
-                    ["Step2", "OK"],
-                    ["Step3", "OK"],
-                    ["Step4", "OK"]
-                ];
-
-                const ws = XLSX.utils.aoa_to_sheet(data);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Checklist");
-
-                const filename = "CI Summary_" +
-                    new Date().toISOString().slice(0, 10) + ".xlsx";
-                XLSX.writeFile(wb, filename);
-            }, 1500);
-        }
-    </script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/CISummary.js"></script>
 </body>
 </html>

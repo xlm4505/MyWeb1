@@ -1,14 +1,32 @@
-﻿@{
+@{
     Layout = null;
 }
-
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Katsuo Issue Date Table View</title>
+	<title>Katsuo Issue Date Table View</title>
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        .table-container {
+            overflow-y: auto;
+            overflow-x: auto;
+            display: block;
+        }
+
+        #gridMain thead th {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+            white-space: nowrap;
+        }
+
+        table th, table td {
+            white-space: nowrap;
+        }
+    </style>
 </head>
 <body class="p-4 bg-light">
 
@@ -24,58 +42,22 @@
     <div style="max-width:700px; margin-left:0; margin-right:auto;">
         <h3 class="mb-3">Katsuo Issue Date Table</h3>
 
-        <!-- 検索フォーム -->
+    <!-- 検索フォーム -->
         <form id="searchForm" class="d-flex mb-3">
-            <input type="text" id="searchCode" class="form-control me-2" placeholder="Enter User">
-            <button type="submit" class="btn btn-primary">Search</button>
+			<input type="text" id="userName" class="form-control me-2" placeholder="Enter UserName">
+            <button class="btn btn-primary" id="btnSearch">Search</button>
         </form>
 
         <!-- データ表示テーブル -->
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>User</th>
-                    <th>ID</th>
-                    <th>IssueDate</th>
-                </tr>
-            </thead>
-            <tbody id="dataBody"></tbody>
-        </table>
+        <div class="table-container" id="tableContainer">
+			<table class="table table-bordered table-sm" id="gridMain">
+				<thead><tr></tr></thead>
+				<tbody></tbody>
+			</table>
+        </div>
     </div>
 
-    <script>
-        // ダミーデータ（実際はAPIから取得）
-        let data = [
-            { ID: "001", IssueDate: "2025/11/1", User: "Tanaka" },
-            { ID: "002", IssueDate: "2025/11/1", User: "Suzuki" },
-            { ID: "003", IssueDate: "2025/11/1", User: "Yamada" }
-        ];
-
-        // テーブル描画
-        function renderTable(records) {
-            const body = document.getElementById("dataBody");
-            body.innerHTML = "";
-
-            records.forEach(row => {
-                body.innerHTML += `
-                        <tr>
-                            <td>${row.User}</td>
-                            <td>${row.ID}</td>
-                            <td>${row.IssueDate}</td>
-                        </tr>
-                    `;
-            });
-        }
-
-        // 検索処理
-        document.getElementById("searchForm").addEventListener("submit", function (e) {
-            e.preventDefault();
-            const code = document.getElementById("searchCode").value.trim();
-            const filtered = code ? data.filter(d => d.User.includes(code)) : data;
-            renderTable(filtered);
-        });
-
-            // ★ 初期表示では renderTable を呼ばないので空のまま
-    </script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/KatsuoIssueDate.js"></script>
 </body>
 </html>

@@ -191,12 +191,23 @@ WHERE
     )
     AND (u.FirstName + ' ' + u.LastName) = @UserName
     AND (
-          @VendorCode = '00-0000000'
-       OR (PO_PurchaseOrderHeader.APDivisionNo + '-' +
-           PO_PurchaseOrderHeader.VendorNo) = @VendorCode
+       @VendorCode = '00-0000000'
+       OR (
+           @VendorCode = '99-9999999'
+           AND PO_PurchaseOrderHeader.APDivisionNo + '-' + PO_PurchaseOrderHeader.VendorNo NOT IN (
+               '06-0000200',
+               '08-0000350',
+               '08-0000250',
+               '14-0000300',
+               '10-0000500',
+               '08-0000220'
+           )
+       )
+       OR (
+           @VendorCode NOT IN ('00-0000000', '99-9999999')
+           AND PO_PurchaseOrderHeader.APDivisionNo + '-' + PO_PurchaseOrderHeader.VendorNo = @VendorCode
+       )
     )
-    AND (PO_PurchaseOrderHeader.APDivisionNo + '-' +
-         PO_PurchaseOrderHeader.VendorNo) <> '08-0000250'
 
 ORDER BY
     PO_PurchaseOrderDetail.PurchaseOrderNo,

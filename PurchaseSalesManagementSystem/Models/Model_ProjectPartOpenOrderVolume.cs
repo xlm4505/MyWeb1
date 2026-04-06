@@ -14,7 +14,7 @@
         public int OnHand2 { get; set; }
         public int OpenPO2 { get; set; }
         public int OpenSO2 { get; set; }
-        public int Surplus2 { get; set; }   
+        public int Surplus2 { get; set; }
         public int Available { get; set; }
         public int MonthlyQty0 { get; set; }
         public int MonthlyQty1 { get; set; }

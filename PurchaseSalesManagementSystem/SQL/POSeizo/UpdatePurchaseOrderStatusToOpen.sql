@@ -1,8 +1,8 @@
 UPDATE PO_PurchaseOrderHeader
    SET OrderStatus = 'O'
   FROM PO_PurchaseOrderHeader
-  LEFT JOIN SY_User
-    ON SY_User.UserKey = PO_PurchaseOrderHeader.UserCreatedKey
+  LEFT JOIN MAS_SYSTEM.dbo.SY_User u
+    ON u.UserKey = PO_PurchaseOrderHeader.UserCreatedKey
  WHERE PO_PurchaseOrderHeader.DateCreated = @EntryDate
    AND OrderStatus = 'N'
    AND (FirstName + ' ' + LastName) = @UserName

@@ -22,7 +22,7 @@
 
     <!-- アップロードフォーム -->
     <div class="card p-3">
-        <input type="file" id="fileInput" class="form-control mb-3">
+        <input type="file" id="fileInput" class="form-control mb-3" multiple>
 
         <!-- 選択ファイル一覧（枠付き） -->
         <div id="fileList" class="border rounded p-2 mb-3" style="min-height:60px;">
@@ -49,29 +49,31 @@
 
     <script>
         // ファイル選択時に一覧を表示
-        document.getElementById("fileInput").addEventListener("change", function () {
+         document.getElementById("fileInput").addEventListener("change", function () {
             const fileListItems = document.getElementById("fileListItems");
             fileListItems.innerHTML = "";
+
+            for (const file of this.files) {
+                const li = document.createElement("li");
+                li.textContent = file.name;
+                fileListItems.appendChild(li);
+            }
+
             if (this.files.length === 0) {
                 const li = document.createElement("li");
                 li.textContent = "No File Selected";
                 fileListItems.appendChild(li);
-            } else if (this.files.length > 1) {
-                alert("Select latest Receiving Active File ");
-                this.value = "";
-            } else {
-                const li = document.createElement("li");
-                li.textContent = this.files[0].name;
-                fileListItems.appendChild(li);
             }
         });
+
+
 
         function uploadFile(buttonName) {
             const fileInput = document.getElementById("fileInput");
             const messageArea = document.getElementById("messageArea");
 
-            if (!fileInput.files.length) {
-                alert("Select latest Receiving Active File");
+            if (fileInput.files.length !== 2) {
+                alert("Error: Select ONLY 2 files — Receiving Active File and RA_StockList File.");
                 return;
             }
 

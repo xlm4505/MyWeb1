@@ -1,155 +1,146 @@
-﻿const itemCodeMasterColumns = [
-    "ItemCode",
-    "ItemDesc",
-    "ItemDesc2",
-    "Category",
-    "ProductLineDesc",
-    "ProductType",
-    "Inactive",
-    "Weight(lb)",
-    "Whse",
-    "PrimaryVendor",
-    "QtyDisc",
-    "StdSalesPrice",
-    "StdUnitCost",
-    "LastCost",
-    "AvgCost",
-    "VenCost(USD)",
-    "VenCost(JPY)",
-    "OnHand",
-    "OpenSO",
-    "Available",
-    "OpenPO",
-    "(InShip)",
-    "OnHand ",
-    "OpenSO ",
-    "Available ",
-    "OpenPO ",
-    "(InShip) ",
-    "LastSold",
-    "LastReceipt",
-    "ExtendedDescriptionText",
-    "DateCreated",
-    "UserCreated",
-    "DateUpdated",
-    "UserUpdated",
-    "List COP",
-    "Standard",
-    "Discount",
-    "Class 4",
-    "Class 5",
-    "Contract",
-    "Class 6"
-];
-const itemCodeMasterHeaderGroups = [
-    { title: "", span: 1 },
-    { title: "Product Information", span: 10 },
-    { title: "Unit Price / Cost", span: 6 },
-    { title: "Inventory (Regular Items)", span: 5 },
-    { title: "Inventory (Excluded Items)", span: 5 },
-    { title: "Last Transaction Date", span: 2 },
-    { title: "", span: 1 },
-    { title: "Database Access Information", span: 4 },
-    { title: "Master Price List", span: 7 }
-];
+﻿// ItemMaster.js
 document.addEventListener("DOMContentLoaded", () => {
-    const btnSearch = document.getElementById("btnSearch");
-    const btnExport = document.getElementById("btnExport");
 
-    loadHeader(itemCodeMasterColumns);
+    loadHeader();
 
-    btnSearch.addEventListener("click", loadItemCodeMasterData);
+    document.getElementById("btnSearch").addEventListener("click", () => {
+        let rowCount = 0;
 
-    btnExport.addEventListener("click", () => {
-        window.location.href = `/ItemCodeMaster/ExportToExcel?${buildQueryString()}`;
+        const itemNo = document.getElementById("itemNo").value;
+        const excludeInactive = document.getElementById("chkInactive").checked;
+
+        fetch(`/ItemCodeMaster/GetItemCodeMaster?ItemNo=${itemNo}&ExcludeInactive=${excludeInactive}`)
+            .then(res => res.json())
+            .then(data => {
+                const gridMain = document.querySelector("#gridMain tbody");
+                gridMain.innerHTML = "";
+
+                data.forEach(v => {
+                    const tr = document.createElement("tr");
+
+                    loadHeader.columns.forEach(col => {
+                        const key = loadHeader.map[col]; 
+                        let val = v[key];
+
+                        // ★ 日付列はフォーマット
+                        if (["dateCreated", "dateUpdated", "lastSold", "lastReceipt"].includes(key)) {
+                            val = formatDate(val);
+                        }
+
+                        // ★ 0 の場合は空欄にする（AI〜AO列）
+                        if (["listCOP", "standard", "discount", "class4", "class5", "contract", "class6"].includes(key)) {
+                            if (val === 0) val = "";
+                        }
+
+                        const td = document.createElement("td");
+                        td.textContent = val ?? "";
+                        tr.appendChild(td);
+                    });
+
+                    gridMain.appendChild(tr);
+                    rowCount++;
+                });
+            });
     });
 
+    // Export ボタン
+    document.getElementById("btnExport").addEventListener("click", () => {
+        const itemNo = document.getElementById("itemNo").value;
+
+        const excludeInactive = document.getElementById("chkInactive").checked;
+        window.location.href = `/ItemCodeMaster/ExportToExcel?ItemNo=${itemNo}&ExcludeInactive=${excludeInactive}`;
+    });
 });
 
-function buildQueryString() {
-    const itemCode = document.getElementById("itemCode").value;
-    const excludeInactiveItems = document.getElementById("excludeInactiveItems").checked;
 
-    return `itemCode=${encodeURIComponent(itemCode)}&excludeInactiveItems=${excludeInactiveItems}`;
-}
+// ================================
+// ヘッダー生成
+// ================================
+function loadHeader() {
 
-function loadItemCodeMasterData() {
-    fetch(`/ItemCodeMaster/GetItemCodeMasterData?${buildQueryString()}`)
-        .then(res => res.json())
-        .then(data => {
-            const tbody = document.querySelector("#gridMain tbody");
-            const btnExport = document.getElementById("btnExport");
+    loadHeader.columns = [
+        "ItemCode", "ItemDesc", "ItemDesc2", "Category", "ProductLineDesc", "ProductType",
+        "Inactive", "Weight(lb)", "Whse", "PrimaryVendor", "QtyDisc", "StdSalesPrice", "StdUnitCost",
+        "LastCost", "AvgCost", "VenCost(USD)", "VenCost(JPY)", "OnHand", "OpenSO",
+        "Available", "OpenPO", "(InShip)", "OnHand ", "OpenSO ", "Available ", "OpenPO ", "(InShip) ",
+        "LastSold", "LastReceipt", "ExtendedDescriptionText", "DateCreated", "UserCreated",
+        "DateUpdated", "UserUpdated", "List COP", "Standard", "Discount",
+        "Class 4", "Class 5", "Contract", "Class 6"
+    ];
 
-            loadHeader(itemCodeMasterColumns);
-            tbody.innerHTML = "";
-
-            if (!Array.isArray(data) || data.length === 0) {
-                btnExport.disabled = true;
-                return;
-            }
-
-            const columns = Object.keys(data[0]);
-
-            data.forEach(row => {
-                const tr = document.createElement("tr");
-
-                columns.forEach(column => {
-                    addCell(tr, formatValue(row[column]));
-                });
-
-                tbody.appendChild(tr);
-            });
-
-            btnExport.disabled = false;
-        });
-}
-function loadHeader(columns) {
-    const thead = document.querySelector("#gridMain thead");
+    const thead = document.querySelector("#gridMain thead tr");
     thead.innerHTML = "";
 
-    const groupRow = document.createElement("tr");
-    groupRow.classList.add("header-group-row");
-
-    itemCodeMasterHeaderGroups.forEach(group => {
+    loadHeader.columns.forEach(col => {
         const th = document.createElement("th");
-        th.colSpan = group.span;
-        th.textContent = group.title;
-        groupRow.appendChild(th);
+        th.textContent = col;
+        thead.appendChild(th);
     });
-
-    const detailRow = document.createElement("tr");
-    detailRow.classList.add("header-detail-row");
-
-    columns.forEach(column => {
-        const th = document.createElement("th");
-        th.textContent = column;
-        detailRow.appendChild(th);
-    });
-
-    thead.appendChild(groupRow);
-    thead.appendChild(detailRow);
 }
 
-function addCell(row, value) {
-    const td = document.createElement("td");
-    td.textContent = value ?? "";
-    row.appendChild(td);
-}
 
-function formatValue(value) {
-    if (value === null || value === undefined) {
-        return "";
-    }
+// ================================
+// 表示名 → JSON キー名（小文字）
+// ================================
+loadHeader.map = {
+    "ItemCode": "itemCode",
+    "ItemDesc": "itemDesc",
+    "ItemDesc2": "itemDesc2",
+    "Category": "category",
+    "ProductLineDesc": "productLineDesc",
+    "ProductType": "productType",
+    "Inactive": "inactive",
 
-    if (typeof value === "string") {
-        const parsedDate = new Date(value);
-        if (!Number.isNaN(parsedDate.getTime()) && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
-            const year = parsedDate.getFullYear();
-            const month = String(parsedDate.getMonth() + 1).padStart(2, "0");
-            const day = String(parsedDate.getDate()).padStart(2, "0");
-            return `${year}-${month}-${day}`;
-        }
-    }
+    "Weight(lb)": "weight",
 
-    return value;
+    "Whse": "whse",
+    "PrimaryVendor": "primaryVendor",
+    "QtyDisc": "qtyDisc",
+
+    "StdSalesPrice": "stdSalesPrice",
+    "StdUnitCost": "stdUnitCost",
+    "LastCost": "lastCost",
+    "AvgCost": "avgCost",
+
+    "VenCost(USD)": "venCost_USD_",
+    "VenCost(JPY)": "venCost_JPY",
+
+    "OnHand": "onHand",
+    "OpenSO": "openSO",
+    "Available": "available",
+    "OpenPO": "openPO",
+    "(InShip)": "inShip",
+
+    "OnHand ": "onHand_",
+    "OpenSO ": "openSO_",
+    "Available ": "available_",
+    "OpenPO ": "openPO_",
+    "(InShip) ": "inShip_",
+
+    "LastSold": "lastSold",
+    "LastReceipt": "lastReceipt",
+    "ExtendedDescriptionText": "extendedDescriptionText",
+    "DateCreated": "dateCreated",
+    "UserCreated": "userCreated",
+    "DateUpdated": "dateUpdated",
+    "UserUpdated": "userUpdated",
+
+    "List COP": "listCOP",
+    "Standard": "standard",
+    "Discount": "discount",
+    "Class 4": "class4",
+    "Class 5": "class5",
+    "Contract": "contract",
+    "Class 6": "class6"
+};
+
+
+// ================================
+// 日付フォーマット
+// ================================
+function formatDate(value) {
+    if (!value) return "";
+    const d = new Date(value);
+    if (isNaN(d)) return value;
+    return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
 }

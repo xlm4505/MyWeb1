@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-// š Session ‚ğg‚¤‚½‚ß‚É•K—v
+// â˜… Session ã‚’ä½¿ã†ãŸã‚ã«å¿…è¦
 builder.Services.AddSession();
 
 builder.Services.AddSingleton<CreateConnection>();
@@ -16,12 +16,17 @@ builder.Services.AddTransient<Repository_Menu>();
 builder.Services.AddScoped<Repository_PurchaseOrder>();
 builder.Services.AddScoped<Repository_POSeizo>();
 builder.Services.AddScoped<Repository_OrderForExport>();
-builder.Services.AddScoped<Repository_InvConv>();
+builder.Services.AddScoped<Repository_RAUpload>();
 builder.Services.AddScoped<Repository_POList>();
+builder.Services.AddScoped<Repository_CISummary>();
 builder.Services.AddScoped<Repository_SafetyStockMaintenance>();
+builder.Services.AddScoped<Repository_PurchaseReceiptTK>();
 builder.Services.AddScoped<Repository_Tbl_VendorMaintenance>();
-builder.Services.AddScoped<Repository_MF_SalesPerson>();
 builder.Services.AddScoped<Repository_ItemCodeMaster>();
+builder.Services.AddScoped<Repository_KatsuoIssueDate>();
+builder.Services.AddScoped<Repository_MF_SalesPerson>();
+builder.Services.AddScoped<Repository_InvConv>();
+
 
 var app = builder.Build();
 

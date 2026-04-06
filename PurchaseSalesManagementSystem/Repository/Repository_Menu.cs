@@ -343,5 +343,73 @@ namespace PurchaseSalesManagementSystem.Repository
 
             return result;
         }
-    }
+
+		public IEnumerable<Model_CombineShippingList> GetCombineShippingList()
+        {
+			var result = new List<Model_CombineShippingList>();
+
+			string sqlPath = Path.Combine(
+				_env.ContentRootPath,
+				"SQL",
+				"CombineShippingList",
+				"GetShippingList.sql"
+			  );
+
+			var sql = File.ReadAllText(sqlPath);
+
+			using (var conn = _connectionFactory.GetConnection())
+			{
+				conn.Open();
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+
+                    cmd.CommandTimeout = 300;
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            result.Add(new Model_CombineShippingList
+                            {
+                                PONo = reader["PONo"] as string ?? "",
+                                PODate = reader.IsDBNull(reader.GetOrdinal("PODate")) ? (DateTime?)null :
+                                        reader.GetDateTime(reader.GetOrdinal("PODate")),
+                                Status = reader["Status"] as string ?? "",
+                                ItemCode = reader["ItemCode"] as string ?? "",
+                                Description = reader["Description"] as string ?? "",
+                                Whse = reader["Whse"] as string ?? "",
+                                QtyOrdered = reader.IsDBNull(reader.GetOrdinal("QtyOrdered")) ? (decimal?)null :
+                                            reader.GetDecimal(reader.GetOrdinal("QtyOrdered")),
+                                QtyRcpt = reader.IsDBNull(reader.GetOrdinal("QtyRcpt")) ? (decimal?)null :
+                                            reader.GetDecimal(reader.GetOrdinal("QtyRcpt")),
+                                QtyOpen = reader.IsDBNull(reader.GetOrdinal("QtyOpen")) ? (decimal?)null :
+                                            reader.GetDecimal(reader.GetOrdinal("QtyOpen")),
+                                QtyInvoiced = reader.IsDBNull(reader.GetOrdinal("QtyInvoiced")) ? (decimal?)null :
+                                            reader.GetDecimal(reader.GetOrdinal("QtyInvoiced")),
+                                UnitCost = reader.IsDBNull(reader.GetOrdinal("UnitCost")) ? (decimal?)null :
+                                            reader.GetDecimal(reader.GetOrdinal("UnitCost")),
+                                LastTotalUnitCost = reader.IsDBNull(reader.GetOrdinal("LastTotalUnitCost")) ? (decimal?)null :
+                                            reader.GetDecimal(reader.GetOrdinal("LastTotalUnitCost")),
+                                StandardUnitCost = reader.IsDBNull(reader.GetOrdinal("StandardUnitCost")) ? (decimal?)null :
+                                            reader.GetDecimal(reader.GetOrdinal("StandardUnitCost")),
+                                RequiredDate = reader.IsDBNull(reader.GetOrdinal("RequiredDate")) ? (DateTime?)null :
+                                            reader.GetDateTime(reader.GetOrdinal("RequiredDate")),
+                                Category = reader["Category"] as string ?? "",
+                                SalesOrderNo = reader["SalesOrderNo"] as string ?? "",
+                                Customer = reader["Customer"] as string ?? "",
+                                CustomerName = reader["CustomerName"] as string ?? "",
+                                SOEntryDate = reader.IsDBNull(reader.GetOrdinal("SOEntryDate")) ? (DateTime?)null :
+                                            reader.GetDateTime(reader.GetOrdinal("SOEntryDate")),
+                                SOEntryUser = reader["SOEntryUser"] as string ?? "",
+                            });
+                        }
+                    }
+                }
+			}
+
+			return result;
+		}
+
+	}
 }
