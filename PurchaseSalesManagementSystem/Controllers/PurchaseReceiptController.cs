@@ -16,13 +16,13 @@ public class PurchaseReceiptController : Controller
 {
 
     private readonly Repository_PurchaseReceiptTK _repo;
-    private readonly Repository_PurchaseReceiptCheckFJK _repo_checkFJK;
+    private readonly Repository_PurchaseReceiptFJKCheck _repo_FJCcheck;
     public PurchaseReceiptController(
         Repository_PurchaseReceiptTK repo,
-        Repository_PurchaseReceiptCheckFJK repoCheckFJK)
+        Repository_PurchaseReceiptFJKCheck repoFJKCheck)
     {
         _repo = repo;
-        _repo_checkFJK = repoCheckFJK;
+        _repo_FJCcheck = repoFJKCheck;
     }
 
     public IActionResult PurchaseReceipt()
@@ -225,7 +225,7 @@ public class PurchaseReceiptController : Controller
             return BadRequest("No files uploaded.");
         }
 
-        var conversion = await _repo_checkFJK.ConvertInvoicesAsync(files);
+        var conversion = await _repo_FJCcheck.ConvertInvoicesAsync(files);
         if (conversion.HasError)
         {
             return BadRequest(string.Join(Environment.NewLine, conversion.Errors));

@@ -1,6 +1,6 @@
 ﻿namespace PurchaseSalesManagementSystem.Models;
 
-public sealed class Model_InvConv
+public sealed class Model_PurchaseReceiptFJKCheck
 {
     public List<string> Logs { get; } = [];
     public List<string> Warnings { get; } = [];

@@ -7,21 +7,21 @@ using DataTable = System.Data.DataTable;
 
 namespace PurchaseSalesManagementSystem.Repository;
 
-public class Repository_PurchaseReceiptCheckFJK
+public class Repository_PurchaseReceiptFJKCheck
 {
     private readonly CreateConnection _connectionFactory;
     private readonly IWebHostEnvironment _env;
     private static readonly HashSet<string> list = new HashSet<string>{"FCAFCA","FCAFLC", "FCALGR", "FCAUOR", "FNJFLJ", "FNJTNJ", "FTXFLT",  "FTXSTX",  "FTXTTX", "FCHNAL", "FCHNCA", "FCHIFS", "FCHJTX", "FCHNNJ", "FTPXIT",  "FTPNTX",  "FTPUTX"};
 
-    public Repository_PurchaseReceiptCheckFJK(CreateConnection connectionFactory, IWebHostEnvironment env)
+    public Repository_PurchaseReceiptFJKCheck(CreateConnection connectionFactory, IWebHostEnvironment env)
     {
         _connectionFactory = connectionFactory;
         _env = env;
     }
 
-    public async Task<Model_InvConv> ConvertInvoicesAsync(IReadOnlyCollection<IFormFile> files)
+    public async Task<Model_PurchaseReceiptFJKCheck> ConvertInvoicesAsync(IReadOnlyCollection<IFormFile> files)
     {
-        var result = new Model_InvConv();
+        var result = new Model_PurchaseReceiptFJKCheck();
         result.Logs.Add("Invoice conversion process started.");
 
         var poDetails = await LoadOpenPoDetailsAsync();
@@ -146,7 +146,7 @@ public class Repository_PurchaseReceiptCheckFJK
     private async Task<List<OpenPoRow>> LoadOpenPoDetailsAsync()
     {
         var list = new List<OpenPoRow>();
-        var sqlPath = Path.Combine(_env.ContentRootPath, "SQL", "InvConv", "InvConv.sql");
+        var sqlPath = Path.Combine(_env.ContentRootPath, "SQL", "PurchaseReceiptFJKCheck", "PurchaseReceiptFJKCheck.sql");
         var sql = await File.ReadAllTextAsync(sqlPath);
 
         await using var conn = _connectionFactory.GetConnection();
@@ -191,7 +191,7 @@ public class Repository_PurchaseReceiptCheckFJK
         return list;
     }
 
-    private static void CreateSummaryFile(Model_InvConv result, SummaryWorkbook summary, DateTime processedDate)
+    private static void CreateSummaryFile(Model_PurchaseReceiptFJKCheck result, SummaryWorkbook summary, DateTime processedDate)
     {
         if (summary.Count == 0)
         {
