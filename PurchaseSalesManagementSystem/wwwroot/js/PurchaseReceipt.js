@@ -116,13 +116,8 @@
                     const msg = await response.text();
                     throw new Error(msg);
                 }
-
-                const isExcelDownload =
-                    target === "TK" ||
-                    (target === "FJK" && action === "Check");
-
-                // TK / FJK Check は Excel を返す
-                if (isExcelDownload) {
+                // TK は Excel を返す
+                if (target === "TK") {
                     // ★ ファイル名をレスポンスヘッダから取得
                     const disposition = response.headers.get("Content-Disposition");
                     let filename = "download.xlsx";
@@ -144,15 +139,15 @@
 
                     const blob = await response.blob();
 
-                    return { blob, filename, isExcelDownload };
+                    return { blob, filename };
                 }
 
                 return response.json();
             })
             .then(data => {
 
-                // ===== TK / FJK Check Excelダウンロード =====
-                if (data.isExcelDownload) {
+                // ===== TK Excelダウンロード =====
+                if (target === "TK") {
 
                     const { blob, filename } = data;
 
@@ -170,6 +165,29 @@
                 }
 
                 // ===== JSON処理 =====
+                if (target === "FJK" && action === "Check" && Array.isArray(data.files)) {
+                    data.files.forEach(file => {
+                        const binary = atob(file.contentBase64);
+                        const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+                        const blob = new Blob(
+                            [bytes],
+                            { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+                        );
+
+                        const downloadUrl = window.URL.createObjectURL(blob);
+                        const a = document.createElement("a");
+                        a.href = downloadUrl;
+                        a.download = file.fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(downloadUrl);
+                    });
+
+                    messageArea.textContent = data.message || "Completed";
+                    return;
+                }
+
                 messageArea.textContent = data.message;
 
                 if (data.success) {

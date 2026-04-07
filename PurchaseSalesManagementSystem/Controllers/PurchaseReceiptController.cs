@@ -237,10 +237,16 @@ public class PurchaseReceiptController : Controller
             return BadRequest("No summary file was generated.");
         }
 
-        return File(
-            summaryFile.Content,
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            summaryFile.FileName);
+        return Json(new
+        {
+            success = true,
+            message = "Completed",
+            files = conversion.Files.Select(x => new
+            {
+                fileName = x.FileName,
+                contentBase64 = Convert.ToBase64String(x.Content)
+            })
+        });
     }
 
 
