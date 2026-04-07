@@ -27,12 +27,9 @@ public class Repository_PurchaseReceiptFJKCheck
         var poDetails = await LoadOpenPoDetailsAsync();
         result.Logs.Add($"Open PO data retrieved. ({poDetails.Count} rows)");
         FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
-        DataTable dt = new DataTable();
+        DataTable dt = exportToExcel.ConvertToDataTableFast(poDetails);
 
-        dt = exportToExcel.ConvertToDataTableFast(poDetails);
-        //var excelBytes = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail");
-
-        SummaryType? targetSummaryType = null;
+        //SummaryType? targetSummaryType = null;
         var categorized = new Dictionary<SummaryType, SummaryWorkbook>
         {
             [SummaryType.Con] = new SummaryWorkbook("Summary CON", exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "PODetail","PO")),
@@ -42,10 +39,14 @@ public class Repository_PurchaseReceiptFJKCheck
         };
 
         var poMap = poDetails.ToDictionary(x => x.PoLn, x => x, StringComparer.OrdinalIgnoreCase);
-        var processedDate = DateTime.Today;
+        var processedDate_Con = DateTime.Today;
+        var processedDate_Rinku = DateTime.Today;
+        var processedDate_ConFlow = DateTime.Today;
+        var processedDate_RinkuFlow = DateTime.Today;
 
         foreach (var file in files)
         {
+            //ファイル名の I で始まり、その後ろの5文字が数字であるかどうかを判断
             if (!IsSupportedInvoiceFile(file.FileName))
             {
                 result.Warnings.Add($"Skipped unsupported file: {file.FileName} (I*.xlsx only)");
@@ -56,43 +57,62 @@ public class Repository_PurchaseReceiptFJKCheck
             {
                 using var stream = file.OpenReadStream();
                 using var workbook = new XLWorkbook(stream);
+                //シート名がINVのシートが存在するか判断する。
                 var invSheet = workbook.Worksheets.FirstOrDefault(x => x.Name.Equals("INV", StringComparison.OrdinalIgnoreCase));
                 if (invSheet is null)
                 {
                     result.Warnings.Add($"Warning: Irregular format (INV sheet missing). File = {file.FileName}");
                     continue;
                 }
-
+                //B列で先頭4文字 == "FOR "の行番号を取得
                 var forRow = FindForRow(invSheet);
                 if (forRow is null)
                 {
                     result.Warnings.Add($"Warning: Irregular format (FOR row missing). File = {file.FileName}");
                     continue;
                 }
-
+                //"FOR "対象行の4桁目から3桁データ取得
                 var siteCode = GetSiteCode(invSheet.Cell(forRow.Value, 2).GetString());
                 if (string.IsNullOrWhiteSpace(siteCode))
                 {
                     result.Warnings.Add($"Warning: Irregular format (site code missing). File = {file.FileName}");
                     continue;
                 }
-
+                //B24セルデータ（先頭6桁）が"MASS F"　"LIQUID"　"CONCEN"　"VAPORI"であるかどうか判断
                 var isFlow = IsFlowInvoice(invSheet.Cell(24, 2).GetString());
+                //siteCode（"FCH" または "FTP"）とisFlowで出力対象ファイルを決める。
                 var summaryType = ResolveType(siteCode, isFlow);
-                if (targetSummaryType is null)
-                {
-                    targetSummaryType = summaryType;
-                }
-                else if (targetSummaryType.Value != summaryType)
-                {
-                    result.Warnings.Add($"Warning: Skipped due to mixed condition. File = {file.FileName}");
-                    continue;
-                }
+                //if (targetSummaryType is null)
+                //{
+                //    targetSummaryType = summaryType;
+                //}
+                //else if (targetSummaryType.Value != summaryType)
+                //{
+                //    result.Warnings.Add($"Warning: Skipped due to mixed condition. File = {file.FileName}");
+                //    continue;
+                //}
+                //G9セル日付取得
                 var invoiceDate = GetDate(invSheet.Cell("G9"));
-                processedDate = invoiceDate;
-
+                if (summaryType == SummaryType.Con)
+                {
+                    processedDate_Con = invoiceDate;
+                }
+                if (summaryType == SummaryType.Rinku)
+                {
+                    processedDate_Rinku = invoiceDate;
+                }
+                if (summaryType == SummaryType.ConFlow)
+                {
+                    processedDate_ConFlow = invoiceDate;
+                }
+                if (summaryType == SummaryType.RinkuFlow)
+                {
+                    processedDate_RinkuFlow = invoiceDate;
+                }
+                //G20セルに登録データ作成
                 var sheetInfo = new InvoiceSheetData
                 {
+                    //シート名を5文字数字にする
                     InvoiceName = BuildLegacySheetName(file.FileName),
                     SiteCode = siteCode,
                     InvoiceDate = invoiceDate,
@@ -100,7 +120,7 @@ public class Repository_PurchaseReceiptFJKCheck
                         ? $"{invoiceDate:MM/dd/yyyy} RINKU"
                         : $"{GetConsolidationDate(invoiceDate):MM/dd/yyyy} Consolidation"
                 };
-
+                //出力対象ファイル作成（編集）
                 CreateInvoiceSheet(categorized[summaryType].Workbook, invSheet, sheetInfo, forRow.Value, poMap);
                 categorized[summaryType].Count++;
 
@@ -119,11 +139,23 @@ public class Repository_PurchaseReceiptFJKCheck
             }
         }
 
-        if (targetSummaryType is not null)
+        //ファイル作成
+        if (categorized[SummaryType.Con].Count>0)
         {
-            CreateSummaryFile(result, categorized[targetSummaryType.Value], processedDate);
+            CreateSummaryFile(result, categorized[SummaryType.Con], processedDate_Con);
         }
-
+        if (categorized[SummaryType.Rinku].Count > 0)
+        {
+            CreateSummaryFile(result, categorized[SummaryType.Rinku], processedDate_Rinku);
+        }
+        if (categorized[SummaryType.ConFlow].Count > 0)
+        {
+            CreateSummaryFile(result, categorized[SummaryType.ConFlow], processedDate_ConFlow);
+        }
+        if (categorized[SummaryType.RinkuFlow].Count > 0)
+        {
+            CreateSummaryFile(result, categorized[SummaryType.RinkuFlow], processedDate_RinkuFlow);
+        }
         if (result.TotalInvoices == 0)
         {
             result.Errors.Add("No valid invoice file was processed.");
@@ -215,10 +247,13 @@ public class Repository_PurchaseReceiptFJKCheck
             int forRow,
             Dictionary<string, OpenPoRow> poMap)
     {
+        //シート名
         var sheetName = GetUniqueSheetName(summaryWorkbook, inv.InvoiceName);
+        //シート作成
         var ws = sourceSheet.CopyTo(summaryWorkbook, sheetName);
 
         ws.Cell("G20").Value = inv.Note;
+        //B列「FOR 」行データをG21にセット
         ws.Cell("G21").Value = ws.Cell(forRow, 2).GetString();
         // E～F 列の位置に、新しい列を挿入する
         ws.Column(5).InsertColumnsBefore(2);
@@ -247,17 +282,17 @@ public class Repository_PurchaseReceiptFJKCheck
             //P
             ws.Cell(row, 16).Value = po?.ItemCode ?? string.Empty;
             //Q
-            ws.Cell(row, 17).Value = po is null ? string.Empty : po.QtyInvoiced;
+            ws.Cell(row, 17).Value = po is null ? string.Empty : po.QtyBalance;
             //R
-            ws.Cell(row, 18).Value = po is null ? string.Empty : po.LastTotalUnitCost;
+            ws.Cell(row, 18).Value = po is null ? string.Empty : po.UnitCost;
             //S
-            ws.Cell(row, 19).Value = po is null ? string.Empty : po.StandardUnitCost;
+            ws.Cell(row, 19).Value = po is null ? string.Empty : po.LastTotalUnitCost;
             //T
-            ws.Cell(row, 20).Value = po?.Whse ?? string.Empty;
+            ws.Cell(row, 20).Value = po?.Status ?? string.Empty;
             //U
-            ws.Cell(row, 21).Value = po is null ? string.Empty : po.QtyDiscCost;
+            ws.Cell(row, 21).Value = po is null ? string.Empty : po.StandardUnitCost;
             //V
-            ws.Cell(row, 22).Value = po?.PromiseDate;
+            ws.Cell(row, 22).Value = po is null ? string.Empty : po.QtyDiscCost;
             string? text = ws.Cell(row, 12).GetText()?.ToString();
 
             if (text == "#N/A")
@@ -272,13 +307,13 @@ public class Repository_PurchaseReceiptFJKCheck
                 ws.Cell(row, 5).Value = ws.Cell(row, 12).GetString();
                 string? lText = ws.Cell(row, 12).GetText()?.ToString();
                 string? pText = ws.Cell(row, 16).GetText()?.ToString();
-                //L列とP列のデータがことなる
+                //L列とP列のデータが異なる
                 if (!string.Equals(lText, pText, StringComparison.OrdinalIgnoreCase))
                 {
                     ws.Cell(row, 1).Style.Fill.BackgroundColor = XLColor.Orange;
                 }
                 else {
-                    //F列データリストに存在しないデータ
+                    //F列データがリストに存在しないデータ
                     if (!list.Contains(inv.SiteCode + ws.Cell(row, 6).Value))
                     {
                         ws.Cell(row, 6).Style.Fill.BackgroundColor = XLColor.Orange;
@@ -292,11 +327,15 @@ public class Repository_PurchaseReceiptFJKCheck
                     }
                     else
                     {
-                        string? text3 = ws.Cell(row, 9).GetText()?.ToString();
-                        decimal id = Math.Round(ConvertToDecimal(text3), 2);
-                        text3 = ws.Cell(row, 18).GetText()?.ToString();
-                        decimal rd = Math.Round(ConvertToDecimal(text3), 2);
-                        if (id!=rd)
+                        //M列(9列)データ
+                        string? text1 = ws.Cell(row, 9).GetText()?.ToString();
+                        //小数2桁まで四捨五入
+                        decimal m = Math.Round(ConvertToDecimal(text1), 2);
+                        //R列(18列)データ
+                        text1 = ws.Cell(row, 18).GetText()?.ToString();
+                        //小数2桁まで四捨五入
+                        decimal r = Math.Round(ConvertToDecimal(text1), 2);
+                        if (m != r)
                         {
                             ws.Cell(row, 9).Style.Fill.BackgroundColor = XLColor.Orange;
 
@@ -394,7 +433,7 @@ public class Repository_PurchaseReceiptFJKCheck
 
     private static bool IsFlowInvoice(string value)
     {
-        var upper = value.ToUpperInvariant();
+        var upper = value.Substring(0, 6).ToUpperInvariant();
         return upper.StartsWith("MASS F")
                || upper.StartsWith("LIQUID")
                || upper.StartsWith("CONCEN")

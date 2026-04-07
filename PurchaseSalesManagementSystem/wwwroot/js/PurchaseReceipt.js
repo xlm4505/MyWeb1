@@ -117,8 +117,12 @@
                     throw new Error(msg);
                 }
 
-                // TK は Excel を返す
-                if (target === "TK") {
+                const isExcelDownload =
+                    target === "TK" ||
+                    (target === "FJK" && action === "Check");
+
+                // TK / FJK Check は Excel を返す
+                if (isExcelDownload) {
                     // ★ ファイル名をレスポンスヘッダから取得
                     const disposition = response.headers.get("Content-Disposition");
                     let filename = "download.xlsx";
@@ -140,15 +144,15 @@
 
                     const blob = await response.blob();
 
-                    return { blob, filename };
+                    return { blob, filename, isExcelDownload };
                 }
 
                 return response.json();
             })
             .then(data => {
 
-                // ===== TK Excelダウンロード =====
-                if (target === "TK") {
+                // ===== TK / FJK Check Excelダウンロード =====
+                if (data.isExcelDownload) {
 
                     const { blob, filename } = data;
 
