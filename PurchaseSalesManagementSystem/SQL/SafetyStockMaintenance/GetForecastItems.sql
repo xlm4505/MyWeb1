@@ -9,4 +9,4 @@ SELECT
     [Comment] AS Comment
 FROM dbo.U_ForecastItem
 WHERE (@ItemCode = '' OR ItemCode = @ItemCode)
-ORDER BY ItemCode, ProcType, ARDivisionNo, CustomerNo, WarehouseCode, ItemNo;
+ORDER BY ProcType,ItemNo,ItemCode;

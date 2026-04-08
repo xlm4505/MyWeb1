@@ -263,7 +263,7 @@
     )
 SELECT
     1 AS Seq,
-    'Shingo Hashimoto' AS ConfirmTo,
+    'Huong Tran' AS ConfirmTo,
     SalesPerson AS SalesPerson,
     ItemCode,
     CASE
