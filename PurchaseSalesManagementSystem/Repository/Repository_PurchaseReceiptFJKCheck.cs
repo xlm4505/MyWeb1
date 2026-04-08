@@ -301,8 +301,8 @@ public class Repository_PurchaseReceiptFJKCheck
             {
                 //L列データをEへ
                 ws.Cell(row, 5).Value = ws.Cell(row, 12).GetString();
-                string? lText = ws.Cell(row, 12).GetText()?.ToString();
-                string? pText = ws.Cell(row, 16).GetText()?.ToString();
+                string? lText = ws.Cell(row, 12).GetString();
+                string? pText = ws.Cell(row, 16).GetString();
                 //L列とP列のデータが異なる
                 if (!string.Equals(lText, pText, StringComparison.OrdinalIgnoreCase))
                 {
@@ -324,11 +324,11 @@ public class Repository_PurchaseReceiptFJKCheck
                     else
                     {
                         //M列(9列)データ
-                        string? text1 = ws.Cell(row, 9).GetText()?.ToString();
+                        string? text1 = ws.Cell(row, 9).GetString();
                         //小数2桁まで四捨五入
                         decimal m = Math.Round(ConvertToDecimal(text1), 2);
                         //R列(18列)データ
-                        text1 = ws.Cell(row, 18).GetText()?.ToString();
+                        text1 = ws.Cell(row, 18).GetString();
                         //小数2桁まで四捨五入
                         decimal r = Math.Round(ConvertToDecimal(text1), 2);
                         if (m != r)
