@@ -22,10 +22,8 @@ public class Repository_PurchaseReceiptFJKCheck
     public async Task<Model_PurchaseReceiptFJKCheck> ConvertInvoicesAsync(IReadOnlyCollection<IFormFile> files)
     {
         var result = new Model_PurchaseReceiptFJKCheck();
-        result.Logs.Add("Invoice conversion process started.");
 
         var poDetails = await LoadOpenPoDetailsAsync();
-        result.Logs.Add($"Open PO data retrieved. ({poDetails.Count} rows)");
         FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
         DataTable dt = exportToExcel.ConvertToDataTableFast(poDetails);
 
@@ -161,7 +159,6 @@ public class Repository_PurchaseReceiptFJKCheck
             result.Errors.Add("No valid invoice file was processed.");
         }
 
-        result.Logs.Add("Process complete.");
         return result;
     }
     private static bool IsSupportedInvoiceFile(string fileName)
@@ -238,7 +235,6 @@ public class Repository_PurchaseReceiptFJKCheck
             Content = stream.ToArray()
         });
 
-        result.Logs.Add($"{summary.Title} file was created.");
     }
     private static void CreateInvoiceSheet(
             XLWorkbook summaryWorkbook,

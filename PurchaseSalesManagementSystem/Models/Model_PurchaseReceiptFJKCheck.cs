@@ -2,7 +2,7 @@
 
 public sealed class Model_PurchaseReceiptFJKCheck
 {
-    public List<string> Logs { get; } = [];
+    //public List<string> Logs { get; } = [];
     public List<string> Warnings { get; } = [];
     public List<string> Errors { get; } = [];
     public List<GeneratedSummaryFile> Files { get; } = [];
