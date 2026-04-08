@@ -32,7 +32,20 @@ public class SafetyStockMaintenanceController : Controller
         {
             return Json(new { success = true, updatedCount = 0, message = "No rows selected." });
         }
+        var hasInvalidItem = items.Any(item =>
+            item.Quantity < 0
+            || !IsHalfWidthAlphaNumericOptional(item.CustomerNo, 20)
+            || !IsHalfWidthAlphaNumericOptional(item.WarehouseCode, 3)
+            || !IsHalfWidthAlphaNumericOptional(item.Comment, 30));
 
+        if (hasInvalidItem)
+        {
+            return BadRequest(new
+            {
+                success = false,
+                message = "CustomerNo, WarehouseCode and Comment must be half-width alphanumeric and within allowed length."
+            });
+        }
         var updatedCount = _repo.UpdateForecastItems(items);
         return Json(new { success = true, updatedCount });
     }

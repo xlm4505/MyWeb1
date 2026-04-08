@@ -1,5 +1,8 @@
 UPDATE dbo.U_ForecastItem
 SET
-    Quantity = @Quantity
+    CustomerNo = @CustomerNo,
+    WarehouseCode = @WarehouseCode,
+    Quantity = @Quantity,
+    Comment = @Comment
 WHERE
     ItemCode = @ItemCode;

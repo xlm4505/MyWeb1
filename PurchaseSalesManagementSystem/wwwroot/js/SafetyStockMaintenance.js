@@ -33,11 +33,11 @@ function renderTable(records) {
                 <td>${escapeHtml(row.itemCode)}</td>
                 <td>${escapeHtml(row.procType)}</td>
                 <td>${escapeHtml(row.arDivisionNo)}</td>
-                <td>${escapeHtml(row.customerNo)}</td>
-                <td>${escapeHtml(row.warehouseCode)}</td>
+                <td><input type="text" class="form-control editable-alnum" data-maxlength="20" id="customerNo_${index}" value="${escapeHtml(row.customerNo)}"></td>
+                <td><input type="text" class="form-control editable-alnum" data-maxlength="3" id="warehouseCode_${index}" value="${escapeHtml(row.warehouseCode)}"></td>
                 <td><input type="text" inputmode="numeric" class="form-control qty-input" id="qty_${index}" value="${escapeHtml(row.quantity)}"></td>
                 <td>${escapeHtml(row.itemNo)}</td>
-                <td>${escapeHtml(row.comment)}</td>
+                <td><input type="text" class="form-control editable-alnum" data-maxlength="30" id="comment_${index}" value="${escapeHtml(row.comment)}"></td>
                 <td><input type="checkbox" id="chk_${index}"></td>
             </tr>`
         );
@@ -59,6 +59,22 @@ function sanitizeQuantityInput(event) {
     const digitsOnly = value.replace(/\D/g, "").slice(0, 7);
     if (digitsOnly !== value) {
         input.value = digitsOnly;
+    }
+}
+function sanitizeEditableAlphaNumericInput(event) {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.classList.contains("editable-alnum")) {
+        return;
+    }
+
+    const maxLength = parseInt(input.dataset.maxlength ?? "", 10);
+    if (Number.isNaN(maxLength) || maxLength <= 0) {
+        return;
+    }
+
+    const sanitized = input.value.replace(/[^A-Za-z0-9]/g, "").slice(0, maxLength);
+    if (sanitized !== input.value) {
+        input.value = sanitized;
     }
 }
 function sanitizeSevenDigitNumberInput(event) {
@@ -255,10 +271,15 @@ function getSelectedRows() {
         }
 
         const qty = parseInt(document.getElementById(`qty_${index}`).value, 10);
-
+        const customerNo = document.getElementById(`customerNo_${index}`).value.trim();
+        const warehouseCode = document.getElementById(`warehouseCode_${index}`).value.trim();
+        const comment = document.getElementById(`comment_${index}`).value.trim();
         selected.push({
             itemCode: row.itemCode,
-            quantity: Number.isNaN(qty) ? 0 : qty
+            customerNo,
+            warehouseCode,
+            quantity: Number.isNaN(qty) ? 0 : qty,
+            comment
         });
     });
 
@@ -321,6 +342,7 @@ document.getElementById("searchForm").addEventListener("submit", async function 
 });
 
 document.getElementById("dataBody").addEventListener("input", sanitizeQuantityInput);
+document.getElementById("dataBody").addEventListener("input", sanitizeEditableAlphaNumericInput);
 document.getElementById("addButton").addEventListener("click", openAddModal);
 document.getElementById("okAddButton").addEventListener("click", addItem);
 document.getElementById("closeAddButton").addEventListener("click", requestCloseAddModal);

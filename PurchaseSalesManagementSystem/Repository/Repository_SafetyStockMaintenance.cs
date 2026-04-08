@@ -92,7 +92,10 @@ namespace PurchaseSalesManagementSystem.Repository
                 {
                     using (var cmd = new SqlCommand(sql, conn))
                     {
+                        cmd.Parameters.AddWithValue("@CustomerNo", item.CustomerNo ?? string.Empty);
+                        cmd.Parameters.AddWithValue("@WarehouseCode", item.WarehouseCode ?? string.Empty);
                         cmd.Parameters.AddWithValue("@Quantity", item.Quantity);
+                        cmd.Parameters.AddWithValue("@Comment", item.Comment ?? string.Empty);
                         cmd.Parameters.AddWithValue("@ItemCode", item.ItemCode ?? string.Empty);
 
                         affectedRows += cmd.ExecuteNonQuery();
