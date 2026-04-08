@@ -249,101 +249,101 @@ public class Repository_PurchaseReceiptFJKCheck
         //シート作成
         var ws = sourceSheet.CopyTo(summaryWorkbook, sheetName);
 
-        //ws.Cell("G20").Value = inv.Note;
-        ////B列「FOR 」行データをG21にセット
-        //ws.Cell("G21").Value = ws.Cell(forRow, 2).GetString();
+        ws.Cell("G20").Value = inv.Note;
+        //B列「FOR 」行データをG21にセット
+        ws.Cell("G21").Value = ws.Cell(forRow, 2).GetString();
         // E～F 列の位置に、新しい列を挿入する
-        //ws.Column(5).InsertColumnsBefore(2);
+        ws.Column(5).InsertColumnsBefore(2);
 
-        ////E24 セルに、文字列 "ITEM CODE" を書き込む
-        //ws.Cell("E24").Value = "ITEM CODE";
-        ////F24 セルに、文字列 "WH" を書き込む
-        //ws.Cell("F24").Value = "WH";
-        //ws.Range("E24:F24").Style.Font.Bold = true;
-        //ws.Range("E24:F24").Style.Font.Underline = XLFontUnderlineValues.Single;
-        //ws.Column("E").AdjustToContents();
-        //ws.Column("F").Width = 8;
+        //E24 セルに、文字列 "ITEM CODE" を書き込む
+        ws.Cell("E24").Value = "ITEM CODE";
+        //F24 セルに、文字列 "WH" を書き込む
+        ws.Cell("F24").Value = "WH";
+        ws.Range("E24:F24").Style.Font.Bold = true;
+        ws.Range("E24:F24").Style.Font.Underline = XLFontUnderlineValues.Single;
+        ws.Column("E").AdjustToContents();
+        ws.Column("F").Width = 8;
 
-        //var lastRow = ws.Column("L").LastCellUsed()?.Address.RowNumber ?? 22;
-        //for (var row = 22; row <= lastRow; row++)
-        //{
-        //    var poLn = ws.Cell(row, 1).GetString().Trim();
-        //    if (!poLn.StartsWith("00", StringComparison.OrdinalIgnoreCase))
-        //    {
-        //        continue;
-        //    }
+        var lastRow = ws.Column("L").LastCellUsed()?.Address.RowNumber ?? 22;
+        for (var row = 22; row <= lastRow; row++)
+        {
+            var poLn = ws.Cell(row, 1).GetString().Trim();
+            if (!poLn.StartsWith("00", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
 
-        //    poMap.TryGetValue(poLn, out var po);
-        //    //F
-        //    ws.Cell(row, 6).Value = po?.Whse ?? string.Empty;
-        //    //P
-        //    ws.Cell(row, 16).Value = po?.ItemCode ?? string.Empty;
-        //    //Q
-        //    ws.Cell(row, 17).Value = po is null ? string.Empty : po.QtyBalance;
-        //    //R
-        //    ws.Cell(row, 18).Value = po is null ? string.Empty : po.UnitCost;
-        //    //S
-        //    ws.Cell(row, 19).Value = po is null ? string.Empty : po.LastTotalUnitCost;
-        //    //T
-        //    ws.Cell(row, 20).Value = po?.Status ?? string.Empty;
-        //    //U
-        //    ws.Cell(row, 21).Value = po is null ? string.Empty : po.StandardUnitCost;
-        //    //V
-        //    ws.Cell(row, 22).Value = po is null ? string.Empty : po.QtyDiscCost;
-        //    string? text = ws.Cell(row, 12).GetText()?.ToString();
+            poMap.TryGetValue(poLn, out var po);
+            //F
+            ws.Cell(row, 6).Value = po?.Whse ?? string.Empty;
+            //P
+            ws.Cell(row, 16).Value = po?.ItemCode ?? string.Empty;
+            //Q
+            ws.Cell(row, 17).Value = po is null ? string.Empty : po.QtyBalance;
+            //R
+            ws.Cell(row, 18).Value = po is null ? string.Empty : po.UnitCost;
+            //S
+            ws.Cell(row, 19).Value = po is null ? string.Empty : po.LastTotalUnitCost;
+            //T
+            ws.Cell(row, 20).Value = po?.Status ?? string.Empty;
+            //U
+            ws.Cell(row, 21).Value = po is null ? string.Empty : po.StandardUnitCost;
+            //V
+            ws.Cell(row, 22).Value = po is null ? string.Empty : po.QtyDiscCost;
+            string? text = ws.Cell(row, 12).GetText()?.ToString();
 
-        //    if (text == "#N/A")
-        //    {
-        //        //P列データをEへ
-        //        ws.Cell(row, 5).Value = ws.Cell(row, 16).GetString();
-        //        ws.Cell(row, 5).Style.Fill.BackgroundColor = XLColor.Orange;
-        //    }
-        //    else
-        //    {
-        //        //L列データをEへ
-        //        ws.Cell(row, 5).Value = text;
-        //        string? lText = text;
-        //        string? pText = ws.Cell(row, 16).GetString();
-        //        //L列とP列のデータが異なる
-        //        if (!string.Equals(lText, pText, StringComparison.OrdinalIgnoreCase))
-        //        {
-        //            ws.Cell(row, 1).Style.Fill.BackgroundColor = XLColor.Orange;
-        //        }
-        //        else {
-        //            //F列データがリストに存在しないデータ
-        //            if (!list.Contains(inv.SiteCode + ws.Cell(row, 6).Value))
-        //            {
-        //                ws.Cell(row, 6).Style.Fill.BackgroundColor = XLColor.Orange;
-        //            }
-        //            //G列（7列） と Q列（17列） の“値（Value）”を数値として比較し、G列の方が大きいか
-        //            double g = (double)ws.Cell(row, 7).Value;
-        //            double q = (double)ws.Cell(row, 17).Value;
-        //            if (g>q)
-        //            {
-        //                ws.Cell(row, 7).Style.Fill.BackgroundColor = XLColor.Orange;
-        //            }
-        //            else
-        //            {
-        //                //M列(9列)データ
-        //                string? mtext = ws.Cell(row, 9).GetString();
-        //                //小数2桁まで四捨五入
-        //                decimal m = Math.Round(ConvertToDecimal(mtext), 2);
-        //                //R列(18列)データ
-        //                string? rtext = ws.Cell(row, 18).GetString();
-        //                //小数2桁まで四捨五入
-        //                decimal r = Math.Round(ConvertToDecimal(rtext), 2);
-        //                if (m != r)
-        //                {
-        //                    ws.Cell(row, 9).Style.Fill.BackgroundColor = XLColor.Orange;
+            if (text == "#N/A")
+            {
+                //P列データをEへ
+                ws.Cell(row, 5).Value = ws.Cell(row, 16).GetString();
+                ws.Cell(row, 5).Style.Fill.BackgroundColor = XLColor.Orange;
+            }
+            else
+            {
+                //L列データをEへ
+                ws.Cell(row, 5).Value = text;
+                string? lText = text;
+                string? pText = ws.Cell(row, 16).GetString();
+                //L列とP列のデータが異なる
+                if (!string.Equals(lText, pText, StringComparison.OrdinalIgnoreCase))
+                {
+                    ws.Cell(row, 1).Style.Fill.BackgroundColor = XLColor.Orange;
+                }
+                else {
+                    //F列データがリストに存在しないデータ
+                    if (!list.Contains(inv.SiteCode + ws.Cell(row, 6).Value))
+                    {
+                        ws.Cell(row, 6).Style.Fill.BackgroundColor = XLColor.Orange;
+                    }
+                    //G列（7列） と Q列（17列） の“値（Value）”を数値として比較し、G列の方が大きいか
+                    double g = (double)ws.Cell(row, 7).Value;
+                    double q = (double)ws.Cell(row, 17).Value;
+                    if (g>q)
+                    {
+                        ws.Cell(row, 7).Style.Fill.BackgroundColor = XLColor.Orange;
+                    }
+                    else
+                    {
+                        //M列(9列)データ
+                        string? mtext = ws.Cell(row, 9).GetString();
+                        //小数2桁まで四捨五入
+                        decimal m = Math.Round(ConvertToDecimal(mtext), 2);
+                        //R列(18列)データ
+                        string? rtext = ws.Cell(row, 18).GetString();
+                        //小数2桁まで四捨五入
+                        decimal r = Math.Round(ConvertToDecimal(rtext), 2);
+                        if (m != r)
+                        {
+                            ws.Cell(row, 9).Style.Fill.BackgroundColor = XLColor.Orange;
 
-        //                }
-        //            }
+                        }
+                    }
 
-        //        }
+                }
 
-        //    }
+            }
 
-        //}
+        }
 
         ws.PageSetup.PagesWide = 1;
         //改ページプレビューモード設定
