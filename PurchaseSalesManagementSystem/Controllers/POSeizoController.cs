@@ -126,100 +126,6 @@ public class POSeizoController : Controller
 
     }
 
-    //private DataTable CreateTkfDataTable(IEnumerable<Model_POSeizo_TKF> list)
-    //{
-    //    DataTable dt = new DataTable();
-    //    dt.Columns.Add("PO", typeof(string));
-    //    dt.Columns.Add("Unit", typeof(string));
-    //    dt.Columns.Add("Item Code", typeof(string));
-    //    dt.Columns.Add("Description", typeof(string));
-    //    dt.Columns.Add("Customer Part Number", typeof(string));
-    //    dt.Columns.Add("Customer", typeof(string));
-    //    dt.Columns.Add("WH Code", typeof(string));
-    //    dt.Columns.Add("Required Delivery Date", typeof(DateTime));
-    //    dt.Columns.Add("Ordered Q'ty", typeof(int));
-    //    dt.Columns.Add("Unit Price", typeof(decimal));
-    //    dt.Columns.Add("Amount", typeof(decimal));
-
-    //    foreach (var d in list)
-    //    {
-    //        dt.Rows.Add(
-    //            d.PO,
-    //            d.Unit,
-    //            d.ItemCode,
-    //            d.Description,
-    //            d.CustomerPartNumber,
-    //            d.Customer,
-    //            d.WHCode,
-    //            d.RequiredDeliveryDate,
-    //            d.OrderedQty ?? 0,
-    //            d.UnitPrice ?? 0,
-    //            d.Amount ?? 0
-    //        );
-    //    }
-
-    //    return dt;
-    //}
-
-    //private DataTable CreateAllDataTable(IEnumerable<Model_POSeizo_ALL> list)
-    //{
-    //    DataTable dt = new DataTable();
-    //    dt.Columns.Add("No", typeof(int));
-    //    dt.Columns.Add("ItemCode", typeof(string));
-    //    dt.Columns.Add("Desc", typeof(string));
-    //    dt.Columns.Add("PartNumber", typeof(string));
-    //    dt.Columns.Add("Unit", typeof(string));
-    //    dt.Columns.Add("RequiredDate", typeof(DateTime));
-    //    dt.Columns.Add("EstDeliveryDate", typeof(string));
-    //    dt.Columns.Add("QuantityOrdered", typeof(int));
-    //    dt.Columns.Add("UnitCost", typeof(decimal));
-    //    dt.Columns.Add("ExtensionAmt", typeof(decimal));
-    //    dt.Columns.Add("SalesOffice", typeof(string));
-    //    dt.Columns.Add("SalesClass", typeof(string));
-    //    dt.Columns.Add("Customer", typeof(string));
-    //    dt.Columns.Add("EndCustmer", typeof(string));
-    //    dt.Columns.Add("ShipTo", typeof(string));
-    //    dt.Columns.Add("PO", typeof(string));
-    //    dt.Columns.Add("Line", typeof(string));
-    //    dt.Columns.Add("Factory", typeof(string));
-    //    dt.Columns.Add("Filled", typeof(string));
-    //    dt.Columns.Add("Confirmed", typeof(string));
-    //    dt.Columns.Add("Approved", typeof(string));
-    //    dt.Columns.Add("DateApproved", typeof(DateTime));
-    //    dt.Columns.Add("Production ControlNotice", typeof(string));
-
-    //    foreach (var d in list)
-    //    {
-    //        dt.Rows.Add(
-    //            d.No,
-    //            d.ItemCode,
-    //            d.Desc,
-    //            d.PartNumber,
-    //            d.Unit,
-    //            d.RequiredDate,
-    //            d.EstDeliveryDate,
-    //            d.QuantityOrdered ?? 0,
-    //            d.UnitCost ?? 0,
-    //            d.ExtensionAmt ?? 0,
-    //            d.SalesOffice,
-    //            d.SalesClass,
-    //            d.Customer,
-    //            d.EndCustmer,
-    //            d.ShipTo,
-    //            d.PO,
-    //            d.Line,
-    //            d.Factory,
-    //            d.Filled,
-    //            d.Confirmed,
-    //            d.Approved,
-    //            d.DateApproved,
-    //            d.ProductionControlNotice
-    //        );
-    //    }
-
-    //    return dt;
-    //}
-
     [HttpPost]
     public IActionResult RunPrint([FromBody] Model_POSeizo_Check model)
     {
@@ -336,15 +242,6 @@ public class POSeizoController : Controller
             model.poEntryDate
         ).ToList();
 
-        if (list == null || !list.Any())
-        {
-            return Json(new
-            {
-                success = false,
-                message = "There's no target data.\nPlease check your parameters\nProcess terminated."
-            });
-        }
-
         return Json(new
         {
             success = true
@@ -365,15 +262,6 @@ public class POSeizoController : Controller
             model.orderStatus,
             model.poEntryDate
         ).ToList();
-
-        if (list == null || !list.Any())
-        {
-            return Json(new
-            {
-                success = false,
-                message = "There's no target data.\nPlease check your parameters\nProcess terminated."
-            });
-        }
 
         return Json(new
         {
