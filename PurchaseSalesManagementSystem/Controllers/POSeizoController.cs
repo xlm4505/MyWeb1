@@ -158,12 +158,12 @@ public class POSeizoController : Controller
         string vendorDisplay = string.IsNullOrWhiteSpace(model.vendorName) ? model.vendor : model.vendorName;
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         string outputFileName = $"PurchaseOrder [{vendorDisplay}]_{timestamp}.pdf";
-        string outputPath = Path.Combine(Path.GetTempPath(), outputFileName);
+        string outputPath = Path.Combine(@"C:\\IT\\Tools\\", outputFileName);
 
         try
         {
-            string crystalReportNinja = @"P:\\IT\\Tools\\CrystalReportsNinja";
-            string reportPath = @"P:\\IT\\Crystal\\PO_PurchaseOrder3_Auto.rpt";
+            string crystalReportNinja = @"C:\\IT\\Tools\\CrystalReportsNinja.exe";
+            string reportPath = @"C:\\IT\\Crystal\\PO_PurchaseOrder3_Auto.rpt";
             string newOrder = model.orderStatus == "New" ? "True" : "False";
 
             string arguments =
