@@ -165,12 +165,28 @@ public class POSeizoController : Controller
             string crystalReportNinja = @"C:\\IT\\Tools\\CrystalReportsNinja.exe";
             string reportPath = @"C:\\IT\\Crystal\\PO_PurchaseOrder3_Auto.rpt";
             string newOrder = model.orderStatus == "New" ? "True" : "False";
+            if (!System.IO.File.Exists(crystalReportNinja))
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = $"CrystalReportsNinja.exe not found. path={crystalReportNinja}"
+                });
+            }
 
+            if (!System.IO.File.Exists(reportPath))
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = $"Crystal report file not found. path={reportPath}"
+                });
+            }
             string arguments =
                 $"-S VMP-10 " +
                 $"-D MAS_FOA " +
-                $"-U MAS_REPORTS " +
-                $"-P Reporting1 " +
+                $"-U sa " +
+                $"-P Hello12345 " +
                 $"-F \"{reportPath}\" " +
                 $"-O \"{outputPath}\" " +
                 $"-E pdf " +
