@@ -4,16 +4,16 @@ using Microsoft.Data.SqlClient;
 using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
 using PurchaseSalesManagementSystem.Repository;
-using System.Data;
 using System.Diagnostics;
 
 public class POSeizoController : Controller
 {
     private readonly Repository_POSeizo _repo;
-
-    public POSeizoController(Repository_POSeizo repo)
+    private readonly IConfiguration _configuration;
+    public POSeizoController(Repository_POSeizo repo, IConfiguration configuration)
     {
         _repo = repo;
+        _configuration = configuration;
     }
 
     public IActionResult POSeizoExport()
@@ -158,13 +158,33 @@ public class POSeizoController : Controller
         string vendorDisplay = string.IsNullOrWhiteSpace(model.vendorName) ? model.vendor : model.vendorName;
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         string outputFileName = $"PurchaseOrder [{vendorDisplay}]_{timestamp}.pdf";
-        string outputPath = Path.Combine(@"C:\\IT\\Tools\\", outputFileName);
+        string outputBasePath = _configuration["CrystalReportSettings:OutputPath"] ?? string.Empty;
+        string outputPath = Path.Combine(outputBasePath, outputFileName);
 
         try
         {
-            string crystalReportNinja = @"C:\\IT\\Tools\\CrystalReportsNinja.exe";
-            string reportPath = @"C:\\IT\\Crystal\\PO_PurchaseOrder3_Auto.rpt";
+            string crystalReportNinja = _configuration["CrystalReportSettings:CrystalReportNinjaPath"] ?? string.Empty;
+            string reportPath = _configuration["CrystalReportSettings:ReportPath"] ?? string.Empty;
+            string server = _configuration["CrystalReportSettings:Server"] ?? string.Empty;
+            string database = _configuration["CrystalReportSettings:Database"] ?? string.Empty;
+            string user = _configuration["CrystalReportSettings:User"] ?? string.Empty;
+            string password = _configuration["CrystalReportSettings:Password"] ?? string.Empty;
             string newOrder = model.orderStatus == "New" ? "True" : "False";
+
+            if (string.IsNullOrWhiteSpace(outputBasePath) ||
+                string.IsNullOrWhiteSpace(crystalReportNinja) ||
+                string.IsNullOrWhiteSpace(reportPath) ||
+                string.IsNullOrWhiteSpace(server) ||
+                string.IsNullOrWhiteSpace(database) ||
+                string.IsNullOrWhiteSpace(user) ||
+                string.IsNullOrWhiteSpace(password))
+            {
+                return StatusCode(500, new
+                {
+                    success = false,
+                    message = "Crystal report settings are missing in appsettings.json."
+                });
+            }
             if (!System.IO.File.Exists(crystalReportNinja))
             {
                 return StatusCode(500, new
@@ -183,10 +203,10 @@ public class POSeizoController : Controller
                 });
             }
             string arguments =
-                $"-S VMP-10 " +
-                $"-D MAS_FOA " +
-                $"-U sa " +
-                $"-P Hello12345 " +
+                $"-S {server} " +
+                $"-D {database} " +
+                $"-U {user} " +
+                $"-P {password} " +
                 $"-F \"{reportPath}\" " +
                 $"-O \"{outputPath}\" " +
                 $"-E pdf " +
