@@ -25,7 +25,11 @@ builder.Services.AddScoped<Repository_Tbl_VendorMaintenance>();
 builder.Services.AddScoped<Repository_ItemCodeMaster>();
 builder.Services.AddScoped<Repository_KatsuoIssueDate>();
 builder.Services.AddScoped<Repository_MF_SalesPerson>();
+builder.Services.AddScoped<Repository_KatsuoUploadCheck>();
 builder.Services.AddScoped<Repository_PurchaseReceiptFJKCheck>();
+builder.Services.AddScoped<Repository_PurchaseReceiptCCL>();
+builder.Services.AddScoped<Repository_SalesHistoryDetail>();
+builder.Services.AddScoped<Repository_PurchaseOrderReceiptHistory>();
 
 
 var app = builder.Build();

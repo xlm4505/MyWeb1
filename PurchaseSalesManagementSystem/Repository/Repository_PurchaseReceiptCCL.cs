@@ -7,12 +7,12 @@ using System.Data;
 
 namespace PurchaseSalesManagementSystem.Repository
 {
-    public class Repository_PurchaseReceiptTK
+    public class Repository_PurchaseReceiptCCL
     {
         private readonly CreateConnection _connectionFactory;
         private readonly IWebHostEnvironment _env;
 
-        public Repository_PurchaseReceiptTK(CreateConnection connectionFactory, IWebHostEnvironment env)
+        public Repository_PurchaseReceiptCCL(CreateConnection connectionFactory, IWebHostEnvironment env)
         {
             _connectionFactory = connectionFactory;
             _env = env;
@@ -24,7 +24,7 @@ namespace PurchaseSalesManagementSystem.Repository
             string sqlPath = Path.Combine(
                 _env.ContentRootPath,
                 "SQL",
-                "PurchaseReceiptTK",
+                "PurchaseReceiptCCL",
                 "CheckInvoiceExists.sql"
               );
 
@@ -46,14 +46,14 @@ namespace PurchaseSalesManagementSystem.Repository
             }
         }
 
-        public IEnumerable<Model_InvoiceDB_PurchaseReceiptTK> GetPoDetails(string poNo, string partNo )
+        public IEnumerable<Model_InvoiceDB_PurchaseReceiptCCL> GetPoDetails(string poNo, string partNo )
         {
-            var list = new List<Model_InvoiceDB_PurchaseReceiptTK>();
+            var list = new List<Model_InvoiceDB_PurchaseReceiptCCL>();
 
             string sqlPath = Path.Combine(
                 _env.ContentRootPath,
                 "SQL",
-                "PurchaseReceiptTK",
+                "PurchaseReceiptCCL",
                 "SelectPoDetail.sql"
             );
 
@@ -74,7 +74,7 @@ namespace PurchaseSalesManagementSystem.Repository
                     {
                         while (reader.Read())
                         {
-                            list.Add(new Model_InvoiceDB_PurchaseReceiptTK
+                            list.Add(new Model_InvoiceDB_PurchaseReceiptCCL
                             {
                                 PONo = reader["PurchaseOrderNo"] as string ?? "",
                                 LineKey = reader["LineKey"] as string ?? "",
@@ -100,8 +100,8 @@ namespace PurchaseSalesManagementSystem.Repository
         }
 
         public void InsertUploadData(
-            Model_InvoiceHeader_PurchaseReceiptTK header,
-            Model_InvoiceDetail_PurchaseReceiptTK detail,
+            Model_InvoiceHeader_PurchaseReceiptCCL header,
+            Model_InvoiceDetail_PurchaseReceiptCCL detail,
             //Model_InvoiceDB_PurchaseReceiptTK po,
             string ipAddress,
             string userName)
@@ -109,7 +109,7 @@ namespace PurchaseSalesManagementSystem.Repository
             string sqlPath = Path.Combine(
                 _env.ContentRootPath,
                 "SQL",
-                "PurchaseReceiptTK",
+                "PurchaseReceiptCCL",
                 "InsertUploadData.sql"
             );
 
@@ -121,7 +121,7 @@ namespace PurchaseSalesManagementSystem.Repository
 
                 using (var cmd = new SqlCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("@BatchNo", header.InvoiceNo.Substring(header.InvoiceNo.Length - 5));
+                    cmd.Parameters.AddWithValue("@BatchNo", string.Concat("B", header.InvoiceNo.AsSpan(header.InvoiceNo.Length - 4)));
                     cmd.Parameters.AddWithValue("@InvoiceNo", header.InvoiceNo);
                     cmd.Parameters.AddWithValue("@InvoiceDate", header.InvoiceDate.ToString("M/dd/yyyy"));
                     cmd.Parameters.AddWithValue("@PONo", detail.PoNo.PadLeft(7, '0'));
@@ -143,7 +143,7 @@ namespace PurchaseSalesManagementSystem.Repository
             string sqlPath = Path.Combine(
                 _env.ContentRootPath,
                 "SQL",
-                "PurchaseReceiptTK",
+                "PurchaseReceiptCCL",
                 "UpdateStatusFlag.sql"
             );
 
@@ -168,7 +168,7 @@ namespace PurchaseSalesManagementSystem.Repository
             string sqlPath = Path.Combine(
                 _env.ContentRootPath,
                 "SQL",
-                "PurchaseReceiptTK",
+                "PurchaseReceiptCCL",
                 "GetPassword.sql"
             );
 

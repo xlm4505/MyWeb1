@@ -1,0 +1,1 @@
+﻿SELECT Password FROM U_SUser WHERE UserID = @uid

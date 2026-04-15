@@ -27,7 +27,7 @@
             <form id="searchForm">
 
 
-                <!-- Operation Date -->
+                <!-- Receipt Date -->
                 <div class="mb-3 row">
                     <label class="col-sm-3 col-form-label">Receipt Date</label>
                     <div class="col-sm-4">
@@ -38,64 +38,63 @@
                         <input type="date" id="dateTo" class="form-control">
                     </div>
                 </div>
-
-                <!-- Customer -->
-                <div class="mb-3 row">
+                <!-- Vendor No. -->
+                <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">Vendor No.</label>
-                    <div class="col-sm-9">
-                        <select id="customer" class="form-select">
-                            <option value="ALL" selected>*ALL</option>
-                            <option value="V001">V001</option>
-                            <option value="V002">V002</option>
-                            <option value="V003">V003</option>
+                    <div class="col-sm-4">
+                        <select class="form-select" id="vendorCode">
+                            <option value="" selected>*ALL</option>
                         </select>
                     </div>
+                    <div class="col-sm-5">
+                        <input type="text"
+                               id="vendorName"
+                               class="form-control"
+                               readonly>
+                    </div>
                 </div>
-
+                <!-- Po No. -->
                 <div class="mb-3 row">
                     <label class="col-sm-3 col-form-label">PO No.</label>
                     <div class="col-sm-5">
-                        <input type="text" id="itemCodeInput" class="form-control" placeholder="*ALL">
+                        <input type="text" id="poNo" class="form-control" placeholder="*ALL">
                     </div>
                 </div>
-
+                <!-- Invoice No. -->
                 <div class="mb-3 row">
                     <label class="col-sm-3 col-form-label">Invoice No.</label>
                     <div class="col-sm-5">
-                        <input type="text" id="itemCodeInput" class="form-control" placeholder="*ALL">
+                        <input type="text" id="invoiceNo" class="form-control" placeholder="*ALL">
                     </div>
                 </div>
-
+                <!-- Receipt No. -->
                 <div class="mb-3 row">
                     <label class="col-sm-3 col-form-label">Receipt No.</label>
                     <div class="col-sm-5">
-                        <input type="text" id="itemCodeInput" class="form-control" placeholder="*ALL">
+                        <input type="text" id="receiptNo" class="form-control" placeholder="*ALL">
                     </div>
                 </div>
-
-
                 <!-- Item Code -->
-                <div class="mb-3 row">
+                <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">Item Code</label>
-                    <div class="col-sm-9">
-                        <select id="itemCode" class="form-select">
-                            <option value="ALL" selected>*ALL</option>
-                            <option value="Item001">Item001</option>
-                            <option value="Item002">Item002</option>
-                            <option value="Item003">Item003</option>
+                    <div class="col-sm-4">
+                        <select class="form-select" id="itemCode">
+                            <option value="" selected>*ALL</option>
                         </select>
                     </div>
-                </div>
-
-                <!-- Item Description -->
+                    <div class="col-sm-5">
+                        <input type="text"
+                               id="desc"
+                               class="form-control"
+                               readonly>
+                    </div>
+                </div>              
+                <!-- User Name -->
                 <div class="mb-3 row">
                     <label class="col-sm-3 col-form-label">User Name</label>
                     <div class="col-sm-6">
-                        <select id="itemDesc" class="form-select">
-                            <option value="ALL" selected>*ALL</option>
-                            <option value="U001">U001</option>
-                            <option value="U002">U002</option>
-                            <option value="U003">U003</option>
+                        <select class="form-select" id="userName">
+                            <option value="" selected>*ALL</option>
                         </select>
                     </div>
                 </div>
@@ -105,7 +104,7 @@
                 <!-- RUN Button -->
                 <div class="mb-3 row">
                     <div class="col-sm-12 text-end">
-                        <button type="button" class="btn btn-primary" onclick="doRun()">RUN</button>
+                        <button type="button" id="btnRun" class="btn btn-primary">RUN</button>
                     </div>
                 </div>
             </form>
@@ -117,6 +116,9 @@
             <ul id="logList" class="list-group"></ul>
         </div>
     </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/PurchaseOrderReceiptHistory.js"></script>
 
     <script>
         document.getElementById("dateFrom").value = new Date().toISOString().slice(0, 10);

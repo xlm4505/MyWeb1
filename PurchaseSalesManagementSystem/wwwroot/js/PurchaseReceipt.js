@@ -117,7 +117,7 @@
                     throw new Error(msg);
                 }
                 // TK は Excel を返す
-                if (target === "TK") {
+                if (target === "TK" || target === "CCL") {
                     // ★ ファイル名をレスポンスヘッダから取得
                     const disposition = response.headers.get("Content-Disposition");
                     let filename = "download.xlsx";
@@ -147,7 +147,7 @@
             .then(data => {
 
                 // ===== TK Excelダウンロード =====
-                if (target === "TK") {
+                if (target === "TK" || target === "CCL") {
 
                     const { blob, filename } = data;
 
