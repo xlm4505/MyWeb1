@@ -5,7 +5,8 @@ using System.Text.RegularExpressions;
 
 public class SafetyStockMaintenanceController : Controller
 {
-
+    private const decimal QuantityMinValue = -9999999;
+    private const decimal QuantityMaxValue = 9999999;
     private readonly Repository_SafetyStockMaintenance _repo;
     public SafetyStockMaintenanceController(Repository_SafetyStockMaintenance repo)
     {
@@ -33,17 +34,17 @@ public class SafetyStockMaintenanceController : Controller
             return Json(new { success = true, updatedCount = 0, message = "No rows selected." });
         }
         var hasInvalidItem = items.Any(item =>
-            item.Quantity < 0
+            !IsQuantityInRange(item.Quantity)
             || !IsHalfWidthAlphaNumericOptional(item.CustomerNo, 20)
             || !IsHalfWidthAlphaNumericOptional(item.WarehouseCode, 3)
-            || !IsHalfWidthAlphaNumericOptional(item.Comment, 30));
+            || !IsHalfWidthOptional(item.Comment, 30));
 
         if (hasInvalidItem)
         {
             return BadRequest(new
             {
                 success = false,
-                message = "CustomerNo, WarehouseCode and Comment must be half-width alphanumeric and within allowed length."
+                message = "CustomerNo/WarehouseCode must be half-width alphanumeric and Comment must be half-width within allowed length. Quantity must be between -9999999 and 9999999."
             });
         }
         var updatedCount = _repo.UpdateForecastItems(items);
@@ -72,18 +73,18 @@ public class SafetyStockMaintenanceController : Controller
 
         if (string.IsNullOrWhiteSpace(item.ItemCode)
             || string.IsNullOrWhiteSpace(item.ProcType)
-            || item.Quantity < 0)
+            || !IsQuantityInRange(item.Quantity))
         {
-            return BadRequest(new { success = false, message = "ItemCode, ProcType and Quantity are required." });
+            return BadRequest(new { success = false, message = "ItemCode and ProcType are required. Quantity must be between -9999999 and 9999999." });
         }
         if (!IsHalfWidthAlphaNumeric(item.ItemCode, 1, 30)
             || !IsHalfWidthAlphaNumeric(item.ProcType, 1, 1)
             || !IsHalfWidthAlphaNumericOptional(item.ARDivisionNo, 2)
             || !IsHalfWidthAlphaNumericOptional(item.CustomerNo, 20)
             || !IsHalfWidthAlphaNumericOptional(item.WarehouseCode, 3)
-            || !IsHalfWidthAlphaNumericOptional(item.Comment, 30))
+            || !IsHalfWidthOptional(item.Comment, 30))
         {
-            return BadRequest(new { success = false, message = "Alphanumeric field format is invalid." });
+            return BadRequest(new { success = false, message = "Alphanumeric field format is invalid. Comment must be half-width within 30 characters." });
         }
         if (_repo.ExistsForecastItemByItemCode(item.ItemCode))
         {
@@ -106,5 +107,21 @@ public class SafetyStockMaintenanceController : Controller
         }
 
         return IsHalfWidthAlphaNumeric(value, 1, maxLength);
+    }
+
+    private static bool IsHalfWidthOptional(string? value, int maxLength)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return true;
+        }
+
+        var pattern = $@"^[\x20-\x7E]{{1,{maxLength}}}$";
+        return Regex.IsMatch(value, pattern);
+    }
+
+    private static bool IsQuantityInRange(decimal quantity)
+    {
+        return quantity >= QuantityMinValue && quantity <= QuantityMaxValue;
     }
 }

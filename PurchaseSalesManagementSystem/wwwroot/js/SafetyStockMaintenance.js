@@ -4,8 +4,7 @@ const alphaNumericFieldRules = {
     addProcType: 1,
     addArDivisionNo: 2,
     addCustomerNo: 20,
-    addWarehouseCode: 3,
-    addComment: 30
+    addWarehouseCode: 3
 };
 function escapeHtml(value) {
     if (value === null || value === undefined) {
@@ -35,9 +34,9 @@ function renderTable(records) {
                 <td>${escapeHtml(row.arDivisionNo)}</td>
                 <td><input type="text" class="form-control editable-alnum" data-maxlength="20" id="customerNo_${index}" value="${escapeHtml(row.customerNo)}"></td>
                 <td><input type="text" class="form-control editable-alnum" data-maxlength="3" id="warehouseCode_${index}" value="${escapeHtml(row.warehouseCode)}"></td>
-                <td><input type="text" inputmode="numeric" class="form-control qty-input" id="qty_${index}" value="${escapeHtml(row.quantity)}"></td>
+                <td><input type="text" inputmode="decimal" class="form-control qty-input" id="qty_${index}" value="${escapeHtml(row.quantity)}"></td>
                 <td>${escapeHtml(row.itemNo)}</td>
-                <td><input type="text" class="form-control editable-alnum" data-maxlength="30" id="comment_${index}" value="${escapeHtml(row.comment)}"></td>
+                <td><input type="text" class="form-control editable-halfwidth" data-maxlength="30" id="comment_${index}" value="${escapeHtml(row.comment)}"></td>
                 <td><input type="checkbox" id="chk_${index}"></td>
             </tr>`
         );
@@ -56,9 +55,9 @@ function sanitizeQuantityInput(event) {
         return;
     }
 
-    const digitsOnly = value.replace(/\D/g, "").slice(0, 7);
-    if (digitsOnly !== value) {
-        input.value = digitsOnly;
+    const sanitized = sanitizeSignedSevenDigitNumber(value);
+    if (sanitized !== value) {
+        input.value = sanitized;
     }
 }
 function sanitizeEditableAlphaNumericInput(event) {
@@ -93,6 +92,33 @@ function sanitizeSevenDigitNumberInput(event) {
         input.value = digitsOnly;
     }
 }
+function sanitizeSignedSevenDigitNumberInput(event) {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.classList.contains("modal-signed-number-7")) {
+        return;
+    }
+
+    const value = input.value;
+    if (value === "") {
+        return;
+    }
+
+    const sanitized = sanitizeSignedSevenDigitNumber(value);
+    if (sanitized !== value) {
+        input.value = sanitized;
+    }
+}
+
+function sanitizeSignedSevenDigitNumber(value) {
+    const normalized = value.replace(/[^\d-]/g, "");
+    const isNegative = normalized.startsWith("-");
+    const digits = normalized.replace(/-/g, "").slice(0, 7);
+    if (digits.length === 0) {
+        return isNegative ? "-" : "";
+    }
+
+    return `${isNegative ? "-" : ""}${digits}`;
+}
 function sanitizeAlphaNumericInput(event) {
     const input = event.target;
     if (!(input instanceof HTMLInputElement)) {
@@ -105,6 +131,22 @@ function sanitizeAlphaNumericInput(event) {
     }
 
     const sanitized = input.value.replace(/[^A-Za-z0-9]/g, "").slice(0, maxLength);
+    if (sanitized !== input.value) {
+        input.value = sanitized;
+    }
+}
+function sanitizeHalfWidthInput(event) {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement) || !input.classList.contains("editable-halfwidth")) {
+        return;
+    }
+
+    const maxLength = parseInt(input.dataset.maxlength ?? "", 10);
+    if (Number.isNaN(maxLength) || maxLength <= 0) {
+        return;
+    }
+
+    const sanitized = input.value.replace(/[^\x20-\x7E]/g, "").slice(0, maxLength);
     if (sanitized !== input.value) {
         input.value = sanitized;
     }
@@ -175,12 +217,12 @@ function validateAddForm() {
         return false;
     }
 
-    if (comment && !/^[A-Za-z0-9]{1,30}$/.test(comment)) {
-        alert("Comment must be half-width alphanumeric and up to 30 characters.");
+    if (comment && !/^[\x20-\x7E]{1,30}$/.test(comment)) {
+        alert("Comment must be half-width and up to 30 characters.");
         return false;
     }
 
-    if (!/^\d{1,7}$/.test(quantity)) {
+    if (!/^-?\d{1,7}$/.test(quantity)) {
         alert("Quantity must be numeric and up to 7 digits.");
         return false;
     }
@@ -343,8 +385,10 @@ document.getElementById("searchForm").addEventListener("submit", async function 
 
 document.getElementById("dataBody").addEventListener("input", sanitizeQuantityInput);
 document.getElementById("dataBody").addEventListener("input", sanitizeEditableAlphaNumericInput);
+document.getElementById("dataBody").addEventListener("input", sanitizeHalfWidthInput);
 document.getElementById("addButton").addEventListener("click", openAddModal);
 document.getElementById("okAddButton").addEventListener("click", addItem);
 document.getElementById("closeAddButton").addEventListener("click", requestCloseAddModal);
 document.getElementById("addModal").addEventListener("input", sanitizeSevenDigitNumberInput);
+document.getElementById("addModal").addEventListener("input", sanitizeSignedSevenDigitNumberInput);
 document.getElementById("addModal").addEventListener("input", sanitizeAlphaNumericInput);
