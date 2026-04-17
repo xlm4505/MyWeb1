@@ -9,19 +9,26 @@ namespace PurchaseSalesManagementSystem.Common
 	{
 		public byte[] ExportDataTableWithFormatting(DataTable dataTable, String sheetName, String ColorType)
 		{
-			// 空白Excelを出力するため、不要
-			//if (dataTable == null || dataTable.Rows.Count == 0)
-			//{
-			//	throw new ArgumentException("DataTable is null or empty.");
-			//}
+            // 空白Excelを出力するため、不要
+            //if (dataTable == null || dataTable.Rows.Count == 0)
+            //{
+            //	throw new ArgumentException("DataTable is null or empty.");
+            //}
 
-			using (var workbook = new XLWorkbook())
-			{
-				// ワークシートを追加
-				var worksheet = workbook.Worksheets.Add(dataTable, sheetName);
+            using (var workbook = new XLWorkbook())
+            {
+                // ワークシートを追加
+                var worksheet = workbook.Worksheets.Add(dataTable, sheetName);
+                var table = worksheet.Tables.FirstOrDefault();
+                if (table != null)
+                {
+                    table.Theme = XLTableTheme.None;
+                    table.ShowRowStripes = false;
+                    table.ShowColumnStripes = false;
+                }
 
-				// ヘッダー行のスタイルを設定
-				var headerRow = worksheet.Row(1);
+                // ヘッダー行のスタイルを設定
+                var headerRow = worksheet.Row(1);
 				headerRow.Style.Font.Bold = true;
 				headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
@@ -83,6 +90,13 @@ namespace PurchaseSalesManagementSystem.Common
 
             // ワークシートを追加
             var worksheet = workbook.Worksheets.Add(dataTable, sheetName);
+            var table = worksheet.Tables.FirstOrDefault();
+            if (table != null)
+            {
+                table.Theme = XLTableTheme.None;
+                table.ShowRowStripes = false;
+                table.ShowColumnStripes = false;
+            }
 
             // ヘッダー行のスタイルを設定
             var headerRow = worksheet.Row(1);
@@ -223,7 +237,13 @@ namespace PurchaseSalesManagementSystem.Common
         {
             // ワークシートを追加
             var worksheet = workbook.Worksheets.Add(dataTable, sheetName);
-
+            var table = worksheet.Tables.FirstOrDefault();
+            if (table != null)
+            {
+                table.Theme = XLTableTheme.None;
+                table.ShowRowStripes = false;
+                table.ShowColumnStripes = false;
+            }
             // ヘッダー行のスタイルを設定
             var headerRow = worksheet.Row(1);
             headerRow.Style.Font.Bold = true;
