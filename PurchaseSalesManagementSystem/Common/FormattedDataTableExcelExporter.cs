@@ -25,38 +25,18 @@ namespace PurchaseSalesManagementSystem.Common
 				headerRow.Style.Font.Bold = true;
 				headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-				// データ行のスタイル（行ごとに色を変える）
-				for (int i = 0; i < dataTable.Rows.Count; i++)
+                for (int col = 0; col < dataTable.Columns.Count; col++)
 				{
-					for (int col = 0; col < dataTable.Columns.Count; col++)
-					{
-						if (i == 0)
-                        {
-							var head = worksheet.Row(1);
-                            if ("SO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                            {
-                                head.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
-                            }
-                            else if ("PO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                            {
-                                head.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
-                            }
-                        }
-						var row = worksheet.Row(i + 2);  // ヘッダー行の次から
-						if (i % 2 == 0)
-                        {
-                            if ("SO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                            {
-                                row.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(226, 239, 218);
-                            }
-                            else if ("PO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                            {
-                                row.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 230, 153);
-                            }
-                        }
-					}
 
-					}
+                    if ("SO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
+                    {
+                        headerRow.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
+                    }
+                    else if ("PO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
+                    {
+                        headerRow.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
+                    }
+                }
 
 				// 列のデータ型に基づいた書式設定
 				for (int col = 0; col < dataTable.Columns.Count; col++)
@@ -109,37 +89,17 @@ namespace PurchaseSalesManagementSystem.Common
             headerRow.Style.Font.Bold = true;
             headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            // データ行のスタイル（行ごとに色を変える）
-            for (int i = 0; i < dataTable.Rows.Count; i++)
+            for (int col = 0; col < dataTable.Columns.Count; col++)
             {
-                for (int col = 0; col < dataTable.Columns.Count; col++)
-                {
-                    if (i == 0)
-                    {
-                        var head = worksheet.Row(1);
-                        if ("SO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                        {
-                            head.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
-                        }
-                        else if ("PO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                        {
-                            head.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
-                        }
-                    }
-                    var row = worksheet.Row(i + 2);  // ヘッダー行の次から
-                    if (i % 2 == 0)
-                    {
-                        if ("SO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                        {
-                            row.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(226, 239, 218);
-                        }
-                        else if ("PO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                        {
-                            row.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 230, 153);
-                        }
-                    }
-                }
 
+                if ("SO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerRow.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
+                }
+                else if ("PO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerRow.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
+                }
             }
 
             // 列のデータ型に基づいた書式設定
@@ -193,22 +153,20 @@ namespace PurchaseSalesManagementSystem.Common
             }
 
             // ヘッダー行のスタイルを設定
-            var headerRange = worksheet.Cells[1, 1, 1, dataTable.Columns.Count];
-            headerRange.Style.Font.Bold = true;
-            headerRange.Style.HorizontalAlignment = OfficeOpenXml.Style.ExcelHorizontalAlignment.Center;
+            var headerRow = worksheet.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            // ヘッダー行の色
             for (int col = 0; col < dataTable.Columns.Count; col++)
             {
-                var cell = worksheet.Cells[1, col + 1];
-                cell.Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+
                 if ("SO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
                 {
-                    cell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(112, 173, 71));
+                    headerRow.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
                 }
                 else if ("PO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
                 {
-                    cell.Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.FromArgb(255, 192, 0));
+                    headerRow.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
                 }
             }
 
@@ -270,37 +228,17 @@ namespace PurchaseSalesManagementSystem.Common
             headerRow.Style.Font.Bold = true;
             headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-            // データ行のスタイル（行ごとに色を変える）
-            for (int i = 0; i < dataTable.Rows.Count; i++)
+            for (int col = 0; col < dataTable.Columns.Count; col++)
             {
-                for (int col = 0; col < dataTable.Columns.Count; col++)
-                {
-                    if (i == 0)
-                    {
-                        var head = worksheet.Row(1);
-                        if ("SO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                        {
-                            head.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
-                        }
-                        else if ("PO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                        {
-                            head.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
-                        }
-                    }
-                    var row = worksheet.Row(i + 2);  // ヘッダー行の次から
-                    if (i % 2 == 0)
-                    {
-                        if ("SO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                        {
-                            row.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(226, 239, 218);
-                        }
-                        else if ("PO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
-                        {
-                            row.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 230, 153);
-                        }
-                    }
-                }
 
+                if ("SO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerRow.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
+                }
+                else if ("PO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerRow.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
+                }
             }
 
             // 列のデータ型に基づいた書式設定
