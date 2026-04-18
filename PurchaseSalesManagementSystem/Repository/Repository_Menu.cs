@@ -29,14 +29,7 @@ namespace PurchaseSalesManagementSystem.Repository
             for (int i = -1; i <= 7; i++)
                 yyyymm.Add(DateTime.Today.AddMonths(i).ToString("yyyy-MM"));
 
-            string fileName = reportName switch
-            {
-                "Inventory Forecasting Report" => "InventoryForecast.sql",
-                "InventoryForecastingReportWithoutPO" => "InventoryForecastingReportWithoutPO.sql",
-                _ => throw new ArgumentException("Invalid report name")
-            };
-
-            string sqlPath = Path.Combine(_env.ContentRootPath, "SQL", "Menu", fileName);
+            string sqlPath = Path.Combine(_env.ContentRootPath, "SQL", "Menu", "InventoryForecastingReport.sql");
 
             var sql = File.ReadAllText(sqlPath);
 
