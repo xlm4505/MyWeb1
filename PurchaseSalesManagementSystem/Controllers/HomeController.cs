@@ -55,7 +55,7 @@ namespace PurchaseSalesManagementSystem.Controllers
 
             switch (reportName)
             {
-                case "InventoryForecastingReport":
+                case "Inventory Forecasting Report":
                 case "InventoryForecastingReportWithoutPO":
                     var data = _repo.GetInventoryForecasting(reportName).ToList();
                     return ExportInventoryForecast(data, reportName);
@@ -91,78 +91,52 @@ namespace PurchaseSalesManagementSystem.Controllers
             List<Model_InventoryForecast> data,
             string reportName)
         {
-            var yyyymm = new List<string>();
-            for (int i = -1; i <= 7; i++)
+            var exportToExcel = new FormattedDataTableExcelExporter();
+            var dt = exportToExcel.ConvertToDataTableFast(data);
+
+            if (dt.Columns.Contains("MonthlyQty0"))
             {
-                yyyymm.Add(DateTime.Today.AddMonths(i).ToString("yyyy-MM"));
+                dt.Columns["MonthlyQty0"]!.ColumnName = DateTime.Today.AddMonths(-1).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty1"))
+            {
+                dt.Columns["MonthlyQty1"]!.ColumnName = DateTime.Today.ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty2"))
+            {
+                dt.Columns["MonthlyQty2"]!.ColumnName = DateTime.Today.AddMonths(1).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty3"))
+            {
+                dt.Columns["MonthlyQty3"]!.ColumnName = DateTime.Today.AddMonths(2).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty4"))
+            {
+                dt.Columns["MonthlyQty4"]!.ColumnName = DateTime.Today.AddMonths(3).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty5"))
+            {
+                dt.Columns["MonthlyQty5"]!.ColumnName = DateTime.Today.AddMonths(4).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty6"))
+            {
+                dt.Columns["MonthlyQty6"]!.ColumnName = DateTime.Today.AddMonths(5).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty7"))
+            {
+                dt.Columns["MonthlyQty7"]!.ColumnName = DateTime.Today.AddMonths(6).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("MonthlyQty8"))
+            {
+                dt.Columns["MonthlyQty8"]!.ColumnName = DateTime.Today.AddMonths(7).ToString("yyyy-MM");
+            }
+            if (dt.Columns.Contains("DataType"))
+            {
+                dt.Columns["DataType"]!.ColumnName = "Data Type";
             }
 
-            using (var workbook = new XLWorkbook())
-            {
-                var ws = workbook.Worksheets.Add("Inventory Forecast");
-
-                int col = 1;
-
-                ws.Cell(1, col++).Value = "ItemCode";
-                ws.Cell(1, col++).Value = "ItemCodeDesc";
-                ws.Cell(1, col++).Value = "ItemNo";
-                ws.Cell(1, col++).Value = "Category1";
-                ws.Cell(1, col++).Value = "VendorName";
-                ws.Cell(1, col++).Value = "UnitCost";
-                ws.Cell(1, col++).Value = "OnHand";
-                ws.Cell(1, col++).Value = "PurchaseOrder";
-                ws.Cell(1, col++).Value = "SalesOrder";
-                ws.Cell(1, col++).Value = "Surplus";
-                ws.Cell(1, col++).Value = "Data Type";
-
-                int monthStartCol = col;
-
-                foreach (var ym in yyyymm)
-                {
-                    ws.Cell(1, col++).Value = ym;
-                }
-
-                int totalCol = col;
-                ws.Cell(1, col).Value = "Total";
-
-                ws.Range(1, 1, 1, col).Style.Fill.BackgroundColor = XLColor.LightGray;
-                ws.Range(1, 1, 1, col).Style.Font.Bold = true;
-
-                int row = 2;
-                foreach (var item in data)
-                {
-                    col = 1;
-
-                    ws.Cell(row, col++).Value = item.ItemCode;
-                    ws.Cell(row, col++).Value = item.ItemCodeDesc;
-                    ws.Cell(row, col++).Value = item.ItemNo;
-                    ws.Cell(row, col++).Value = item.Category1;
-                    ws.Cell(row, col++).Value = item.VendorName;
-                    ws.Cell(row, col++).Value = item.UnitCost;
-                    ws.Cell(row, col++).Value = item.OnHand;
-                    ws.Cell(row, col++).Value = item.PurchaseOrder;
-                    ws.Cell(row, col++).Value = item.SalesOrder;
-                    ws.Cell(row, col++).Value = item.Surplus;
-                    ws.Cell(row, col++).Value = item.DataType;
-
-                    for (int i = 0; i < yyyymm.Count; i++)
-                    {
-                        ws.Cell(row, col++).Value = item.MonthlyQty?[i];
-                    }
-
-					// Total は Excel で計算
-					string startAddr = ws.Cell(row, monthStartCol).Address.ToStringRelative();
-                    string endAddr = ws.Cell(row, monthStartCol + yyyymm.Count - 1).Address.ToStringRelative();
-                    ws.Cell(row, totalCol).FormulaA1 = $"SUM({startAddr}:{endAddr})";
-
-                    row++;
-                }
-
-                ws.Range(1, 1, row - 1, totalCol).SetAutoFilter();
-                ws.Columns().AdjustToContents();
-
-                return SaveExcel(workbook, reportName);
-            }
+            var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC", "PO");
+            return SaveExcel(workbook, reportName);
         }
 
         // =========================

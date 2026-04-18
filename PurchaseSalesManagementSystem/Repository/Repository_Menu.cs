@@ -31,7 +31,7 @@ namespace PurchaseSalesManagementSystem.Repository
 
             string fileName = reportName switch
             {
-                "InventoryForecastingReport" => "InventoryForecastingReport.sql",
+                "Inventory Forecasting Report" => "InventoryForecastingReport.sql",
                 "InventoryForecastingReportWithoutPO" => "InventoryForecastingReportWithoutPO.sql",
                 _ => throw new ArgumentException("Invalid report name")
             };
@@ -53,14 +53,15 @@ namespace PurchaseSalesManagementSystem.Repository
                     {
                         while (reader.Read())
                         {
-                            var monthly = new int?[9];
-                            for (int i = 0; i < 9; i++)
-                            {
-                                var col = $"M{i}";
-                                monthly[i] = reader.IsDBNull(reader.GetOrdinal(col))
-                                    ? (int?)null
-                                    : reader.GetInt32(reader.GetOrdinal(col));
-                            }
+                            int m0 = reader.IsDBNull(reader.GetOrdinal("M0")) ? 0 : reader.GetInt32(reader.GetOrdinal("M0"));
+                            int m1 = reader.IsDBNull(reader.GetOrdinal("M1")) ? 0 : reader.GetInt32(reader.GetOrdinal("M1"));
+                            int m2 = reader.IsDBNull(reader.GetOrdinal("M2")) ? 0 : reader.GetInt32(reader.GetOrdinal("M2"));
+                            int m3 = reader.IsDBNull(reader.GetOrdinal("M3")) ? 0 : reader.GetInt32(reader.GetOrdinal("M3"));
+                            int m4 = reader.IsDBNull(reader.GetOrdinal("M4")) ? 0 : reader.GetInt32(reader.GetOrdinal("M4"));
+                            int m5 = reader.IsDBNull(reader.GetOrdinal("M5")) ? 0 : reader.GetInt32(reader.GetOrdinal("M5"));
+                            int m6 = reader.IsDBNull(reader.GetOrdinal("M6")) ? 0 : reader.GetInt32(reader.GetOrdinal("M6"));
+                            int m7 = reader.IsDBNull(reader.GetOrdinal("M7")) ? 0 : reader.GetInt32(reader.GetOrdinal("M7"));
+                            int m8 = reader.IsDBNull(reader.GetOrdinal("M8")) ? 0 : reader.GetInt32(reader.GetOrdinal("M8"));
 
                             results.Add(new Model_InventoryForecast
                             {
@@ -76,7 +77,16 @@ namespace PurchaseSalesManagementSystem.Repository
                                 SalesOrder = reader.GetInt32(reader.GetOrdinal("SalesOrder")),
                                 Surplus = reader.GetInt32(reader.GetOrdinal("Surplus")),
                                 DataType = reader["Data Type"] as string ?? "",
-                                MonthlyQty = monthly
+                                MonthlyQty0 = m0,
+                                MonthlyQty1 = m1,
+                                MonthlyQty2 = m2,
+                                MonthlyQty3 = m3,
+                                MonthlyQty4 = m4,
+                                MonthlyQty5 = m5,
+                                MonthlyQty6 = m6,
+                                MonthlyQty7 = m7,
+                                MonthlyQty8 = m8,
+                                Total = m0 + m1 + m2 + m3 + m4 + m5 + m6 + m7 + m8
                             });
                         }
                     }
