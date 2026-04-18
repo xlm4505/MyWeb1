@@ -442,4 +442,4 @@ FROM
         AND M09.DueMonth = @YM8
 ORDER BY
     ItemCode
-    , [Data Type]
+    , [Data Type];
