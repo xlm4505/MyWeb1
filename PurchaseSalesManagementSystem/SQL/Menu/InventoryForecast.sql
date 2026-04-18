@@ -322,47 +322,47 @@ SELECT
         WHEN COALESCE(M01.SOpenQty, 0) = 0 
             THEN NULL 
         ELSE CAST(M01.SOpenQty AS int) 
-        END AS [2024-12]
+        END AS M1
     , CASE 
         WHEN COALESCE(M02.SOpenQty, 0) = 0 
             THEN NULL 
         ELSE CAST(M02.SOpenQty AS int) 
-        END AS [2025-01]
+        END AS M2
     , CASE 
         WHEN COALESCE(M03.SOpenQty, 0) = 0 
             THEN NULL 
         ELSE CAST(M03.SOpenQty AS int) 
-        END AS [2025-02]
+        END AS M3
     , CASE 
         WHEN COALESCE(M04.SOpenQty, 0) = 0 
             THEN NULL 
         ELSE CAST(M04.SOpenQty AS int) 
-        END AS [2025-03]
+        END AS M4
     , CASE 
         WHEN COALESCE(M05.SOpenQty, 0) = 0 
             THEN NULL 
         ELSE CAST(M05.SOpenQty AS int) 
-        END AS [2025-04]
+        END AS M5
     , CASE 
         WHEN COALESCE(M06.SOpenQty, 0) = 0 
             THEN NULL 
         ELSE CAST(M06.SOpenQty AS int) 
-        END AS [2025-05]
+        END AS M6
     , CASE 
         WHEN COALESCE(M07.SOpenQty, 0) = 0 
             THEN NULL 
         ELSE CAST(M07.SOpenQty AS int) 
-        END AS [2025-06]
+        END AS M7
     , CASE 
         WHEN COALESCE(M08.SOpenQty, 0) = 0 
             THEN NULL 
         ELSE CAST(M08.SOpenQty AS int) 
-        END AS [2025-07]
+        END AS M8
     , CASE 
         WHEN COALESCE(M09.SOpenQty, 0) = 0 
             THEN NULL 
         ELSE CAST(M09.SOpenQty AS int) 
-        END AS [2025-08]
+        END AS M9
     , CAST( 
         COALESCE(M01.SOpenQty, 0) + COALESCE(M02.SOpenQty, 0) + COALESCE(M03.SOpenQty, 0) + COALESCE(M04.SOpenQty, 0)
          + COALESCE(M05.SOpenQty, 0) + COALESCE(M06.SOpenQty, 0) + COALESCE(M07.SOpenQty, 0) + COALESCE(M08.SOpenQty, 0)
@@ -401,15 +401,15 @@ UNION ALL
 SELECT
     IData.*
     , '3. Inventory' AS [Data Type]
-    , CAST(COALESCE(M01.Stock, 0) AS int) AS [2024-12]
-    , CAST(COALESCE(M02.Stock, 0) AS int) AS [2025-01]
-    , CAST(COALESCE(M03.Stock, 0) AS int) AS [2025-02]
-    , CAST(COALESCE(M04.Stock, 0) AS int) AS [2025-03]
-    , CAST(COALESCE(M05.Stock, 0) AS int) AS [2025-04]
-    , CAST(COALESCE(M06.Stock, 0) AS int) AS [2025-05]
-    , CAST(COALESCE(M07.Stock, 0) AS int) AS [2025-06]
-    , CAST(COALESCE(M08.Stock, 0) AS int) AS [2025-07]
-    , CAST(COALESCE(M09.Stock, 0) AS int) AS [2025-08]
+    , CAST(COALESCE(M01.Stock, 0) AS int) AS M1
+    , CAST(COALESCE(M02.Stock, 0) AS int) AS M2
+    , CAST(COALESCE(M03.Stock, 0) AS int) AS M3
+    , CAST(COALESCE(M04.Stock, 0) AS int) AS M4
+    , CAST(COALESCE(M05.Stock, 0) AS int) AS M5
+    , CAST(COALESCE(M06.Stock, 0) AS int) AS M6
+    , CAST(COALESCE(M07.Stock, 0) AS int) AS M7
+    , CAST(COALESCE(M08.Stock, 0) AS int) AS M8
+    , CAST(COALESCE(M09.Stock, 0) AS int) AS M9
     , CAST(COALESCE(M09.Stock, 0) AS int) AS [Total] 
 FROM
     IData 

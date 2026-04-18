@@ -148,7 +148,7 @@ IData AS (
             WHEN CI.UDF_ITEMDESC = '' THEN CI.ItemCodeDesc
             ELSE CI.UDF_ITEMDESC
         END AS ItemCodeDesc,
-        CI.ItemNo,
+        CAST('' AS VARCHAR(50)) AS ItemNo,
         CI.Category1,
         V.VendorName,
         CASE
