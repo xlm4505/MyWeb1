@@ -68,7 +68,12 @@ namespace PurchaseSalesManagementSystem.Repository
                             int m8 = reader.IsDBNull(reader.GetOrdinal("M8")) ? 0 : reader.GetInt32(reader.GetOrdinal("M8"));
                             int m9 = reader.IsDBNull(reader.GetOrdinal("M9")) ? 0 : reader.GetInt32(reader.GetOrdinal("M9"));
                             int total = reader.IsDBNull(reader.GetOrdinal("Total")) ? 0 : reader.GetInt32(reader.GetOrdinal("Total"));
-                            int itemNo = reader.IsDBNull(reader.GetOrdinal("ItemNo")) ? 0 : reader.GetInt32(reader.GetOrdinal("ItemNo"));
+                            int itemNo = 0;
+                            int itemNoOrdinal = reader.GetOrdinal("ItemNo");
+                            if (!reader.IsDBNull(itemNoOrdinal))
+                            {
+                                itemNo = Convert.ToInt32(reader.GetValue(itemNoOrdinal));
+                            }
 
                             results.Add(new Model_InventoryForecast
                             {
