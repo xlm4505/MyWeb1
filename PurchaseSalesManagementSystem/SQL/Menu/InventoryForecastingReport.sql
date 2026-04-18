@@ -1,255 +1,445 @@
-﻿WITH
-SData AS (
+﻿WITH SData AS ( 
     SELECT
-        ItemCode,
-        CASE
-            WHEN DueMonth < @YM0 THEN @YM0
-            WHEN DueMonth > @YM8 THEN @YM8
-            ELSE DueMonth
-        END AS DueMonth,
-        SUM(OpenQty) AS SOpenQty
-    FROM (
-        SELECT
-            ItemCode,
-            CASE
-                WHEN UDF_PUSHOUT IS NOT NULL AND UDF_PUSHOUT <> '1753-01-01'
-                    THEN LEFT(CONVERT(VARCHAR, UDF_PUSHOUT, 23), 7)
-                WHEN UDF_REQUEST_DATE IS NOT NULL AND UDF_REQUEST_DATE <> '1753-01-01'
-                    THEN LEFT(CONVERT(VARCHAR, UDF_REQUEST_DATE, 23), 7)
-                ELSE LEFT(CONVERT(VARCHAR, PromiseDate, 23), 7)
-            END AS DueMonth,
-            CASE
-                WHEN SO_SalesOrderHeader.OrderStatus IN ('O','N')
-                    THEN SO_SalesOrderDetail.QuantityOrdered
-                ELSE
-                    CASE
-                        WHEN COALESCE(SO_SalesOrderDetail.QuantityBackordered,0) < 0 THEN 0
-                        ELSE COALESCE(SO_SalesOrderDetail.QuantityBackordered,0)
-                    END
-            END AS OpenQty
-        FROM SO_SalesOrderDetail
-        LEFT JOIN SO_SalesOrderHeader
-            ON SO_SalesOrderDetail.SalesOrderNo = SO_SalesOrderHeader.SalesOrderNo
-        WHERE
-            LEFT(ItemCode,1) <> '/'
-            AND
-            CASE
-                WHEN QuantityBackordered > 0 THEN QuantityBackordered
-                ELSE QuantityOrdered
-            END <> 0
-    ) DATA
+        ItemCode
+        , CASE 
+            WHEN DueMonth <  @YM0
+                THEN  @YM0 
+            WHEN DueMonth >  @YM8 
+                THEN  @YM8 
+            ELSE DueMonth 
+            END AS DueMonth
+        , SUM(OpenQty) AS SOpenQty 
+    FROM
+        ( 
+            SELECT
+                ItemCode
+                , CASE 
+                    WHEN UDF_PUSHOUT IS NOT NULL 
+                    AND UDF_PUSHOUT <> '01/01/1753' 
+                        THEN LEFT(CONVERT(VARCHAR, UDF_PUSHOUT, 20), 7) 
+                    WHEN UDF_REQUEST_DATE IS NOT NULL 
+                    AND UDF_REQUEST_DATE <> '01/01/1753' 
+                        THEN LEFT(CONVERT(VARCHAR, UDF_REQUEST_DATE, 20), 7) 
+                    ELSE LEFT(CONVERT(VARCHAR, PromiseDate, 20), 7) 
+                    END AS DueMonth
+                , CASE 
+                    WHEN SO_SalesOrderHeader.OrderStatus IN ('O', 'N') 
+                        THEN SO_SalesOrderDetail.QuantityOrdered 
+                    ELSE CASE 
+                        WHEN COALESCE(SO_SalesOrderDetail.QuantityBackordered, 0) < 0 
+                            THEN 0 
+                        ELSE COALESCE(SO_SalesOrderDetail.QuantityBackordered, 0) 
+                        END 
+                    END AS OpenQty 
+            FROM
+                SO_SalesOrderDetail 
+                LEFT JOIN SO_SalesOrderHeader 
+                    ON SO_SalesOrderDetail.SalesOrderNo = SO_SalesOrderHeader.SalesOrderNo 
+            WHERE
+                LEFT(ItemCode, 1) <> '/' 
+                AND CASE 
+                    WHEN QuantityBackordered > 0 
+                        THEN QuantityBackordered 
+                    ELSE QuantityOrdered 
+                    END <> 0
+        ) AS DATA 
     GROUP BY
-        ItemCode,
-        CASE
-            WHEN DueMonth < @YM0 THEN @YM0
-            WHEN DueMonth > @YM8 THEN @YM8
-            ELSE DueMonth
-        END
-),
-
-PData AS (
+        ItemCode
+        , CASE 
+            WHEN DueMonth <  @YM0
+                THEN  @YM0
+            WHEN DueMonth >  @YM8
+                THEN  @YM8
+            ELSE DueMonth 
+            END
+) 
+, PData AS ( 
     SELECT
-        ItemCode,
-        CASE
-            WHEN DueMonth < @YM0 THEN @YM0
-            WHEN DueMonth > @YM8 THEN @YM8
-            ELSE DueMonth
-        END AS DueMonth,
-        SUM(OpenQty) AS POpenQty
-    FROM (
-        SELECT
-            ItemCode,
-            LEFT(CONVERT(VARCHAR, RequiredDate, 23), 7) AS DueMonth,
-            CASE
-                WHEN OrderStatus = 'B'
-                    THEN QuantityBackordered
-                ELSE QuantityOrdered
-            END AS OpenQty
-        FROM PO_PurchaseOrderDetail
-        LEFT JOIN PO_PurchaseOrderHeader
-            ON PO_PurchaseOrderHeader.PurchaseOrderNo = PO_PurchaseOrderDetail.PurchaseOrderNo
-        WHERE
-            LEFT(ItemCode,1) <> '/'
-            AND OrderStatus <> 'X'
-            AND
-            CASE
-                WHEN OrderStatus = 'B'
-                    THEN QuantityBackordered
-                ELSE QuantityOrdered
-            END <> 0
-    ) DATA
+        ItemCode
+        , CASE 
+            WHEN DueMonth <  @YM0
+                THEN  @YM0
+            WHEN DueMonth >  @YM8
+                THEN  @YM8 
+            ELSE DueMonth 
+            END AS DueMonth
+        , SUM(OpenQty) AS POpenQty 
+    FROM
+        ( 
+            SELECT
+                ItemCode
+                , LEFT(CONVERT(VARCHAR, RequiredDate, 20), 7) AS DueMonth
+                , CASE 
+                    WHEN OrderStatus = 'B' 
+                        THEN QuantityBackordered 
+                    ELSE QuantityOrdered 
+                    END AS OpenQty 
+            FROM
+                PO_PurchaseOrderDetail 
+                LEFT JOIN PO_PurchaseOrderHeader 
+                    ON PO_PurchaseOrderHeader.PurchaseOrderNo = PO_PurchaseOrderDetail.PurchaseOrderNo 
+            WHERE
+                LEFT(ItemCode, 1) <> '/' 
+                AND OrderStatus <> 'X' 
+                AND CASE 
+                    WHEN OrderStatus = 'B' 
+                        THEN QuantityBackordered 
+                    ELSE QuantityOrdered 
+                    END <> 0
+        ) AS DATA 
     GROUP BY
-        ItemCode,
-        CASE
-            WHEN DueMonth < @YM0 THEN @YM0
-            WHEN DueMonth > @YM8 THEN @YM8
-            ELSE DueMonth
-        END
-),
-
-WData AS (
+        ItemCode
+        , CASE 
+            WHEN DueMonth < @YM0
+                THEN @YM0 
+            WHEN DueMonth > @YM8
+                THEN  @YM8
+            ELSE DueMonth 
+            END
+) 
+, WData AS ( 
     SELECT
-        ItemCode,
-        SUM(QuantityOnHand) AS OnHand,
-        SUM(QuantityOnPurchaseOrder) AS PurchaseOrder,
-        SUM(QuantityOnSalesOrder + QuantityOnBackOrder) AS SalesOrder
-    FROM IM_ItemWarehouse
-    GROUP BY ItemCode
+        ItemCode
+        , SUM(QuantityOnHand) AS OnHand
+        , SUM(QuantityOnPurchaseOrder) AS PurchaseOrder
+        , SUM(QuantityOnSalesOrder + QuantityOnBackOrder) AS SalesOrder 
+    FROM
+        IM_ItemWarehouse 
+    GROUP BY
+        ItemCode 
     HAVING
-        SUM(QuantityOnHand) <> 0
-        OR SUM(QuantityOnSalesOrder) <> 0
-        OR SUM(QuantityOnPurchaseOrder) <> 0
+        SUM(QuantityOnHand) <> 0 
+        OR SUM(QuantityOnSalesOrder) <> 0 
+        OR SUM(QuantityOnPurchaseOrder) <> 0 
         OR SUM(QuantityOnBackOrder) <> 0
-),
-
-Dates AS (
-    SELECT DATEADD(MONTH, -1, GETDATE()) AS [Date]
-    UNION ALL
-    SELECT DATEADD(MONTH, 1, [Date])
-    FROM Dates
-    WHERE [Date] < DATEADD(MONTH, 7, GETDATE())
-),
-
-KData AS (
-    SELECT I.ItemCode, D.DueMonth
-    FROM (
-        SELECT ItemCode FROM SData
-        UNION
-        SELECT ItemCode FROM PData
-        UNION
-        SELECT ItemCode FROM WData
-    ) I
-    CROSS JOIN (
-        SELECT LEFT(CONVERT(VARCHAR, [Date], 23), 7) AS DueMonth
-        FROM Dates
-    ) D
-),
-
-TData AS (
+) 
+, Dates AS ( 
     SELECT
-        K.ItemCode,
-        K.DueMonth,
-        COALESCE(W.OnHand,0)
-        - SUM(COALESCE(S.SOpenQty,0))
-            OVER (PARTITION BY K.ItemCode ORDER BY K.DueMonth)
-        + SUM(COALESCE(P.POpenQty,0))
-            OVER (PARTITION BY K.ItemCode ORDER BY K.DueMonth)
-        AS Stock
-    FROM KData K
-    LEFT JOIN WData W ON W.ItemCode = K.ItemCode
-    LEFT JOIN SData S ON S.ItemCode = K.ItemCode AND S.DueMonth = K.DueMonth
-    LEFT JOIN PData P ON P.ItemCode = K.ItemCode AND P.DueMonth = K.DueMonth
-),
-
-IData AS (
+        DATEADD(MONTH, - 1, GETDATE()) AS Date 
+    UNION ALL 
     SELECT
-        IK.ItemCode,
-        CASE
-            WHEN CI.UDF_ITEMDESC = '' THEN CI.ItemCodeDesc
-            ELSE CI.UDF_ITEMDESC
-        END AS ItemCodeDesc,
-        CAST('' AS VARCHAR(50)) AS ItemNo,
-        CI.Category1,
-        V.VendorName,
-        CASE
-            WHEN COALESCE(CI.LastTotalUnitCost,0) = 0
-                THEN CI.StandardUnitCost
-            ELSE CI.LastTotalUnitCost
-        END AS UnitCost,
-        CAST(COALESCE(W.OnHand,0) AS INT) AS OnHand,
-        CAST(COALESCE(W.PurchaseOrder,0) AS INT) AS PurchaseOrder,
-        CAST(COALESCE(W.SalesOrder,0) AS INT) AS SalesOrder,
-        CAST(
-            COALESCE(W.OnHand,0)
-          + COALESCE(W.PurchaseOrder,0)
-          - COALESCE(W.SalesOrder,0)
-        AS INT) AS Surplus
-    FROM (
-        SELECT ItemCode FROM SData
-        UNION
-        SELECT ItemCode FROM PData
-        UNION
-        SELECT ItemCode FROM WData
-    ) IK
-    LEFT JOIN WData W ON W.ItemCode = IK.ItemCode
-    LEFT JOIN CI_Item CI ON CI.ItemCode = IK.ItemCode
-    LEFT JOIN AP_Vendor V
-        ON CI.PrimaryAPDivisionNo = V.APDivisionNo
-       AND CI.PrimaryVendorNo = V.VendorNo
-)
-
+        DATEADD(MONTH, 1, Date) AS Date 
+    FROM
+        Dates 
+    WHERE
+        Date < DATEADD(MONTH, 7, GETDATE())
+) 
+, KData AS ( 
+    SELECT
+        * 
+    FROM
+        ( 
+            SELECT
+                ItemCode 
+            FROM
+                SData 
+            UNION 
+            SELECT
+                ItemCode 
+            FROM
+                PData 
+            UNION 
+            SELECT
+                ItemCode 
+            FROM
+                WData
+        ) AS Item
+        , ( 
+            SELECT
+                LEFT(CONVERT(VARCHAR, Date, 20), 7) AS DueMonth 
+            FROM
+                Dates
+        ) AS DATEPARM
+) 
+, TData AS ( 
+    SELECT
+        KData.ItemCode
+        , KData.DueMonth
+        , 
+        /* COALESCE(OnHand,0) AS OnHand, */
+        /* COALESCE(SOpenQty,0) AS SOpenQty, */
+        /* SUM(COALESCE(SOpenQty,0)) OVER (PARTITION BY KData.ItemCode ORDER BY KData.DueMonth) AS SalesCum, */
+        /* COALESCE(POpenQty,0) AS POpenQty, */
+        /* SUM(COALESCE(POpenQty,0)) OVER (PARTITION BY KData.ItemCode ORDER BY KData.DueMonth) AS PurchaseCum, */
+        COALESCE(OnHand, 0) - SUM(COALESCE(SOpenQty, 0)) OVER ( 
+            PARTITION BY
+                KData.ItemCode 
+            ORDER BY
+                KData.DueMonth
+        ) + SUM(COALESCE(POpenQty, 0)) OVER ( 
+            PARTITION BY
+                KData.ItemCode 
+            ORDER BY
+                KData.DueMonth
+        ) AS Stock 
+    FROM
+        KData 
+        LEFT JOIN WData 
+            ON KData.ItemCode = WData.ItemCode 
+        LEFT JOIN SData 
+            ON KData.ItemCode = SData.ItemCode 
+            AND KData.DueMonth = SData.DueMonth 
+        LEFT JOIN PData 
+            ON KData.ItemCode = PData.ItemCode 
+            AND KData.DueMonth = PData.DueMonth
+) 
+, IData As ( 
+    SELECT
+        ItemKey.ItemCode
+        , CASE 
+            WHEN CI_Item.UDF_ITEMDESC = '' 
+                THEN CI_Item.ItemCodeDesc 
+            ELSE CI_Item.UDF_ITEMDESC 
+            END AS ItemCodeDesc
+        , ItemNo
+        , Category1
+        , VendorName
+        , CASE 
+            WHEN COALESCE(LastTotalUnitCost, 0) = 0 
+                THEN StandardUnitCost 
+            ELSE LastTotalUnitCost 
+            END AS UnitCost
+        , CAST(COALESCE(WData.OnHand, 0) AS int) AS OnHand
+        , CAST(COALESCE(WData.PurchaseOrder, 0) AS int) AS PurchaseOrder
+        , CAST(COALESCE(WData.SalesOrder, 0) AS int) AS SalesOrder
+        , CAST( 
+            COALESCE(WData.OnHand, 0) + COALESCE(WData.PurchaseOrder, 0) - COALESCE(WData.SalesOrder, 0) AS int
+        ) AS Surplus 
+    FROM
+        ( 
+            SELECT
+                ItemCode 
+            FROM
+                SData 
+            UNION 
+            SELECT
+                ItemCode 
+            FROM
+                PData 
+            UNION 
+            SELECT
+                ItemCode 
+            FROM
+                WData
+        ) AS ItemKey 
+        LEFT JOIN WData 
+            ON ItemKey.ItemCode = WData.ItemCode 
+        LEFT JOIN CI_Item 
+            ON CI_Item.ItemCode = ItemKey.ItemCode 
+        LEFT JOIN AP_Vendor 
+            ON PrimaryAPDivisionNo = APDivisionNo 
+            AND PrimaryVendorNo = VendorNo 
+        LEFT JOIN U_ForecastItem 
+            ON U_ForecastItem.ItemCode = ItemKey.ItemCode
+) 
 SELECT
-    IData.*,
-    '1. Purchase Order' AS [Data Type],
-    CAST(COALESCE(M0.POpenQty,0) AS INT) AS [M0],
-    CAST(COALESCE(M1.POpenQty,0) AS INT) AS [M1],
-    CAST(COALESCE(M2.POpenQty,0) AS INT) AS [M2],
-    CAST(COALESCE(M3.POpenQty,0) AS INT) AS [M3],
-    CAST(COALESCE(M4.POpenQty,0) AS INT) AS [M4],
-    CAST(COALESCE(M5.POpenQty,0) AS INT) AS [M5],
-    CAST(COALESCE(M6.POpenQty,0) AS INT) AS [M6],
-    CAST(COALESCE(M7.POpenQty,0) AS INT) AS [M7],
-    CAST(COALESCE(M8.POpenQty,0) AS INT) AS [M8]
-FROM IData
-LEFT JOIN PData M0 ON M0.ItemCode = IData.ItemCode AND M0.DueMonth = @YM0
-LEFT JOIN PData M1 ON M1.ItemCode = IData.ItemCode AND M1.DueMonth = @YM1
-LEFT JOIN PData M2 ON M2.ItemCode = IData.ItemCode AND M2.DueMonth = @YM2
-LEFT JOIN PData M3 ON M3.ItemCode = IData.ItemCode AND M3.DueMonth = @YM3
-LEFT JOIN PData M4 ON M4.ItemCode = IData.ItemCode AND M4.DueMonth = @YM4
-LEFT JOIN PData M5 ON M5.ItemCode = IData.ItemCode AND M5.DueMonth = @YM5
-LEFT JOIN PData M6 ON M6.ItemCode = IData.ItemCode AND M6.DueMonth = @YM6
-LEFT JOIN PData M7 ON M7.ItemCode = IData.ItemCode AND M7.DueMonth = @YM7
-LEFT JOIN PData M8 ON M8.ItemCode = IData.ItemCode AND M8.DueMonth = @YM8
-
-UNION ALL
-
+    IData.*
+    , '1. Purchase Order' AS [Data Type]
+    , CASE 
+        WHEN COALESCE(M01.POpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M01.POpenQty AS int) 
+        END AS M1
+    , CASE 
+        WHEN COALESCE(M02.POpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M02.POpenQty AS int) 
+        END AS M2
+    , CASE 
+        WHEN COALESCE(M03.POpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M03.POpenQty AS int) 
+        END AS M3
+    , CASE 
+        WHEN COALESCE(M04.POpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M04.POpenQty AS int) 
+        END AS M4
+    , CASE 
+        WHEN COALESCE(M05.POpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M05.POpenQty AS int) 
+        END AS M5
+    , CASE 
+        WHEN COALESCE(M06.POpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M06.POpenQty AS int) 
+        END AS M6
+    , CASE 
+        WHEN COALESCE(M07.POpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M07.POpenQty AS int) 
+        END AS M7
+    , CASE 
+        WHEN COALESCE(M08.POpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M08.POpenQty AS int) 
+        END AS M8
+    , CASE 
+        WHEN COALESCE(M09.POpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M09.POpenQty AS int) 
+        END AS M9
+    , CAST( 
+        COALESCE(M01.POpenQty, 0) + COALESCE(M02.POpenQty, 0) + COALESCE(M03.POpenQty, 0) + COALESCE(M04.POpenQty, 0)
+         + COALESCE(M05.POpenQty, 0) + COALESCE(M06.POpenQty, 0) + COALESCE(M07.POpenQty, 0) + COALESCE(M08.POpenQty, 0)
+         + COALESCE(M09.POpenQty, 0) AS int
+    ) AS [Total] 
+FROM
+    IData 
+    LEFT JOIN PData AS M01 
+        ON M01.ItemCode = IData.ItemCode 
+        AND M01.DueMonth = @YM0
+    LEFT JOIN PData AS M02 
+        ON M02.ItemCode = IData.ItemCode 
+        AND M02.DueMonth = @YM1
+    LEFT JOIN PData AS M03 
+        ON M03.ItemCode = IData.ItemCode 
+        AND M03.DueMonth = @YM2
+    LEFT JOIN PData AS M04 
+        ON M04.ItemCode = IData.ItemCode 
+        AND M04.DueMonth = @YM3
+    LEFT JOIN PData AS M05 
+        ON M05.ItemCode = IData.ItemCode 
+        AND M05.DueMonth = @YM4
+    LEFT JOIN PData AS M06 
+        ON M06.ItemCode = IData.ItemCode 
+        AND M06.DueMonth = @YM5
+    LEFT JOIN PData AS M07 
+        ON M07.ItemCode = IData.ItemCode 
+        AND M07.DueMonth = @YM6
+    LEFT JOIN PData AS M08 
+        ON M08.ItemCode = IData.ItemCode 
+        AND M08.DueMonth = @YM7
+    LEFT JOIN PData AS M09 
+        ON M09.ItemCode = IData.ItemCode 
+        AND M09.DueMonth = @YM8
+UNION ALL 
 SELECT
-    IData.*,
-    '2. Sales Order' AS [Data Type],
-    CAST(COALESCE(M0.SOpenQty,0) AS INT),
-    CAST(COALESCE(M1.SOpenQty,0) AS INT),
-    CAST(COALESCE(M2.SOpenQty,0) AS INT),
-    CAST(COALESCE(M3.SOpenQty,0) AS INT),
-    CAST(COALESCE(M4.SOpenQty,0) AS INT),
-    CAST(COALESCE(M5.SOpenQty,0) AS INT),
-    CAST(COALESCE(M6.SOpenQty,0) AS INT),
-    CAST(COALESCE(M7.SOpenQty,0) AS INT),
-    CAST(COALESCE(M8.SOpenQty,0) AS INT)
-FROM IData
-LEFT JOIN SData M0 ON M0.ItemCode = IData.ItemCode AND M0.DueMonth = @YM0
-LEFT JOIN SData M1 ON M1.ItemCode = IData.ItemCode AND M1.DueMonth = @YM1
-LEFT JOIN SData M2 ON M2.ItemCode = IData.ItemCode AND M2.DueMonth = @YM2
-LEFT JOIN SData M3 ON M3.ItemCode = IData.ItemCode AND M3.DueMonth = @YM3
-LEFT JOIN SData M4 ON M4.ItemCode = IData.ItemCode AND M4.DueMonth = @YM4
-LEFT JOIN SData M5 ON M5.ItemCode = IData.ItemCode AND M5.DueMonth = @YM5
-LEFT JOIN SData M6 ON M6.ItemCode = IData.ItemCode AND M6.DueMonth = @YM6
-LEFT JOIN SData M7 ON M7.ItemCode = IData.ItemCode AND M7.DueMonth = @YM7
-LEFT JOIN SData M8 ON M8.ItemCode = IData.ItemCode AND M8.DueMonth = @YM8
-
-UNION ALL
-
+    IData.*
+    , '2. Sales Order' AS [Data Type]
+    , CASE 
+        WHEN COALESCE(M01.SOpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M01.SOpenQty AS int) 
+        END AS M1
+    , CASE 
+        WHEN COALESCE(M02.SOpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M02.SOpenQty AS int) 
+        END AS M2
+    , CASE 
+        WHEN COALESCE(M03.SOpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M03.SOpenQty AS int) 
+        END AS M3
+    , CASE 
+        WHEN COALESCE(M04.SOpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M04.SOpenQty AS int) 
+        END AS M4
+    , CASE 
+        WHEN COALESCE(M05.SOpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M05.SOpenQty AS int) 
+        END AS M5
+    , CASE 
+        WHEN COALESCE(M06.SOpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M06.SOpenQty AS int) 
+        END AS M6
+    , CASE 
+        WHEN COALESCE(M07.SOpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M07.SOpenQty AS int) 
+        END AS M7
+    , CASE 
+        WHEN COALESCE(M08.SOpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M08.SOpenQty AS int) 
+        END AS M8
+    , CASE 
+        WHEN COALESCE(M09.SOpenQty, 0) = 0 
+            THEN NULL 
+        ELSE CAST(M09.SOpenQty AS int) 
+        END AS M9
+    , CAST( 
+        COALESCE(M01.SOpenQty, 0) + COALESCE(M02.SOpenQty, 0) + COALESCE(M03.SOpenQty, 0) + COALESCE(M04.SOpenQty, 0)
+         + COALESCE(M05.SOpenQty, 0) + COALESCE(M06.SOpenQty, 0) + COALESCE(M07.SOpenQty, 0) + COALESCE(M08.SOpenQty, 0)
+         + COALESCE(M09.SOpenQty, 0) AS int
+    ) AS [Total] 
+FROM
+    IData 
+    LEFT JOIN SData AS M01 
+        ON M01.ItemCode = IData.ItemCode 
+        AND M01.DueMonth = @YM0
+    LEFT JOIN SData AS M02 
+        ON M02.ItemCode = IData.ItemCode 
+        AND M02.DueMonth = @YM1
+    LEFT JOIN SData AS M03 
+        ON M03.ItemCode = IData.ItemCode 
+        AND M03.DueMonth = @YM2
+    LEFT JOIN SData AS M04 
+        ON M04.ItemCode = IData.ItemCode 
+        AND M04.DueMonth = @YM3
+    LEFT JOIN SData AS M05 
+        ON M05.ItemCode = IData.ItemCode 
+        AND M05.DueMonth = @YM4
+    LEFT JOIN SData AS M06 
+        ON M06.ItemCode = IData.ItemCode 
+        AND M06.DueMonth = @YM5
+    LEFT JOIN SData AS M07 
+        ON M07.ItemCode = IData.ItemCode 
+        AND M07.DueMonth = @YM6
+    LEFT JOIN SData AS M08 
+        ON M08.ItemCode = IData.ItemCode 
+        AND M08.DueMonth = @YM7
+    LEFT JOIN SData AS M09 
+        ON M09.ItemCode = IData.ItemCode 
+        AND M09.DueMonth = @YM8
+UNION ALL 
 SELECT
-    IData.*,
-    '3. Inventory' AS [Data Type],
-    CAST(COALESCE(M0.Stock,0) AS INT),
-    CAST(COALESCE(M1.Stock,0) AS INT),
-    CAST(COALESCE(M2.Stock,0) AS INT),
-    CAST(COALESCE(M3.Stock,0) AS INT),
-    CAST(COALESCE(M4.Stock,0) AS INT),
-    CAST(COALESCE(M5.Stock,0) AS INT),
-    CAST(COALESCE(M6.Stock,0) AS INT),
-    CAST(COALESCE(M7.Stock,0) AS INT),
-    CAST(COALESCE(M8.Stock,0) AS INT)
-FROM IData
-LEFT JOIN TData M0 ON M0.ItemCode = IData.ItemCode AND M0.DueMonth = @YM0
-LEFT JOIN TData M1 ON M1.ItemCode = IData.ItemCode AND M1.DueMonth = @YM1
-LEFT JOIN TData M2 ON M2.ItemCode = IData.ItemCode AND M2.DueMonth = @YM2
-LEFT JOIN TData M3 ON M3.ItemCode = IData.ItemCode AND M3.DueMonth = @YM3
-LEFT JOIN TData M4 ON M4.ItemCode = IData.ItemCode AND M4.DueMonth = @YM4
-LEFT JOIN TData M5 ON M5.ItemCode = IData.ItemCode AND M5.DueMonth = @YM5
-LEFT JOIN TData M6 ON M6.ItemCode = IData.ItemCode AND M6.DueMonth = @YM6
-LEFT JOIN TData M7 ON M7.ItemCode = IData.ItemCode AND M7.DueMonth = @YM7
-LEFT JOIN TData M8 ON M8.ItemCode = IData.ItemCode AND M8.DueMonth = @YM8
-
-ORDER BY ItemCode, [Data Type]
-OPTION (MAXRECURSION 100);
+    IData.*
+    , '3. Inventory' AS [Data Type]
+    , CAST(COALESCE(M01.Stock, 0) AS int) AS M1
+    , CAST(COALESCE(M02.Stock, 0) AS int) AS M2
+    , CAST(COALESCE(M03.Stock, 0) AS int) AS M3
+    , CAST(COALESCE(M04.Stock, 0) AS int) AS M4
+    , CAST(COALESCE(M05.Stock, 0) AS int) AS M5
+    , CAST(COALESCE(M06.Stock, 0) AS int) AS M6
+    , CAST(COALESCE(M07.Stock, 0) AS int) AS M7
+    , CAST(COALESCE(M08.Stock, 0) AS int) AS M8
+    , CAST(COALESCE(M09.Stock, 0) AS int) AS M9
+    , CAST(COALESCE(M09.Stock, 0) AS int) AS [Total] 
+FROM
+    IData 
+    LEFT JOIN TData AS M01 
+        ON M01.ItemCode = IData.ItemCode 
+        AND M01.DueMonth = @YM0 
+    LEFT JOIN TData AS M02 
+        ON M02.ItemCode = IData.ItemCode 
+        AND M02.DueMonth = @YM1 
+    LEFT JOIN TData AS M03 
+        ON M03.ItemCode = IData.ItemCode 
+        AND M03.DueMonth = @YM2
+    LEFT JOIN TData AS M04 
+        ON M04.ItemCode = IData.ItemCode 
+        AND M04.DueMonth = @YM3 
+    LEFT JOIN TData AS M05 
+        ON M05.ItemCode = IData.ItemCode 
+        AND M05.DueMonth = @YM4
+    LEFT JOIN TData AS M06 
+        ON M06.ItemCode = IData.ItemCode 
+        AND M06.DueMonth = @YM5
+    LEFT JOIN TData AS M07 
+        ON M07.ItemCode = IData.ItemCode 
+        AND M07.DueMonth = @YM6
+    LEFT JOIN TData AS M08 
+        ON M08.ItemCode = IData.ItemCode 
+        AND M08.DueMonth = @YM7
+    LEFT JOIN TData AS M09 
+        ON M09.ItemCode = IData.ItemCode 
+        AND M09.DueMonth = @YM8
+ORDER BY
+    ItemCode
+    , [Data Type];
