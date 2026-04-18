@@ -4,7 +4,7 @@
     {
         public string ItemCode { get; set; }
         public string ItemCodeDesc { get; set; }
-        public string ItemNo { get; set; }
+        public int ItemNo { get; set; }
         public string Category1 { get; set; }
         public string VendorName { get; set; }
 

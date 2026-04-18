@@ -53,6 +53,11 @@ namespace PurchaseSalesManagementSystem.Repository
                     {
                         while (reader.Read())
                         {
+                            int unitCostOrdinal = reader.GetOrdinal("UnitCost");
+                            int onHandOrdinal = reader.GetOrdinal("OnHand");
+                            int purchaseOrderOrdinal = reader.GetOrdinal("PurchaseOrder");
+                            int salesOrderOrdinal = reader.GetOrdinal("SalesOrder");
+                            int surplusOrdinal = reader.GetOrdinal("Surplus");
                             int m1 = reader.IsDBNull(reader.GetOrdinal("M1")) ? 0 : reader.GetInt32(reader.GetOrdinal("M1"));
                             int m2 = reader.IsDBNull(reader.GetOrdinal("M2")) ? 0 : reader.GetInt32(reader.GetOrdinal("M2"));
                             int m3 = reader.IsDBNull(reader.GetOrdinal("M3")) ? 0 : reader.GetInt32(reader.GetOrdinal("M3"));
@@ -62,20 +67,22 @@ namespace PurchaseSalesManagementSystem.Repository
                             int m7 = reader.IsDBNull(reader.GetOrdinal("M7")) ? 0 : reader.GetInt32(reader.GetOrdinal("M7"));
                             int m8 = reader.IsDBNull(reader.GetOrdinal("M8")) ? 0 : reader.GetInt32(reader.GetOrdinal("M8"));
                             int m9 = reader.IsDBNull(reader.GetOrdinal("M9")) ? 0 : reader.GetInt32(reader.GetOrdinal("M9"));
+                            int total = reader.IsDBNull(reader.GetOrdinal("Total")) ? 0 : reader.GetInt32(reader.GetOrdinal("Total"));
+                            int itemNo = reader.IsDBNull(reader.GetOrdinal("ItemNo")) ? 0 : reader.GetInt32(reader.GetOrdinal("ItemNo"));
 
                             results.Add(new Model_InventoryForecast
                             {
                                 ItemCode = reader["ItemCode"] as string ?? "",
                                 ItemCodeDesc = reader["ItemCodeDesc"] as string ?? "",
-                                ItemNo = reader["ItemNo"] as string ?? "",
+                                ItemNo = itemNo,
                                 Category1 = reader["Category1"] as string ?? "",
                                 VendorName = reader["VendorName"] as string ?? "",
 
-                                UnitCost = reader.GetDecimal(reader.GetOrdinal("UnitCost")),
-                                OnHand = reader.GetInt32(reader.GetOrdinal("OnHand")),
-                                PurchaseOrder = reader.GetInt32(reader.GetOrdinal("PurchaseOrder")),
-                                SalesOrder = reader.GetInt32(reader.GetOrdinal("SalesOrder")),
-                                Surplus = reader.GetInt32(reader.GetOrdinal("Surplus")),
+                                UnitCost = reader.IsDBNull(unitCostOrdinal) ? 0m : reader.GetDecimal(unitCostOrdinal),
+                                OnHand = reader.IsDBNull(onHandOrdinal) ? 0 : reader.GetInt32(onHandOrdinal),
+                                PurchaseOrder = reader.IsDBNull(purchaseOrderOrdinal) ? 0 : reader.GetInt32(purchaseOrderOrdinal),
+                                SalesOrder = reader.IsDBNull(salesOrderOrdinal) ? 0 : reader.GetInt32(salesOrderOrdinal),
+                                Surplus = reader.IsDBNull(surplusOrdinal) ? 0 : reader.GetInt32(surplusOrdinal),
                                 DataType = reader["Data Type"] as string ?? "",
                                 MonthlyQty1 = m1,
                                 MonthlyQty2 = m2,
@@ -86,7 +93,7 @@ namespace PurchaseSalesManagementSystem.Repository
                                 MonthlyQty7 = m7,
                                 MonthlyQty8 = m8,
                                 MonthlyQty9 = m9,
-                                Total = m1 + m2 + m3 + m4 + m5 + m6 + m7 + m8 + m9
+                                Total = total
                             });
                         }
                     }
