@@ -94,6 +94,13 @@ namespace PurchaseSalesManagementSystem.Controllers
             var exportToExcel = new FormattedDataTableExcelExporter();
             var dt = exportToExcel.ConvertToDataTableFast(data);
 
+            bool isWithoutPoReport = reportName == "InventoryForecastingReportWithoutPO";
+
+            if (isWithoutPoReport && dt.Columns.Contains("PurchaseOrder"))
+            {
+                dt.Columns.Remove("PurchaseOrder");
+            }
+
             if (dt.Columns.Contains("MonthlyQty1"))
             {
                 dt.Columns["MonthlyQty1"]!.ColumnName = DateTime.Today.AddMonths(-1).ToString("yyyy-MM");
@@ -136,7 +143,11 @@ namespace PurchaseSalesManagementSystem.Controllers
             }
 
             var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC", "PO");
-            return SaveExcel(workbook, reportName);
+            var fileNamePrefix = isWithoutPoReport
+                ? "Inventory Forecasting Report"
+                : reportName;
+
+            return SaveExcel(workbook, reportName, fileNamePrefix);
         }
 
         // =========================
@@ -447,19 +458,21 @@ namespace PurchaseSalesManagementSystem.Controllers
 			}
 		}
 
-		// =========================
-		// 共通保存処理
-		// =========================
-		private ActionResult SaveExcel(XLWorkbook workbook, string reportName)
+        // =========================
+        // 共通保存処理
+        // =========================
+        private ActionResult SaveExcel(XLWorkbook workbook, string reportName, string? fileNamePrefix = null)
         {
             using (var stream = new MemoryStream())
             {
                 workbook.SaveAs(stream);
-                
+
+                var outputFileName = fileNamePrefix ?? reportName;
+
                 return File(
                     stream.ToArray(),
                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    $"{reportName}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
+                    $"{outputFileName}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
                 );
             }
         }

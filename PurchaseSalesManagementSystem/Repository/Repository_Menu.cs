@@ -29,7 +29,11 @@ namespace PurchaseSalesManagementSystem.Repository
             for (int i = -1; i <= 7; i++)
                 yyyymm.Add(DateTime.Today.AddMonths(i).ToString("yyyy-MM"));
 
-            string sqlPath = Path.Combine(_env.ContentRootPath, "SQL", "Menu", "InventoryForecastingReport.sql");
+            var sqlFileName = reportName == "InventoryForecastingReportWithoutPO"
+                ? "InventoryForecastingReportWithoutPO.sql"
+                : "InventoryForecastingReport.sql";
+
+            string sqlPath = Path.Combine(_env.ContentRootPath, "SQL", "Menu", sqlFileName);
 
             var sql = File.ReadAllText(sqlPath);
 
@@ -44,11 +48,14 @@ namespace PurchaseSalesManagementSystem.Repository
 
                     using (var reader = cmd.ExecuteReader())
                     {
+                        bool hasPurchaseOrderColumn = Enumerable.Range(0, reader.FieldCount).Any(i => string.Equals(reader.GetName(i), "PurchaseOrder", StringComparison.OrdinalIgnoreCase));
+                        int purchaseOrderOrdinal = hasPurchaseOrderColumn
+                            ? reader.GetOrdinal("PurchaseOrder")
+                            : -1;
                         while (reader.Read())
                         {
                             int unitCostOrdinal = reader.GetOrdinal("UnitCost");
                             int onHandOrdinal = reader.GetOrdinal("OnHand");
-                            int purchaseOrderOrdinal = reader.GetOrdinal("PurchaseOrder");
                             int salesOrderOrdinal = reader.GetOrdinal("SalesOrder");
                             int surplusOrdinal = reader.GetOrdinal("Surplus");
                             int m1 = reader.IsDBNull(reader.GetOrdinal("M1")) ? 0 : reader.GetInt32(reader.GetOrdinal("M1"));
@@ -78,7 +85,9 @@ namespace PurchaseSalesManagementSystem.Repository
 
                                 UnitCost = reader.IsDBNull(unitCostOrdinal) ? 0m : reader.GetDecimal(unitCostOrdinal),
                                 OnHand = reader.IsDBNull(onHandOrdinal) ? 0 : reader.GetInt32(onHandOrdinal),
-                                PurchaseOrder = reader.IsDBNull(purchaseOrderOrdinal) ? 0 : reader.GetInt32(purchaseOrderOrdinal),
+                                PurchaseOrder = hasPurchaseOrderColumn
+                                    ? (reader.IsDBNull(purchaseOrderOrdinal) ? 0 : reader.GetInt32(purchaseOrderOrdinal))
+                                    : 0,
                                 SalesOrder = reader.IsDBNull(salesOrderOrdinal) ? 0 : reader.GetInt32(salesOrderOrdinal),
                                 Surplus = reader.IsDBNull(surplusOrdinal) ? 0 : reader.GetInt32(surplusOrdinal),
                                 DataType = reader["Data Type"] as string ?? "",
