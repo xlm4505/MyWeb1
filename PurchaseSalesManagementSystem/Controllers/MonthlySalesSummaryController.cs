@@ -37,12 +37,13 @@ public class MonthlySalesSummaryController : Controller
             if (isSummaryAll)
             {
                 dt = _repo.GetMonthlySalesSummaryAll(targetYear);
-                ApplyMonthlyHeaderNames(dt, targetYear, includeItemNo: false);
+                var useQtyMonthHeader = targetYear == 2026;
+                ApplyMonthlyHeaderNames(dt, targetYear, includeItemNo: false, useQtyMonthHeader);
             }
             else
             {
                 dt = _repo.GetMonthlySalesSummary(targetYear);
-                ApplyMonthlyHeaderNames(dt, targetYear, includeItemNo: true);
+                ApplyMonthlyHeaderNames(dt, targetYear, includeItemNo: true, useQtyMonthHeader: false);
             }
         }
         else
@@ -79,7 +80,7 @@ public class MonthlySalesSummaryController : Controller
 
         return $"Monthly Sales and Purchases Report_{timestamp}.xlsx";
     }
-    private static void ApplyMonthlyHeaderNames(DataTable dt, int targetYear, bool includeItemNo)
+    private static void ApplyMonthlyHeaderNames(DataTable dt, int targetYear, bool includeItemNo, bool useQtyMonthHeader)
     {
         if (dt.Columns.Count < 15)
         {
@@ -105,7 +106,11 @@ public class MonthlySalesSummaryController : Controller
 
         var qtyStartIndex = includeItemNo ? 3 : 2;
         var monthHeaders = Enumerable.Range(1, 12)
-            .Select(m => new DateTime(targetYear, m, 1).ToString("MMM''yy"))
+            .Select(m =>
+            {
+                var monthText = new DateTime(targetYear, m, 1).ToString("MMM''yy");
+                return useQtyMonthHeader ? $"Qty({monthText})" : monthText;
+            })
             .ToList();
 
         for (var i = 0; i < 12; i++)
