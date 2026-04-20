@@ -85,7 +85,7 @@ public class MonthlySalesSummaryController : Controller
 
         var qtyStartIndex = includeItemNo ? 3 : 2;
         var monthHeaders = Enumerable.Range(1, 12)
-            .Select(m => new DateTime(targetYear, m, 1).ToString("MMM'yy"))
+            .Select(m => new DateTime(targetYear, m, 1).ToString("MMM''yy"))
             .ToList();
 
         for (var i = 0; i < 12; i++)

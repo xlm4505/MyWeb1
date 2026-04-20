@@ -11,7 +11,7 @@ FROM
         FROM
             IM_ItemWhseHistoryByPeriod 
         WHERE
-            FiscalCalYear >= '2023' 
+            FiscalCalYear >= @YYYY 
         UNION 
         SELECT
             ItemCode 
@@ -85,7 +85,7 @@ WITH KData AS (
 ) 
 , ARData AS ( 
     SELECT
-        FiscalCalYear + FiscalCalPeriod AS InvDate
+          FiscalCalPeriod AS InvDate
         , IM_ItemWhseHistoryByPeriod.ItemCode
         , QuantitySold - QuantityReturnedCustomer AS Quantity
         , CostOfGoodsSold AS TotalAmount 
@@ -94,12 +94,12 @@ WITH KData AS (
         LEFT JOIN #ProjItems 
             ON #ProjItems.ItemCode = IM_ItemWhseHistoryByPeriod.ItemCode 
     WHERE
-        FiscalCalYear = '2023' 
+        FiscalCalYear = @YYYY 
         AND #ProjItems.ItemCode IS NOT NULL
 ) 
 , APData AS ( 
     SELECT
-        FiscalCalYear + FiscalCalPeriod AS InvDate
+        FiscalCalPeriod AS InvDate
         , IM_ItemWhseHistoryByPeriod.ItemCode
         , QuantityReceived - QuantityReturnedVendor AS Quantity
         , CostOfGoodsReceived AS TotalAmount 
@@ -108,12 +108,12 @@ WITH KData AS (
         LEFT JOIN #ProjItems 
             ON #ProjItems.ItemCode = IM_ItemWhseHistoryByPeriod.ItemCode 
     WHERE
-        FiscalCalYear = '2023' 
+        FiscalCalYear = @YYYY 
         AND #ProjItems.ItemCode IS NOT NULL
 ) 
 , ITData AS ( 
     SELECT
-        FiscalCalYear + FiscalCalPeriod AS InvDate
+        FiscalCalPeriod AS InvDate
         , IM_ItemWhseHistoryByPeriod.ItemCode
         , QuantityTransferred + QuantityIssued * - 1 + QuantityAdjusted AS Quantity
         , TransfersCost + IssuesCost * - 1 + AdjustmentsCost AS TotalAmount 
@@ -122,7 +122,7 @@ WITH KData AS (
         LEFT JOIN #ProjItems 
             ON #ProjItems.ItemCode = IM_ItemWhseHistoryByPeriod.ItemCode 
     WHERE
-        FiscalCalYear = '2023' 
+        FiscalCalYear = @YYYY 
         AND #ProjItems.ItemCode IS NOT NULL
 ) 
 , InvData AS ( 
@@ -148,84 +148,84 @@ WITH KData AS (
         ( 
             SELECT
                 *
-                , '2023' AS YYYY
+                , @YYYY AS YYYY
                 , '01' AS MM 
             FROM
                 #ProjItems 
             UNION 
             SELECT
                 *
-                , '2023'
+                , @YYYY
                 , '02' 
             FROM
                 #ProjItems 
             UNION 
             SELECT
                 *
-                , '2023'
+                , @YYYY
                 , '03' 
             FROM
                 #ProjItems 
             UNION 
             SELECT
                 *
-                , '2023'
+                , @YYYY
                 , '04' 
             FROM
                 #ProjItems 
             UNION 
             SELECT
                 *
-                , '2023'
+                , @YYYY
                 , '05' 
             FROM
                 #ProjItems 
             UNION 
             SELECT
                 *
-                , '2023'
+                , @YYYY
                 , '06' 
             FROM
                 #ProjItems 
             UNION 
             SELECT
                 *
-                , '2023'
+                , @YYYY
                 , '07' 
             FROM
                 #ProjItems 
             UNION 
             SELECT
                 *
-                , '2023'
+                , @YYYY
                 , '08' 
             FROM
                 #ProjItems 
             UNION 
             SELECT
                 *
-                , '2023'
+                , @YYYY
                 , '09' 
             FROM
                 #ProjItems 
             UNION 
             SELECT
                 *
-                , '2023'
+                , @YYYY
                 , '10' 
             FROM
                 #ProjItems 
             UNION 
             SELECT
                 *
-                , '2023'
+                , @YYYY
                 , '11' 
             FROM
                 #ProjItems 
             UNION 
             SELECT
                 *
-                , '2023'
+                , @YYYY
                 , '12' 
             FROM
                 #ProjItems 
@@ -241,12 +241,12 @@ WITH KData AS (
             SELECT
                 ItemCode
                 , CASE 
-                    WHEN FiscalCalYear > '2023' 
+                    WHEN FiscalCalYear > @YYYY 
                         THEN '9999' 
                     ELSE FiscalCalYear 
                     END AS FiscalCalYear
                 , CASE 
-                    WHEN FiscalCalYear > '2023' 
+                    WHEN FiscalCalYear > @YYYY 
                         THEN '99' 
                     ELSE FiscalCalPeriod 
                     END AS FiscalCalPeriod
@@ -255,16 +255,16 @@ WITH KData AS (
             FROM
                 IM_ItemTransactionHistory 
             WHERE
-                TransactionDate >= '1/1/2023' 
+                TransactionDate >= DATEFROMPARTS(@YYYY, 1, 1) 
             GROUP BY
                 ItemCode
                 , CASE 
-                    WHEN FiscalCalYear > '2023' 
+                    WHEN FiscalCalYear > @YYYY 
                         THEN '9999' 
                     ELSE FiscalCalYear 
                     END
                 , CASE 
-                    WHEN FiscalCalYear > '2023' 
+                    WHEN FiscalCalYear > @YYYY 
                         THEN '99' 
                     ELSE FiscalCalPeriod 
                     END
@@ -314,30 +314,30 @@ FROM
         SELECT
             ItemCode
             , '1.Shipped' AS DataType
-            , COALESCE(Q202301, 0) AS Qty1
-            , COALESCE(A202301, 0) AS Amt1
-            , COALESCE(Q202302, 0) AS Qty2
-            , COALESCE(A202302, 0) AS Amt2
-            , COALESCE(Q202303, 0) AS Qty3
-            , COALESCE(A202303, 0) AS Amt3
-            , COALESCE(Q202304, 0) AS Qty4
-            , COALESCE(A202304, 0) AS Amt4
-            , COALESCE(Q202305, 0) AS Qty5
-            , COALESCE(A202305, 0) AS Amt5
-            , COALESCE(Q202306, 0) AS Qty6
-            , COALESCE(A202306, 0) AS Amt6
-            , COALESCE(Q202307, 0) AS Qty7
-            , COALESCE(A202307, 0) AS Amt7
-            , COALESCE(Q202308, 0) AS Qty8
-            , COALESCE(A202308, 0) AS Amt8
-            , COALESCE(Q202309, 0) AS Qty9
-            , COALESCE(A202309, 0) AS Amt9
-            , COALESCE(Q202310, 0) AS Qty10
-            , COALESCE(A202310, 0) AS Amt10
-            , COALESCE(Q202311, 0) AS Qty11
-            , COALESCE(A202311, 0) AS Amt11
-            , COALESCE(Q202312, 0) AS Qty12
-            , COALESCE(A202312, 0) AS Amt12 
+            , COALESCE(Q01, 0) AS Qty1
+            , COALESCE(A01, 0) AS Amt1
+            , COALESCE(Q02, 0) AS Qty2
+            , COALESCE(A02, 0) AS Amt2
+            , COALESCE(Q03, 0) AS Qty3
+            , COALESCE(A03, 0) AS Amt3
+            , COALESCE(Q04, 0) AS Qty4
+            , COALESCE(A04, 0) AS Amt4
+            , COALESCE(Q05, 0) AS Qty5
+            , COALESCE(A05, 0) AS Amt5
+            , COALESCE(Q06, 0) AS Qty6
+            , COALESCE(A06, 0) AS Amt6
+            , COALESCE(Q07, 0) AS Qty7
+            , COALESCE(A07, 0) AS Amt7
+            , COALESCE(Q08, 0) AS Qty8
+            , COALESCE(A08, 0) AS Amt8
+            , COALESCE(Q09, 0) AS Qty9
+            , COALESCE(A09, 0) AS Amt9
+            , COALESCE(Q10, 0) AS Qty10
+            , COALESCE(A10, 0) AS Amt10
+            , COALESCE(Q11, 0) AS Qty11
+            , COALESCE(A11, 0) AS Amt11
+            , COALESCE(Q12, 0) AS Qty12
+            , COALESCE(A12, 0) AS Amt12 
         FROM
             ( 
                 SELECT
@@ -355,60 +355,60 @@ FROM
                     ARData
             ) AS IMDATA PIVOT( 
                 SUM(Quantity) FOR InvDate IN ( 
-                    Q202301
-                    , A202301
-                    , Q202302
-                    , A202302
-                    , Q202303
-                    , A202303
-                    , Q202304
-                    , A202304
-                    , Q202305
-                    , A202305
-                    , Q202306
-                    , A202306
-                    , Q202307
-                    , A202307
-                    , Q202308
-                    , A202308
-                    , Q202309
-                    , A202309
-                    , Q202310
-                    , A202310
-                    , Q202311
-                    , A202311
-                    , Q202312
-                    , A202312
+                    Q01
+                    , A01
+                    , Q02
+                    , A02
+                    , Q03
+                    , A03
+                    , Q04
+                    , A04
+                    , Q05
+                    , A05
+                    , Q06
+                    , A06
+                    , Q07
+                    , A07
+                    , Q08
+                    , A08
+                    , Q09
+                    , A09
+                    , Q10
+                    , A10
+                    , Q11
+                    , A11
+                    , Q12
+                    , A12
                 )
             ) AS ARPivot 
         UNION ALL 
         SELECT
             ItemCode
             , '2.Received' AS [Data Type]
-            , COALESCE(Q202301, 0) AS Qty1
-            , COALESCE(A202301, 0) AS Amt1
-            , COALESCE(Q202302, 0) AS Qty2
-            , COALESCE(A202302, 0) AS Amt2
-            , COALESCE(Q202303, 0) AS Qty3
-            , COALESCE(A202303, 0) AS Amt3
-            , COALESCE(Q202304, 0) AS Qty4
-            , COALESCE(A202304, 0) AS Amt4
-            , COALESCE(Q202305, 0) AS Qty5
-            , COALESCE(A202305, 0) AS Amt5
-            , COALESCE(Q202306, 0) AS Qty6
-            , COALESCE(A202306, 0) AS Amt6
-            , COALESCE(Q202307, 0) AS Qty7
-            , COALESCE(A202307, 0) AS Amt7
-            , COALESCE(Q202308, 0) AS Qty8
-            , COALESCE(A202308, 0) AS Amt8
-            , COALESCE(Q202309, 0) AS Qty9
-            , COALESCE(A202309, 0) AS Amt9
-            , COALESCE(Q202310, 0) AS Qty10
-            , COALESCE(A202310, 0) AS Amt10
-            , COALESCE(Q202311, 0) AS Qty11
-            , COALESCE(A202311, 0) AS Amt11
-            , COALESCE(Q202312, 0) AS Qty12
-            , COALESCE(A202312, 0) AS Amt12 
+            , COALESCE(Q01, 0) AS Qty1
+            , COALESCE(A01, 0) AS Amt1
+            , COALESCE(Q02, 0) AS Qty2
+            , COALESCE(A02, 0) AS Amt2
+            , COALESCE(Q03, 0) AS Qty3
+            , COALESCE(A03, 0) AS Amt3
+            , COALESCE(Q04, 0) AS Qty4
+            , COALESCE(A04, 0) AS Amt4
+            , COALESCE(Q05, 0) AS Qty5
+            , COALESCE(A05, 0) AS Amt5
+            , COALESCE(Q06, 0) AS Qty6
+            , COALESCE(A06, 0) AS Amt6
+            , COALESCE(Q07, 0) AS Qty7
+            , COALESCE(A07, 0) AS Amt7
+            , COALESCE(Q08, 0) AS Qty8
+            , COALESCE(A08, 0) AS Amt8
+            , COALESCE(Q09, 0) AS Qty9
+            , COALESCE(A09, 0) AS Amt9
+            , COALESCE(Q10, 0) AS Qty10
+            , COALESCE(A10, 0) AS Amt10
+            , COALESCE(Q11, 0) AS Qty11
+            , COALESCE(A11, 0) AS Amt11
+            , COALESCE(Q12, 0) AS Qty12
+            , COALESCE(A12, 0) AS Amt12 
         FROM
             ( 
                 SELECT
@@ -426,60 +426,60 @@ FROM
                     APData
             ) AS IMDATA PIVOT( 
                 SUM(Quantity) FOR InvDate IN ( 
-                    Q202301
-                    , A202301
-                    , Q202302
-                    , A202302
-                    , Q202303
-                    , A202303
-                    , Q202304
-                    , A202304
-                    , Q202305
-                    , A202305
-                    , Q202306
-                    , A202306
-                    , Q202307
-                    , A202307
-                    , Q202308
-                    , A202308
-                    , Q202309
-                    , A202309
-                    , Q202310
-                    , A202310
-                    , Q202311
-                    , A202311
-                    , Q202312
-                    , A202312
+                    Q01
+                    , A01
+                    , Q02
+                    , A02
+                    , Q03
+                    , A03
+                    , Q04
+                    , A04
+                    , Q05
+                    , A05
+                    , Q06
+                    , A06
+                    , Q07
+                    , A07
+                    , Q08
+                    , A08
+                    , Q09
+                    , A09
+                    , Q10
+                    , A10
+                    , Q11
+                    , A11
+                    , Q12
+                    , A12
                 )
             ) AS APPivot 
         UNION ALL 
         SELECT
             ItemCode
             , '3.Transfer' AS [Data Type]
-            , COALESCE(Q202301, 0) AS Qty1
-            , COALESCE(A202301, 0) AS Amt1
-            , COALESCE(Q202302, 0) AS Qty2
-            , COALESCE(A202302, 0) AS Amt2
-            , COALESCE(Q202303, 0) AS Qty3
-            , COALESCE(A202303, 0) AS Amt3
-            , COALESCE(Q202304, 0) AS Qty4
-            , COALESCE(A202304, 0) AS Amt4
-            , COALESCE(Q202305, 0) AS Qty5
-            , COALESCE(A202305, 0) AS Amt5
-            , COALESCE(Q202306, 0) AS Qty6
-            , COALESCE(A202306, 0) AS Amt6
-            , COALESCE(Q202307, 0) AS Qty7
-            , COALESCE(A202307, 0) AS Amt7
-            , COALESCE(Q202308, 0) AS Qty8
-            , COALESCE(A202308, 0) AS Amt8
-            , COALESCE(Q202309, 0) AS Qty9
-            , COALESCE(A202309, 0) AS Amt9
-            , COALESCE(Q202310, 0) AS Qty10
-            , COALESCE(A202310, 0) AS Amt10
-            , COALESCE(Q202311, 0) AS Qty11
-            , COALESCE(A202311, 0) AS Amt11
-            , COALESCE(Q202312, 0) AS Qty12
-            , COALESCE(A202312, 0) AS Amt12 
+            , COALESCE(Q01, 0) AS Qty1
+            , COALESCE(A01, 0) AS Amt1
+            , COALESCE(Q02, 0) AS Qty2
+            , COALESCE(A02, 0) AS Amt2
+            , COALESCE(Q03, 0) AS Qty3
+            , COALESCE(A03, 0) AS Amt3
+            , COALESCE(Q04, 0) AS Qty4
+            , COALESCE(A04, 0) AS Amt4
+            , COALESCE(Q05, 0) AS Qty5
+            , COALESCE(A05, 0) AS Amt5
+            , COALESCE(Q06, 0) AS Qty6
+            , COALESCE(A06, 0) AS Amt6
+            , COALESCE(Q07, 0) AS Qty7
+            , COALESCE(A07, 0) AS Amt7
+            , COALESCE(Q08, 0) AS Qty8
+            , COALESCE(A08, 0) AS Amt8
+            , COALESCE(Q09, 0) AS Qty9
+            , COALESCE(A09, 0) AS Amt9
+            , COALESCE(Q10, 0) AS Qty10
+            , COALESCE(A10, 0) AS Amt10
+            , COALESCE(Q11, 0) AS Qty11
+            , COALESCE(A11, 0) AS Amt11
+            , COALESCE(Q12, 0) AS Qty12
+            , COALESCE(A12, 0) AS Amt12 
         FROM
             ( 
                 SELECT
@@ -497,30 +497,30 @@ FROM
                     ITData
             ) AS IMDATA PIVOT( 
                 SUM(Quantity) FOR InvDate IN ( 
-                    Q202301
-                    , A202301
-                    , Q202302
-                    , A202302
-                    , Q202303
-                    , A202303
-                    , Q202304
-                    , A202304
-                    , Q202305
-                    , A202305
-                    , Q202306
-                    , A202306
-                    , Q202307
-                    , A202307
-                    , Q202308
-                    , A202308
-                    , Q202309
-                    , A202309
-                    , Q202310
-                    , A202310
-                    , Q202311
-                    , A202311
-                    , Q202312
-                    , A202312
+                    Q01
+                    , A01
+                    , Q02
+                    , A02
+                    , Q03
+                    , A03
+                    , Q04
+                    , A04
+                    , Q05
+                    , A05
+                    , Q06
+                    , A06
+                    , Q07
+                    , A07
+                    , Q08
+                    , A08
+                    , Q09
+                    , A09
+                    , Q10
+                    , A10
+                    , Q11
+                    , A11
+                    , Q12
+                    , A12
                 )
             ) AS ITPivot 
         UNION ALL 
@@ -528,7 +528,7 @@ FROM
             #ProjItems.ItemCode
             , '4.Inventory' AS Datatype
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 1 
                     THEN 0 
                 ELSE CONVERT( 
@@ -538,7 +538,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 1 
                     THEN 0 
                 ELSE CONVERT( 
@@ -548,7 +548,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 2 
                     THEN 0 
                 ELSE CONVERT( 
@@ -558,7 +558,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 2 
                     THEN 0 
                 ELSE CONVERT( 
@@ -568,7 +568,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 3 
                     THEN 0 
                 ELSE CONVERT( 
@@ -578,7 +578,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 3 
                     THEN 0 
                 ELSE CONVERT( 
@@ -588,7 +588,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 4 
                     THEN 0 
                 ELSE CONVERT( 
@@ -598,7 +598,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 4 
                     THEN 0 
                 ELSE CONVERT( 
@@ -608,7 +608,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 5 
                     THEN 0 
                 ELSE CONVERT( 
@@ -618,7 +618,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 5 
                     THEN 0 
                 ELSE CONVERT( 
@@ -628,7 +628,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 6 
                     THEN 0 
                 ELSE CONVERT( 
@@ -638,7 +638,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 6 
                     THEN 0 
                 ELSE CONVERT( 
@@ -648,7 +648,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 7 
                     THEN 0 
                 ELSE CONVERT( 
@@ -658,7 +658,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 7 
                     THEN 0 
                 ELSE CONVERT( 
@@ -668,7 +668,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 8 
                     THEN 0 
                 ELSE CONVERT( 
@@ -678,7 +678,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 8 
                     THEN 0 
                 ELSE CONVERT( 
@@ -688,7 +688,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 9 
                     THEN 0 
                 ELSE CONVERT( 
@@ -698,7 +698,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 9 
                     THEN 0 
                 ELSE CONVERT( 
@@ -708,7 +708,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 10 
                     THEN 0 
                 ELSE CONVERT( 
@@ -718,7 +718,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 10 
                     THEN 0 
                 ELSE CONVERT( 
@@ -728,7 +728,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 11 
                     THEN 0 
                 ELSE CONVERT( 
@@ -738,7 +738,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 11 
                     THEN 0 
                 ELSE CONVERT( 
@@ -748,7 +748,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 12 
                     THEN 0 
                 ELSE CONVERT( 
@@ -758,7 +758,7 @@ FROM
                 ) 
                 END
             , CASE 
-                WHEN YEAR (GETDATE()) = 2023 
+                WHEN YEAR (GETDATE()) = @YYYY 
                 AND MONTH (GETDATE()) < 12 
                     THEN 0 
                 ELSE CONVERT( 
@@ -771,51 +771,51 @@ FROM
             #ProjItems 
             LEFT JOIN InvData AS I01 
                 ON #ProjItems.ItemCode = I01.ItemCode 
-                AND I01.YYYY = '2023' 
+                AND I01.YYYY = @YYYY 
                 AND I01.MM = '01' 
             LEFT JOIN InvData AS I02 
                 ON #ProjItems.ItemCode = I02.ItemCode 
-                AND I02.YYYY = '2023' 
+                AND I02.YYYY = @YYYY 
                 AND I02.MM = '02' 
             LEFT JOIN InvData AS I03 
                 ON #ProjItems.ItemCode = I03.ItemCode 
-                AND I03.YYYY = '2023' 
+                AND I03.YYYY = @YYYY 
                 AND I03.MM = '03' 
             LEFT JOIN InvData AS I04 
                 ON #ProjItems.ItemCode = I04.ItemCode 
-                AND I04.YYYY = '2023' 
+                AND I04.YYYY = @YYYY 
                 AND I04.MM = '04' 
             LEFT JOIN InvData AS I05 
                 ON #ProjItems.ItemCode = I05.ItemCode 
-                AND I05.YYYY = '2023' 
+                AND I05.YYYY = @YYYY 
                 AND I05.MM = '05' 
             LEFT JOIN InvData AS I06 
                 ON #ProjItems.ItemCode = I06.ItemCode 
-                AND I06.YYYY = '2023' 
+                AND I06.YYYY = @YYYY 
                 AND I06.MM = '06' 
             LEFT JOIN InvData AS I07 
                 ON #ProjItems.ItemCode = I07.ItemCode 
-                AND I07.YYYY = '2023' 
+                AND I07.YYYY = @YYYY 
                 AND I07.MM = '07' 
             LEFT JOIN InvData AS I08 
                 ON #ProjItems.ItemCode = I08.ItemCode 
-                AND I08.YYYY = '2023' 
+                AND I08.YYYY = @YYYY 
                 AND I08.MM = '08' 
             LEFT JOIN InvData AS I09 
                 ON #ProjItems.ItemCode = I09.ItemCode 
-                AND I09.YYYY = '2023' 
+                AND I09.YYYY = @YYYY 
                 AND I09.MM = '09' 
             LEFT JOIN InvData AS I10 
                 ON #ProjItems.ItemCode = I10.ItemCode 
-                AND I10.YYYY = '2023' 
+                AND I10.YYYY = @YYYY 
                 AND I10.MM = '10' 
             LEFT JOIN InvData AS I11 
                 ON #ProjItems.ItemCode = I11.ItemCode 
-                AND I11.YYYY = '2023' 
+                AND I11.YYYY = @YYYY 
                 AND I11.MM = '11' 
             LEFT JOIN InvData AS I12 
                 ON #ProjItems.ItemCode = I12.ItemCode 
-                AND I12.YYYY = '2023' 
+                AND I12.YYYY = @YYYY 
                 AND I12.MM = '12'
     ) AS PivotData 
         ON KData.ItemCode = PivotData.ItemCode 

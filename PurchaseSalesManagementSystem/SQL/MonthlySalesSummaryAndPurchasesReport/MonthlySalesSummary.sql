@@ -578,7 +578,7 @@ WITH TargetItem AS (
             ON TargetItem.ItemCode = IM_ItemTransactionHistory.ItemCode 
     WHERE
         IM_ItemTransactionHistory.TransactionCode = 'SO' 
-        AND IM_ItemTransactionHistory.TransactionDate BETWEEN '1/1/2025' AND '12/31/2025' 
+        AND IM_ItemTransactionHistory.TransactionDate BETWEEN DATEFROMPARTS(@YYYY, 1, 1) AND DATEFROMPARTS(@YYYY, 12, 31) 
         AND ( 
             IM_ItemTransactionHistory.TransactionQty <> 0 
             OR IM_ItemTransactionHistory.ExtendedCost <> 0
@@ -664,35 +664,34 @@ FROM
     LEFT JOIN ( 
         SELECT
             ItemCode
-            , COALESCE(Q202501, 0) AS Qty1
-            , COALESCE(A202501, 0) AS Amt1
-            , COALESCE(Q202502, 0) AS Qty2
-            , COALESCE(A202502, 0) AS Amt2
-            , COALESCE(Q202503, 0) AS Qty3
-            , COALESCE(A202503, 0) AS Amt3
-            , COALESCE(Q202504, 0) AS Qty4
-            , COALESCE(A202504, 0) AS Amt4
-            , COALESCE(Q202505, 0) AS Qty5
-            , COALESCE(A202505, 0) AS Amt5
-            , COALESCE(Q202506, 0) AS Qty6
-            , COALESCE(A202506, 0) AS Amt6
-            , COALESCE(Q202507, 0) AS Qty7
-            , COALESCE(A202507, 0) AS Amt7
-            , COALESCE(Q202508, 0) AS Qty8
-            , COALESCE(A202508, 0) AS Amt8
-            , COALESCE(Q202509, 0) AS Qty9
-            , COALESCE(A202509, 0) AS Amt9
-            , COALESCE(Q202510, 0) AS Qty10
-            , COALESCE(A202510, 0) AS Amt10
-            , COALESCE(Q202511, 0) AS Qty11
-            , COALESCE(A202511, 0) AS Amt11
-            , COALESCE(Q202512, 0) AS Qty12
-            , COALESCE(A202512, 0) AS Amt12 
+            , COALESCE(Q01, 0) AS Qty1
+            , COALESCE(A01, 0) AS Amt1
+            , COALESCE(Q02, 0) AS Qty2
+            , COALESCE(A02, 0) AS Amt2
+            , COALESCE(Q03, 0) AS Qty3
+            , COALESCE(A03, 0) AS Amt3
+            , COALESCE(Q04, 0) AS Qty4
+            , COALESCE(A04, 0) AS Amt4
+            , COALESCE(Q05, 0) AS Qty5
+            , COALESCE(A05, 0) AS Amt5
+            , COALESCE(Q06, 0) AS Qty6
+            , COALESCE(A06, 0) AS Amt6
+            , COALESCE(Q07, 0) AS Qty7
+            , COALESCE(A07, 0) AS Amt7
+            , COALESCE(Q08, 0) AS Qty8
+            , COALESCE(A08, 0) AS Amt8
+            , COALESCE(Q09, 0) AS Qty9
+            , COALESCE(A09, 0) AS Amt9
+            , COALESCE(Q10, 0) AS Qty10
+            , COALESCE(A10, 0) AS Amt10
+            , COALESCE(Q11, 0) AS Qty11
+            , COALESCE(A11, 0) AS Amt11
+            , COALESCE(Q12, 0) AS Qty12
+            , COALESCE(A12, 0) AS Amt12 
         FROM
             ( 
                 SELECT
-                    'Q' + CAST(Year (TransactionDate) AS VARCHAR) + 
-                    RIGHT ( 
+                    'Q' + RIGHT (
                         '00' + CAST(Month (TransactionDate) AS VARCHAR)
                         , 2
                     ) AS InvDate
@@ -702,8 +701,7 @@ FROM
                     ARData 
                 UNION ALL 
                 SELECT
-                    'A' + CAST(Year (TransactionDate) AS VARCHAR) + 
-                    RIGHT ( 
+                    'A' + RIGHT ( 
                         '00' + CAST(Month (TransactionDate) AS VARCHAR)
                         , 2
                     ) AS InvDate
@@ -713,30 +711,30 @@ FROM
                     ARData
             ) AS IMDATA PIVOT( 
                 SUM(Quantity) FOR InvDate IN ( 
-                    Q202501
-                    , A202501
-                    , Q202502
-                    , A202502
-                    , Q202503
-                    , A202503
-                    , Q202504
-                    , A202504
-                    , Q202505
-                    , A202505
-                    , Q202506
-                    , A202506
-                    , Q202507
-                    , A202507
-                    , Q202508
-                    , A202508
-                    , Q202509
-                    , A202509
-                    , Q202510
-                    , A202510
-                    , Q202511
-                    , A202511
-                    , Q202512
-                    , A202512
+                    Q01
+                    , A01
+                    , Q02
+                    , A02
+                    , Q03
+                    , A03
+                    , Q04
+                    , A04
+                    , Q05
+                    , A05
+                    , Q06
+                    , A06
+                    , Q07
+                    , A07
+                    , Q08
+                    , A08
+                    , Q09
+                    , A09
+                    , Q10
+                    , A10
+                    , Q11
+                    , A11
+                    , Q12
+                    , A12
                 )
             ) AS ARPivot
     ) AS PivotData 

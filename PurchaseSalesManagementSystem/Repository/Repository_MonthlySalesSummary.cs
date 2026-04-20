@@ -38,20 +38,14 @@ namespace PurchaseSalesManagementSystem.Repository
             var fileName = allData ? "MonthlySalesSummaryAll.sql" : "MonthlySalesSummary.sql";
             var sql = LoadSql(fileName);
 
-            // SQL内で固定になっている対象年(2025)を選択年に置換
-            sql = sql.Replace("2025", targetYear.ToString());
-
-            return ExecuteDataTable(sql);
+            return ExecuteDataTable(sql, targetYear);
         }
 
         public DataTable GetMonthlySalesAndPurchasesReport(int targetYear)
         {
             var sql = LoadSql("MonthlySalesSummaryAndPurchasesReport.sql");
 
-            // SQL内で固定になっている対象年(2023)を選択年に置換
-            sql = sql.Replace("2023", targetYear.ToString());
-
-            return ExecuteDataTable(sql);
+            return ExecuteDataTable(sql, targetYear);
         }
 
         private string LoadSql(string fileName)
@@ -66,7 +60,7 @@ namespace PurchaseSalesManagementSystem.Repository
             return File.ReadAllText(sqlPath);
         }
 
-        private DataTable ExecuteDataTable(string sql)
+        private DataTable ExecuteDataTable(string sql, int? targetYear = null)
         {
             var dt = new DataTable();
 
@@ -74,6 +68,10 @@ namespace PurchaseSalesManagementSystem.Repository
             conn.Open();
             using var cmd = new SqlCommand(sql, conn);
             cmd.CommandTimeout = 300;
+            if (targetYear.HasValue)
+            {
+                cmd.Parameters.AddWithValue("@YYYY", targetYear.Value);
+            }
             using var adapter = new SqlDataAdapter(cmd);
             adapter.Fill(dt);
 
