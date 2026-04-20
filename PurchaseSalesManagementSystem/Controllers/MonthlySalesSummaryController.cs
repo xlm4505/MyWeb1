@@ -49,6 +49,7 @@ public class MonthlySalesSummaryController : Controller
         else
         {
             dt = _repo.GetMonthlySalesAndPurchasesReport(targetYear);
+            ApplyMonthlySalesAndPurchasesReportHeaderNames(dt, targetYear);
         }
 
         var exportToExcel = new FormattedDataTableExcelExporter();
@@ -127,6 +128,28 @@ public class MonthlySalesSummaryController : Controller
 
     private static string FormatMonthHeader(int targetYear, int month)
     {
-        return new DateTime(targetYear, month, 1).ToString("MMM\'yy", CultureInfo.InvariantCulture);
+        return new DateTime(targetYear, month, 1).ToString("MMM\\'yy", CultureInfo.InvariantCulture);
+    }
+    private static void ApplyMonthlySalesAndPurchasesReportHeaderNames(DataTable dt, int targetYear)
+    {
+        const int fixedColumnCount = 8;
+        const int monthCount = 12;
+        const int columnsPerMonth = 2;
+        var requiredColumnCount = fixedColumnCount + (monthCount * columnsPerMonth);
+
+        if (dt.Columns.Count < requiredColumnCount)
+        {
+            return;
+        }
+
+        for (var month = 1; month <= monthCount; month++)
+        {
+            var monthText = FormatMonthHeader(targetYear, month);
+            var qtyColumnIndex = fixedColumnCount + ((month - 1) * columnsPerMonth);
+            var amtColumnIndex = qtyColumnIndex + 1;
+
+            dt.Columns[qtyColumnIndex].ColumnName = $"Qty({monthText})";
+            dt.Columns[amtColumnIndex].ColumnName = $"Amt({monthText})";
+        }
     }
 }
