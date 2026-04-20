@@ -38,13 +38,12 @@ public class MonthlySalesSummaryController : Controller
             if (isSummaryAll)
             {
                 dt = _repo.GetMonthlySalesSummaryAll(targetYear);
-                var useQtyMonthHeader = true;
-                ApplyMonthlyHeaderNames(dt, targetYear, includeItemNo: false, useQtyMonthHeader);
+                ApplyMonthlyHeaderNames(dt, targetYear, includeItemNo: false);
             }
             else
             {
                 dt = _repo.GetMonthlySalesSummary(targetYear);
-                ApplyMonthlyHeaderNames(dt, targetYear, includeItemNo: true, useQtyMonthHeader: false);
+                ApplyMonthlyHeaderNames(dt, targetYear, includeItemNo: true);
             }
         }
         else
@@ -81,7 +80,7 @@ public class MonthlySalesSummaryController : Controller
 
         return $"Monthly Sales and Purchases Report_{timestamp}.xlsx";
     }
-    private static void ApplyMonthlyHeaderNames(DataTable dt, int targetYear, bool includeItemNo, bool useQtyMonthHeader)
+    private static void ApplyMonthlyHeaderNames(DataTable dt, int targetYear, bool includeItemNo)
     {
         if (dt.Columns.Count < 15)
         {
@@ -110,7 +109,7 @@ public class MonthlySalesSummaryController : Controller
             .Select(m =>
             {
                 var monthText = FormatMonthHeader(targetYear, m);
-                return useQtyMonthHeader ? $"Qty({monthText})" : monthText;
+                return $"Qty({monthText})";
             })
             .ToList();
 
@@ -126,31 +125,8 @@ public class MonthlySalesSummaryController : Controller
         dt.Columns[qtyStartIndex + 16].ColumnName = "PO (Current)";
     }
 
-    private static void ApplyTwoRowMonthlyQtyHeader(IXLWorksheet worksheet, int targetYear, int monthHeaderStartColumn)
-    {
-        worksheet.Row(1).InsertRowsAbove(1);
-
-        var monthHeaders = Enumerable.Range(1, 12)
-            .Select(m => FormatMonthHeader(targetYear, m))
-            .ToList();
-
-        for (var i = 0; i < monthHeaders.Count; i++)
-        {
-            var column = monthHeaderStartColumn + i;
-            worksheet.Cell(1, column).Value = monthHeaders[i];
-            worksheet.Cell(2, column).Value = "Qty";
-        }
-
-        var monthHeaderRange = worksheet.Range(1, monthHeaderStartColumn, 2, monthHeaderStartColumn + 11);
-        monthHeaderRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        monthHeaderRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
-        monthHeaderRange.Style.Font.Bold = true;
-        monthHeaderRange.Style.Fill.BackgroundColor = XLColor.LightGray;
-        monthHeaderRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-        monthHeaderRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-    }
     private static string FormatMonthHeader(int targetYear, int month)
     {
-        return new DateTime(targetYear, month, 1).ToString("MMM''yy", CultureInfo.InvariantCulture);
+        return new DateTime(targetYear, month, 1).ToString("MMM\'yy", CultureInfo.InvariantCulture);
     }
 }
