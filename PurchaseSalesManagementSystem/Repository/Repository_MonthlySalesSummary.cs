@@ -33,10 +33,9 @@ namespace PurchaseSalesManagementSystem.Repository
             return years;
         }
 
-        public DataTable GetMonthlySalesSummary(int targetYear, bool allData)
+        public DataTable GetMonthlySalesSummary(int targetYear)
         {
-            var fileName = allData ? "MonthlySalesSummaryAll.sql" : "MonthlySalesSummary.sql";
-            var sql = LoadSql(fileName);
+            var sql = LoadSql("MonthlySalesSummary.sql");
 
             return ExecuteDataTable(sql, targetYear);
         }

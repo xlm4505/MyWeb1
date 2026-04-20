@@ -31,9 +31,8 @@ public class MonthlySalesSummaryController : Controller
 
         if (string.Equals(exportTarget, "summary", StringComparison.OrdinalIgnoreCase))
         {
-            var isAll = string.Equals(targetData, "ALL", StringComparison.OrdinalIgnoreCase);
-            dt = _repo.GetMonthlySalesSummary(targetYear, isAll);
-            ApplyMonthlyHeaderNames(dt, targetYear, includeItemNo: !isAll);
+            dt = _repo.GetMonthlySalesSummary(targetYear);
+            ApplyMonthlyHeaderNames(dt, targetYear, includeItemNo: true);
         }
         else
         {
@@ -48,17 +47,29 @@ public class MonthlySalesSummaryController : Controller
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
 
-        var fileLabel = string.Equals(exportTarget, "summary", StringComparison.OrdinalIgnoreCase)
-            ? "Monthly Sales Summary"
-            : "Monthly Sales and Purchases Report";
+        var timestamp = DateTime.Now.ToString("yyMMdd_HHmmss");
+        var fileName = BuildExportFileName(exportTarget, targetData, timestamp);
 
         return File(
             stream.ToArray(),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"{fileLabel}_{targetYear}_{DateTime.Now:yyMMdd_HHmmss}.xlsx"
+            fileName
         );
     }
+    private static string BuildExportFileName(string exportTarget, string? targetData, string timestamp)
+    {
+        if (string.Equals(exportTarget, "summary", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.Equals(targetData, "ALL", StringComparison.OrdinalIgnoreCase))
+            {
+                return $"Monthly Monthly Sales Summary Report_All_{timestamp}.xlsx";
+            }
 
+            return $"Monthly Sales Summary Report_{timestamp}.xlsx";
+        }
+
+        return $"Monthly Sales and Purchases Report_{timestamp}.xlsx";
+    }
     private static void ApplyMonthlyHeaderNames(DataTable dt, int targetYear, bool includeItemNo)
     {
         if (dt.Columns.Count < 15)
