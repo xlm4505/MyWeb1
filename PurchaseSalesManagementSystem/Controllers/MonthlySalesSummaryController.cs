@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Repository;
 using System.Data;
+using System.Globalization;
 
 public class MonthlySalesSummaryController : Controller
 {
@@ -37,7 +38,7 @@ public class MonthlySalesSummaryController : Controller
             if (isSummaryAll)
             {
                 dt = _repo.GetMonthlySalesSummaryAll(targetYear);
-                var useQtyMonthHeader = targetYear == 2026;
+                var useQtyMonthHeader = true;
                 ApplyMonthlyHeaderNames(dt, targetYear, includeItemNo: false, useQtyMonthHeader);
             }
             else
@@ -108,7 +109,7 @@ public class MonthlySalesSummaryController : Controller
         var monthHeaders = Enumerable.Range(1, 12)
             .Select(m =>
             {
-                var monthText = new DateTime(targetYear, m, 1).ToString("MMM''yy");
+                var monthText = FormatMonthHeader(targetYear, m);
                 return useQtyMonthHeader ? $"Qty({monthText})" : monthText;
             })
             .ToList();
@@ -130,7 +131,7 @@ public class MonthlySalesSummaryController : Controller
         worksheet.Row(1).InsertRowsAbove(1);
 
         var monthHeaders = Enumerable.Range(1, 12)
-            .Select(m => new DateTime(targetYear, m, 1).ToString("MMM''yy"))
+            .Select(m => FormatMonthHeader(targetYear, m))
             .ToList();
 
         for (var i = 0; i < monthHeaders.Count; i++)
@@ -147,5 +148,9 @@ public class MonthlySalesSummaryController : Controller
         monthHeaderRange.Style.Fill.BackgroundColor = XLColor.LightGray;
         monthHeaderRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
         monthHeaderRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+    }
+    private static string FormatMonthHeader(int targetYear, int month)
+    {
+        return new DateTime(targetYear, month, 1).ToString("MMM''yy", CultureInfo.InvariantCulture);
     }
 }
