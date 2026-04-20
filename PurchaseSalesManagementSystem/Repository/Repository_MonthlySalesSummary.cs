@@ -39,7 +39,12 @@ namespace PurchaseSalesManagementSystem.Repository
 
             return ExecuteDataTable(sql, targetYear);
         }
+        public DataTable GetMonthlySalesSummaryAll(int targetYear)
+        {
+            var sql = LoadSql("MonthlySalesSummaryAll.sql");
 
+            return ExecuteDataTable(sql, targetYear);
+        }
         public DataTable GetMonthlySalesAndPurchasesReport(int targetYear)
         {
             var sql = LoadSql("MonthlySalesSummaryAndPurchasesReport.sql");
