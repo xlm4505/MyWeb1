@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
+using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Repository;
 using System.Data;
 
@@ -49,10 +50,8 @@ public class MonthlySalesSummaryController : Controller
             dt = _repo.GetMonthlySalesAndPurchasesReport(targetYear);
         }
 
-        using var workbook = new XLWorkbook();
-        var worksheet = workbook.Worksheets.Add(dt, "Export");
-        worksheet.Columns().AdjustToContents();
-        worksheet.SheetView.FreezeRows(1);
+        var exportToExcel = new FormattedDataTableExcelExporter();
+        using var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "Export", "PO");
 
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
