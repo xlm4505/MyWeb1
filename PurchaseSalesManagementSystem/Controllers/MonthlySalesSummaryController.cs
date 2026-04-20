@@ -54,7 +54,10 @@ public class MonthlySalesSummaryController : Controller
 
         var exportToExcel = new FormattedDataTableExcelExporter();
         using var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "Export", "PO");
-
+        if (!isSummary)
+        {
+            AddMonthlySalesAndPurchasesTotals(workbook);
+        }
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
 
@@ -150,6 +153,41 @@ public class MonthlySalesSummaryController : Controller
 
             dt.Columns[qtyColumnIndex].ColumnName = $"Qty({monthText})";
             dt.Columns[amtColumnIndex].ColumnName = $"Amt({monthText})";
+        }
+    }
+    private static void AddMonthlySalesAndPurchasesTotals(XLWorkbook workbook)
+    {
+        var ws = workbook.Worksheet("Export");
+        var lastDataRow = ws.LastRowUsed()?.RowNumber() ?? 1;
+        if (lastDataRow < 2)
+        {
+            return;
+        }
+
+        var totalDefinitions = new (string Label, string Criteria)[]
+        {
+            ("Total Shipped:", "1.Shipped"),
+            ("Total Received:", "2.Received"),
+            ("Total Transferred:", "3.Transfer"),
+            ("Total Inventory:", "4.Inventory")
+        };
+
+        var labelColumn = XLHelper.GetColumnNumberFromLetter("H");
+        var firstFormulaColumn = XLHelper.GetColumnNumberFromLetter("I");
+        var lastFormulaColumn = XLHelper.GetColumnNumberFromLetter("AF");
+
+        for (var i = 0; i < totalDefinitions.Length; i++)
+        {
+            var totalRow = lastDataRow + i + 1;
+            var (label, criteria) = totalDefinitions[i];
+            ws.Cell(totalRow, labelColumn).Value = label;
+
+            for (var col = firstFormulaColumn; col <= lastFormulaColumn; col++)
+            {
+                var colLetter = XLHelper.GetColumnLetterFromNumber(col);
+                ws.Cell(totalRow, col).FormulaA1 =
+                    $"SUMIF($H$2:$H${lastDataRow},\"{criteria}\",{colLetter}2:{colLetter}{lastDataRow})";
+            }
         }
     }
 }
