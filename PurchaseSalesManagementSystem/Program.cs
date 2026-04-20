@@ -30,6 +30,8 @@ builder.Services.AddScoped<Repository_PurchaseReceiptFJKCheck>();
 builder.Services.AddScoped<Repository_PurchaseReceiptCCL>();
 builder.Services.AddScoped<Repository_SalesHistoryDetail>();
 builder.Services.AddScoped<Repository_PurchaseOrderReceiptHistory>();
+builder.Services.AddScoped<Repository_MonthlySalesSummary>();
+
 
 
 var app = builder.Build();
