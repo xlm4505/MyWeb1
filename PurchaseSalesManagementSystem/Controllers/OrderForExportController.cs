@@ -32,7 +32,7 @@ public class OrderForExportController : Controller
 	[HttpGet]
 	public IActionResult ExportToExcel(string salesOrderNo)
 	{
-		// o—Íƒf[ƒ^Žæ“¾
+		// å‡ºåŠ›ãƒ‡ãƒ¼ã‚¿å–å¾—
 		var orderData = _repo.GetOrderData(salesOrderNo);
 
 		var orderDataForExcel = orderData.Select(m => new
@@ -65,24 +65,32 @@ public class OrderForExportController : Controller
 			m.CommitDate,
 			m.DeliveryDate,
 			m.CommentText,
-			m.UnitCost,
+			m.LastUnitCost,
 			m.PurchaseOrderNo,
-			m.UDF_CUSTPONO,
-			m.InternalNotes
+			m.InternalNotes,
+            m.ProdCat
 		});
 
 		FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
 		DataTable dt = new DataTable();
 
 		dt = exportToExcel.ConvertToDataTableFast(orderDataForExcel);
+        if (dt.Columns.Contains("Ordded"))
+            dt.Columns["Ordded"]!.ColumnName = "#Ordded";
 
-		var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt,"Report","SO");
+        if (dt.Columns.Contains("Shipped"))
+            dt.Columns["Shipped"]!.ColumnName = "#Shipped";
+
+        if (dt.Columns.Contains("BO"))
+            dt.Columns["BO"]!.ColumnName = "#BO";
 
 
+
+        var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt,"Report","SO");
 
 		return File(excelBytes,
 			"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-			$"Order for export to Excel_{DateTime.Now:yyMMdd_HHmmss}.xlsx");
+			$"Custom Open Sales Order Report_{DateTime.Now:yyMMdd_HHmmss}.xlsx");
 
 	}
 

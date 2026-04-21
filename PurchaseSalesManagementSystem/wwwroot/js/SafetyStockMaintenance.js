@@ -392,3 +392,10 @@ document.getElementById("closeAddButton").addEventListener("click", requestClose
 document.getElementById("addModal").addEventListener("input", sanitizeSevenDigitNumberInput);
 document.getElementById("addModal").addEventListener("input", sanitizeSignedSevenDigitNumberInput);
 document.getElementById("addModal").addEventListener("input", sanitizeAlphaNumericInput);
+
+
+// Export ƒ{ƒ^ƒ“
+function downloadExcel() {
+    const itemCode = document.getElementById("searchCode").value.trim();
+    window.location.href = `/SafetyStockMaintenance/ExportToExcel?itemCode=${encodeURIComponent(itemCode)}`;
+}

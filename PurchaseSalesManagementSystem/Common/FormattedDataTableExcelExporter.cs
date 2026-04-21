@@ -340,5 +340,30 @@ namespace PurchaseSalesManagementSystem.Common
 
 			return dataTable;
 		}
-	}
+
+
+        public XLWorkbook ExportDataTableWithFormattingForWorkbook(DataTable dataTable, String sheetName)
+        {
+            var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add(sheetName);
+
+            // ★ テーブルではなく「普通のセル範囲」として貼り付ける
+            worksheet.Cell(1, 1).InsertTable(dataTable, false);  // false = テーブルを作らない
+
+            // ヘッダー行のスタイル
+            var headerRow = worksheet.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            headerRow.Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
+
+            // 列幅調整
+            worksheet.Columns().AdjustToContents();
+
+            worksheet.SheetView.FreezeRows(1);
+            worksheet.ShowGridLines = false;
+
+            return workbook;
+        }
+
+    }
 }

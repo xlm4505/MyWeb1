@@ -142,7 +142,7 @@ namespace PurchaseSalesManagementSystem.Controllers
                 dt.Columns["DataType"]!.ColumnName = "Data Type";
             }
 
-            var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC", "PO");
+            var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC", "SO");
             var fileNamePrefix = isWithoutPoReport
                 ? "Inventory Forecasting Report"
                 : reportName;

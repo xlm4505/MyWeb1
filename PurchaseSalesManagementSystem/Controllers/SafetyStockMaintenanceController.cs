@@ -1,4 +1,6 @@
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
+using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
 using PurchaseSalesManagementSystem.Repository;
 using System.Text.RegularExpressions;
@@ -124,4 +126,44 @@ public class SafetyStockMaintenanceController : Controller
     {
         return quantity >= QuantityMinValue && quantity <= QuantityMaxValue;
     }
+
+
+    [HttpGet]
+    public IActionResult ExportToExcel(string itemCode)
+    {
+        // SQL ŽÀs
+        var list = _repo.GetSafetyStock(itemCode).ToList();
+
+        var exportToExcel = new FormattedDataTableExcelExporter();
+        var dt = exportToExcel.ConvertToDataTableFast(list);
+
+        var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "Safety Stock");
+        var worksheet = workbook.Worksheet("Safety Stock");
+
+        worksheet.Column(6).CellsUsed().Style.NumberFormat.Format = "0;-0;0";
+        worksheet.Column(7).Style.NumberFormat.Format = "0;-0;";
+
+
+
+        var reportName = "SafetyStock ";
+        return SaveExcel(workbook, reportName);
+
+    }
+
+    // =========================
+    // ‹¤’Ê•Û‘¶ˆ—
+    // =========================
+    private ActionResult SaveExcel(XLWorkbook workbook, string reportName)
+    {
+        using (var stream = new MemoryStream())
+        {
+            workbook.SaveAs(stream);
+            return File(
+                stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"{reportName}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
+            );
+        }
+    }
 }
+

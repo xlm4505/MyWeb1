@@ -192,5 +192,57 @@ namespace PurchaseSalesManagementSystem.Repository
                 }
             }
         }
+
+
+        public IEnumerable<Model_SafetyStockMaintenance> GetSafetyStock(string? itemCode)
+        {
+            var list = new List<Model_SafetyStockMaintenance>();
+
+            string sqlPath = Path.Combine(
+                _env.ContentRootPath,
+                "SQL",
+                "SafetyStockMaintenance",
+                "GetForecastItems.sql"
+            );
+
+            var sql = File.ReadAllText(sqlPath);
+
+            using (var conn = _connectionFactory.GetConnection())
+            {
+                conn.Open();
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+
+                    cmd.CommandTimeout = 300;
+
+                    cmd.Parameters.AddWithValue("@ItemCode", itemCode?.Trim() ?? string.Empty);
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            list.Add(new Model_SafetyStockMaintenance
+                            {
+                                ItemCode = reader["ItemCode"] as string ?? string.Empty,
+                                ProcType = reader["ProcType"] as string ?? string.Empty,
+                                ARDivisionNo = reader["ARDivisionNo"] as string ?? string.Empty,
+                                CustomerNo = reader["CustomerNo"] as string ?? string.Empty,
+                                WarehouseCode = reader["WarehouseCode"] as string ?? string.Empty,
+                                Quantity = reader.IsDBNull(reader.GetOrdinal("Quantity"))
+                                    ? 0
+                                    : Convert.ToDecimal(reader["Quantity"]),
+                                ItemNo = reader.IsDBNull(reader.GetOrdinal("ItemNo"))
+                                    ? 0
+                                    : Convert.ToDecimal(reader["ItemNo"]),
+                                Comment = reader["Comment"] as string ?? string.Empty
+                            });
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
     }
 }
