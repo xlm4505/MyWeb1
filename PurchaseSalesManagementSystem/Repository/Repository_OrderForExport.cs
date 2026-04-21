@@ -1,4 +1,4 @@
-﻿using PurchaseSalesManagementSystem.Common;
+using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
 using Microsoft.Data.SqlClient;
 
@@ -102,13 +102,13 @@ namespace PurchaseSalesManagementSystem.Repository
 										? null
 										: reader.GetDateTime(reader.GetOrdinal("DeliveryDate")),
 								CommentText = reader["CommentText"] as string ?? "",
-								UnitCost = reader.IsDBNull(reader.GetOrdinal("UnitCost"))
+								LastUnitCost = reader.IsDBNull(reader.GetOrdinal("LastUnitCost"))
 										? null
-										: reader.GetDecimal(reader.GetOrdinal("UnitCost")),
+										: reader.GetDecimal(reader.GetOrdinal("LastUnitCost")),
 								PurchaseOrderNo = reader["PurchaseOrderNo"] as string ?? "",
-								UDF_CUSTPONO = reader["UDF_CUSTPONO"] as string ?? "",
 								InternalNotes = reader["InternalNotes"] as string ?? "",
-							});
+                                ProdCat = reader["ProdCat"] as string ?? "",
+                            });
 						}
 					}
 				}

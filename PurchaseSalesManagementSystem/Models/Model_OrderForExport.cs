@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using Microsoft.AspNetCore.Http;
@@ -36,10 +36,11 @@ namespace PurchaseSalesManagementSystem.Models
 		public DateTime? CommitDate { get; set; }
 		public DateTime? DeliveryDate { get; set; }
 		public string? CommentText { get; set; }
-		public decimal? UnitCost { get; set; }
+		public decimal? LastUnitCost { get; set; }
 		public string? PurchaseOrderNo { get; set; }
-		public string? UDF_CUSTPONO { get; set; }
-		public string? InternalNotes { get; set; }
+        public string? InternalNotes { get; set; }
+        public string? ProdCat { get; set; }
+
 		public string OrderDateText
 		{
 			get
