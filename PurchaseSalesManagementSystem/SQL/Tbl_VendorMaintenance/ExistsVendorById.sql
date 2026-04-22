@@ -1,0 +1,3 @@
+SELECT COUNT(1)
+FROM dbo.Tbl_Vendor
+WHERE ID = @ID;

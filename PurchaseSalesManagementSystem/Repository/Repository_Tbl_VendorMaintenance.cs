@@ -126,5 +126,50 @@ namespace PurchaseSalesManagementSystem.Repository
 
             return affectedRows;
         }
+        public bool ExistsVendorById(string id)
+        {
+            string sqlPath = Path.Combine(
+                _env.ContentRootPath,
+                "SQL",
+                "Tbl_VendorMaintenance",
+                "ExistsVendorById.sql"
+            );
+            var sql = File.ReadAllText(sqlPath);
+
+            using (var conn = _connectionFactory.GetConnection("FUJIKINDB"))
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ID", id?.Trim() ?? string.Empty);
+                    var count = Convert.ToInt32(cmd.ExecuteScalar());
+                    return count > 0;
+                }
+            }
+        }
+
+        public int InsertVendor(Model_Tbl_VendorMaintenance item)
+        {
+            string sqlPath = Path.Combine(
+                _env.ContentRootPath,
+                "SQL",
+                "Tbl_VendorMaintenance",
+                "InsertVendor.sql"
+            );
+            var sql = File.ReadAllText(sqlPath);
+
+            using (var conn = _connectionFactory.GetConnection("FUJIKINDB"))
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ID", item.ID ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@APDivisionNo", item.APDivisionNo ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@VendorNo", item.VendorNo ?? string.Empty);
+                    cmd.Parameters.AddWithValue("@VendorName", item.VendorName ?? string.Empty);
+                    return cmd.ExecuteNonQuery();
+                }
+            }
+        }
     }
 }

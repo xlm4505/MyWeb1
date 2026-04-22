@@ -45,7 +45,120 @@ function sanitizeNumber50Input(event) {
         input.value = digitsOnly;
     }
 }
+function sanitizeModalInput(event) {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) {
+        return;
+    }
 
+    if (input.classList.contains("modal-id-number")) {
+        const digitsOnly = input.value.replace(/\D/g, "").slice(0, 30);
+        if (digitsOnly !== input.value) {
+            input.value = digitsOnly;
+        }
+    }
+
+    if (input.classList.contains("modal-number50")) {
+        const digitsOnly = input.value.replace(/\D/g, "").slice(0, 50);
+        if (digitsOnly !== input.value) {
+            input.value = digitsOnly;
+        }
+    }
+}
+
+function openAddModal() {
+    document.getElementById("addId").value = "";
+    document.getElementById("addApDivisionNo").value = "";
+    document.getElementById("addVendorNo").value = "";
+    document.getElementById("addVendorName").value = "";
+    document.getElementById("addModal").style.display = "block";
+}
+
+function closeAddModal() {
+    document.getElementById("addModal").style.display = "none";
+}
+
+function validateAddForm() {
+    const id = document.getElementById("addId").value.trim();
+    const apDivisionNo = document.getElementById("addApDivisionNo").value.trim();
+    const vendorNo = document.getElementById("addVendorNo").value.trim();
+
+    if (!id) {
+        alert("ID is required.");
+        document.getElementById("addId").focus();
+        return false;
+    }
+
+    if (!/^\d{1,30}$/.test(id)) {
+        alert("ID must be numeric and up to 30 digits.");
+        document.getElementById("addId").focus();
+        return false;
+    }
+
+    if (apDivisionNo && !/^\d{1,50}$/.test(apDivisionNo)) {
+        alert("APDivisionNo must be numeric and up to 50 digits.");
+        document.getElementById("addApDivisionNo").focus();
+        return false;
+    }
+
+    if (vendorNo && !/^\d{1,50}$/.test(vendorNo)) {
+        alert("VendorNo must be numeric and up to 50 digits.");
+        document.getElementById("addVendorNo").focus();
+        return false;
+    }
+
+    return true;
+}
+
+async function addItem() {
+    if (!validateAddForm()) {
+        return;
+    }
+
+    if (!confirm("Do you want to register this data?")) {
+        return;
+    }
+
+    const payload = {
+        id: document.getElementById("addId").value.trim(),
+        apDivisionNo: document.getElementById("addApDivisionNo").value.trim(),
+        vendorNo: document.getElementById("addVendorNo").value.trim(),
+        vendorName: document.getElementById("addVendorName").value.trim().slice(0, 100)
+    };
+
+    const response = await fetch("/Tbl_Vendor/Add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+        let message = "Data registration failed.";
+        try {
+            const errorResult = await response.json();
+            if (errorResult && errorResult.message) {
+                message = errorResult.message;
+            }
+        } catch (error) {
+            // ignore JSON parse errors and keep default message
+        }
+
+        alert(message);
+        return;
+    }
+
+    alert("Data has been registered.");
+    closeAddModal();
+    await searchItems();
+}
+
+function requestCloseAddModal() {
+    if (!confirm("Do you want to close this screen?")) {
+        return;
+    }
+
+    closeAddModal();
+}
 async function searchItems() {
     const id = document.getElementById("searchCode").value.trim();
     const query = id ? `?id=${encodeURIComponent(id)}` : "";
@@ -129,10 +242,17 @@ async function deleteSelected() {
     alert(`Deleted ${result.deletedCount} row(s).`);
     await searchItems();
 }
-
+function downloadExcel() {
+    const id = document.getElementById("searchCode").value.trim();
+    window.location.href = `/Tbl_Vendor/ExportToExcel?id=${encodeURIComponent(id)}`;
+}
 document.getElementById("searchForm").addEventListener("submit", async function (e) {
     e.preventDefault();
     await searchItems();
 });
 
 document.getElementById("dataBody").addEventListener("input", sanitizeNumber50Input);
+document.getElementById("addButton").addEventListener("click", openAddModal);
+document.getElementById("okAddButton").addEventListener("click", addItem);
+document.getElementById("closeAddButton").addEventListener("click", requestCloseAddModal);
+document.getElementById("addModal").addEventListener("input", sanitizeModalInput);

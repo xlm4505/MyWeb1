@@ -44,6 +44,7 @@
         <form id="searchForm" class="d-flex mb-3">
             <input type="text" id="searchCode" class="form-control me-2" placeholder="Enter ID">
             <button type="submit" class="btn btn-primary">Search</button>
+            <button type="button" id="addButton" class="btn btn-success ms-2">Add</button>
         </form>
 
         <div class="table-container">
@@ -64,6 +65,41 @@
         <div id="actionArea" class="mt-3" style="display:none;">
             <button class="btn btn-success me-2" type="button" onclick="updateSelected()">Update</button>
             <button class="btn btn-danger" type="button" onclick="deleteSelected()">Delete</button>
+            <button class="btn btn-success" type="button" onclick="downloadExcel()">Export to Excel</button>
+        </div>
+    </div>
+
+    <div id="addModal" class="modal" tabindex="-1" style="display:none; background: rgba(0,0,0,.5);">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Vendor</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="addId" class="form-label">ID *</label>
+                            <input type="text" id="addId" inputmode="numeric" class="form-control modal-id-number" maxlength="30">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="addApDivisionNo" class="form-label">APDivisionNo</label>
+                            <input type="text" id="addApDivisionNo" inputmode="numeric" class="form-control modal-number50" maxlength="50">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="addVendorNo" class="form-label">VendorNo</label>
+                            <input type="text" id="addVendorNo" inputmode="numeric" class="form-control modal-number50" maxlength="50">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="addVendorName" class="form-label">VendorName</label>
+                            <input type="text" id="addVendorName" class="form-control" maxlength="100">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="okAddButton" class="btn btn-primary">Ok</button>
+                    <button type="button" id="closeAddButton" class="btn btn-secondary">Close</button>
+                </div>
+            </div>
         </div>
     </div>
 
