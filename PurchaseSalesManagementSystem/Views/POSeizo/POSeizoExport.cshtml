@@ -27,11 +27,9 @@
                 <!-- Vendor -->
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">Vendor</label>
-                    <div class="col-sm-4">
-                        <select class="form-select" id="vendorCode"></select>
-                    </div>
-                    <div class="col-sm-5">
-                        <input type="text" id="vendorName" class="form-control" readonly>
+                    <div class="col-sm-9">
+                        <input type="text" id="vendor" list="vendorList" class="form-control" placeholder="*ALL" autocomplete="off">
+                        <datalist id="vendorList"></datalist>
                     </div>
                 </div>
 
@@ -89,38 +87,35 @@
     </div>
 
     <script>
+        const vendorMap = new Map(); // "VendorCode - VendorName" -> { code, name }
+
         document.getElementById("poDate").value = new Date().toISOString().slice(0, 10);
 
-        // Vendor プルダウン読み込み
+        // Vendor 入力候補読み込み
         loadVendors();
 
         function loadVendors() {
             fetch("/POSeizo/GetVendors")
                 .then(res => res.json())
                 .then(data => {
-                    const vendorSelect = document.getElementById("vendorCode");
-                    vendorSelect.innerHTML = "";
+                    const vendorList = document.getElementById("vendorList");
+                    const vendorInput = document.getElementById("vendor");
+                    vendorList.innerHTML = "";
+                    vendorMap.clear();
 
-                    // DB Vendor を追加
                     data.forEach(v => {
+                        const display = `${v.vendorNo} - ${v.vendorName}`;
+                        vendorMap.set(display, { code: v.vendorNo, name: v.vendorName });
                         const opt = document.createElement("option");
-                        opt.value = v.vendorNo;
-                        opt.textContent = v.vendorNo;
-                        opt.dataset.name = v.vendorName;
-                        vendorSelect.appendChild(opt);
+                        opt.value = display;
+                        vendorList.appendChild(opt);
                     });
 
-                    vendorSelect.selectedIndex = 1;
-                    vendorSelect.dispatchEvent(new Event("change"));
+                    if (data.length > 1) {
+                        vendorInput.value = `${data[1].vendorNo} - ${data[1].vendorName}`;
+                    }
                 });
         }
-
-        // VendorName 表示
-        document.getElementById("vendorCode").addEventListener("change", function () {
-            const selected = this.options[this.selectedIndex];
-            document.getElementById("vendorName").value = selected.dataset.name || "";
-        });
-
 
         // Vendor プルダウン読み込み
         loadUsers();
@@ -198,13 +193,22 @@
 
         // RUN → サーバー側で必要ファイルを作成してダウンロード
         document.getElementById("btnRun").addEventListener("click", async () => {
-            const vendor = document.getElementById("vendorCode").value;
+            const vendorInput = document.getElementById("vendor").value.trim();
             const userName = document.getElementById("userName").value;
             const orderStatus = document.getElementById("orderStatus").value;
             const poEntryDate = document.getElementById("poDate").value;
-            const vendorName = document.getElementById("vendorName").value;
             const shouldPrint = document.getElementById("printOption").checked;
+            const mappedVendor = vendorMap.get(vendorInput);
 
+            const vendor = mappedVendor
+                ? mappedVendor.code
+                : (vendorInput === "" ? "" : vendorInput.split(" - ")[0].trim());
+
+            const vendorName = mappedVendor
+                ? mappedVendor.name
+                : (vendorInput.includes(" - ")
+                    ? vendorInput.split(" - ").slice(1).join(" - ").trim()
+                    : "");
             let actionUrl = "";
             let checkUrl = "";
             if (vendor === "08-0000250") {
