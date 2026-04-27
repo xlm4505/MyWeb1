@@ -28,7 +28,7 @@
                 <div class="row mb-3">
                     <label class="col-sm-3 col-form-label">Vendor</label>
                     <div class="col-sm-9">
-                        <input type="text" id="vendor" list="vendorList" class="form-control" placeholder="*ALL" autocomplete="off">
+                        <input type="text" id="vendor" list="vendorList" class="form-control" autocomplete="off">
                         <datalist id="vendorList"></datalist>
                     </div>
                 </div>
@@ -88,12 +88,30 @@
 
     <script>
         const vendorMap = new Map(); // "VendorCode - VendorName" -> { code, name }
-
+        let lastVendorDisplay = "";
         document.getElementById("poDate").value = new Date().toISOString().slice(0, 10);
 
         // Vendor 入力候補読み込み
         loadVendors();
+        enableVendorFocusDropdown();
 
+        function enableVendorFocusDropdown() {
+            const vendorInput = document.getElementById("vendor");
+
+            vendorInput.addEventListener("focus", () => {
+                lastVendorDisplay = vendorInput.value;
+
+                // datalist をプルダウンのように表示するため、いったん空文字で input イベントを発火
+                vendorInput.value = "";
+                vendorInput.dispatchEvent(new Event("input", { bubbles: true }));
+            });
+
+            vendorInput.addEventListener("blur", () => {
+                if (vendorInput.value.trim() === "") {
+                    vendorInput.value = lastVendorDisplay;
+                }
+            });
+        }
         function loadVendors() {
             fetch("/POSeizo/GetVendors")
                 .then(res => res.json())
@@ -113,6 +131,7 @@
 
                     if (data.length > 1) {
                         vendorInput.value = `${data[1].vendorNo} - ${data[1].vendorName}`;
+                        lastVendorDisplay = vendorInput.value;
                     }
                 });
         }
