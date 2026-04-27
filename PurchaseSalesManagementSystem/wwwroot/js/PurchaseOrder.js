@@ -1,19 +1,27 @@
 ﻿// PurchaseOrder.js
+const vendorMap = new Map(); // "VendorCode - VendorName" -> { code, name }
+let lastVendorDisplay = "";
+
 document.addEventListener("DOMContentLoaded", () => {
     loadVendors();
-
-    document.getElementById("vendorCode").addEventListener("change", function () {
-        const selected = this.options[this.selectedIndex];
-        document.getElementById("vendorName").value = selected.dataset.name || "";
-    });
-
+    enableVendorFocusDropdown();
 
     document.getElementById("btnRun").addEventListener("click", () => {
-        const vendor = document.getElementById("vendorCode").value;
+        const vendorInput = document.getElementById("vendor").value.trim();
         const type = document.getElementById("productType").value;
-        const vendorName = document.getElementById("vendorName").value;
+        const mappedVendor = vendorMap.get(vendorInput);
 
-        let url = `/PurchaseOrder/ExportToExcel?reportName=PurchaseOrder&productType=${type}&vendorName=${vendorName}`;
+        const vendor = mappedVendor
+            ? mappedVendor.code
+            : (vendorInput === "" ? "00-0000000" : vendorInput.split(" - ")[0].trim());
+
+        const vendorName = mappedVendor
+            ? mappedVendor.name
+            : (vendorInput.includes(" - ")
+                ? vendorInput.split(" - ").slice(1).join(" - ").trim()
+                : "All vendors");
+
+        let url = `/PurchaseOrder/ExportToExcel?reportName=PurchaseOrder&productType=${type}&vendorName=${encodeURIComponent(vendorName)}`;
 
         // ★ ALL Vendors の場合は vendor を付けない
         if (vendor !== "00-0000000") {
@@ -24,29 +32,49 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
+function enableVendorFocusDropdown() {
+    const vendorInput = document.getElementById("vendor");
+
+    vendorInput.addEventListener("focus", () => {
+        lastVendorDisplay = vendorInput.value;
+
+        vendorInput.value = "";
+        vendorInput.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+
+    vendorInput.addEventListener("blur", () => {
+        if (vendorInput.value.trim() === "") {
+            vendorInput.value = lastVendorDisplay;
+        }
+    });
+}
+
 function loadVendors() {
     fetch("/PurchaseOrder/GetVendors")
         .then(res => res.json())
         .then(data => {
-            const vendorSelect = document.getElementById("vendorCode");
-            vendorSelect.innerHTML = "";
+            const vendorList = document.getElementById("vendorList");
+            const vendorInput = document.getElementById("vendor");
+            vendorList.innerHTML = "";
+            vendorMap.clear();
 
-            //const allOpt = document.createElement("option");
-            //allOpt.value = "00-0000000";
-            //allOpt.textContent = "00-0000000";
-            //allOpt.dataset.name = "ALL Vendors";
-            //vendorSelect.appendChild(allOpt);
+            const allVendorsDisplay = "00-0000000 - All vendors";
+            vendorMap.set(allVendorsDisplay, { code: "00-0000000", name: "All vendors" });
+            const allOpt = document.createElement("option");
+            allOpt.value = allVendorsDisplay;
+            vendorList.appendChild(allOpt);
 
-            data.forEach(v => {
-                const opt = document.createElement("option");
-                opt.value = v.vendorNo;
-                opt.textContent = v.vendorNo;
-                opt.dataset.name = v.vendorName;
-                vendorSelect.appendChild(opt);
-            });
+            data
+                .filter(v => v.vendorNo !== "00-0000000")
+                .forEach(v => {
+                    const opt = document.createElement("option");
+                    const display = `${v.vendorNo} - ${v.vendorName}`;
+                    vendorMap.set(display, { code: v.vendorNo, name: v.vendorName });
+                    opt.value = display;
+                    vendorList.appendChild(opt);
+                });
 
-            vendorSelect.selectedIndex = 0;
-            vendorSelect.dispatchEvent(new Event("change"));
+            vendorInput.value = allVendorsDisplay;
+            lastVendorDisplay = vendorInput.value;
         });
 }
-
