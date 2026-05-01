@@ -58,23 +58,16 @@ function loadVendors() {
             vendorList.innerHTML = "";
             vendorMap.clear();
 
-            const allVendorsDisplay = "00-0000000 - All vendors";
-            vendorMap.set(allVendorsDisplay, { code: "00-0000000", name: "All vendors" });
-            const allOpt = document.createElement("option");
-            allOpt.value = allVendorsDisplay;
-            vendorList.appendChild(allOpt);
-
-            data
-                .filter(v => v.vendorNo !== "00-0000000")
-                .forEach(v => {
-                    const opt = document.createElement("option");
-                    const display = `${v.vendorNo} - ${v.vendorName}`;
-                    vendorMap.set(display, { code: v.vendorNo, name: v.vendorName });
-                    opt.value = display;
-                    vendorList.appendChild(opt);
-                });
-
-            vendorInput.value = allVendorsDisplay;
-            lastVendorDisplay = vendorInput.value;
+            data.forEach(v => {
+                const display = `${v.vendorNo} - ${v.vendorName}`;
+                vendorMap.set(display, { code: v.vendorNo, name: v.vendorName });
+                const opt = document.createElement("option");
+                opt.value = display;
+                vendorList.appendChild(opt);
+            });
+            if (data.length > 0) {
+                vendorInput.value = `${data[0].vendorNo} - ${data[0].vendorName}`;
+                lastVendorDisplay = vendorInput.value;
+            }
         });
 }

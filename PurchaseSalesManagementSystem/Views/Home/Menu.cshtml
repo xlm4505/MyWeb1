@@ -1,5 +1,6 @@
 ﻿@{
     Layout = null;
+    var envValue = Context.Session.GetString("Environment");
 }
 
 <!DOCTYPE html>
@@ -15,7 +16,26 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">Purchase & Sales Management System</a>
+            <a class="navbar-brand" href="#">
+                Purchase & Sales Management System
+                @if (envValue == "Product")
+                {
+                    <span style="color:red; font-weight:bold; margin-left:10px;">
+                        .....Product Environment.....
+                    </span>
+                }
+                else if (envValue == "Staging")
+                {
+                    <span style="color:yellow; font-weight:bold; margin-left:10px;">
+                        .....Staging Environment.....
+                    </span>
+                }
+                else if (envValue == "noshow")
+                {
+                    
+                }
+            </a>
+
             <div class="d-flex align-items-center">
                 <span class="text-white me-3">
                     Logged in as @Context.Session.GetString("LoginUser")
@@ -86,7 +106,7 @@
                 <button class="btn btn-menu dropdown-toggle" type="button" data-bs-toggle="dropdown">PO Management</button>
                 <ul class="dropdown-menu">
                     <li><a class="dropdown-item" href="/ItemCodeMaster/ItemCodeMaster">Item Code Master Inquiry (1) ↗</a></li>
-                    <li><a class="dropdown-item" href="/MF_SalesPerson/MF_SalesPerson">Sales Person Table Maintenance ↗</a></li>
+                    @* <li><a class="dropdown-item" href="/MF_SalesPerson/MF_SalesPerson">Sales Person Table Maintenance ↗</a></li> *@
                     <li><a class="dropdown-item" href="/Tbl_Vendor/Tbl_Vendor">Vendor Table Maintenance ↗</a></li>
                     <li><a class="dropdown-item" href="/KatsuoIssueDate/KatsuoIssueDate">Katsuo Issue Date Table Maintenance ↗</a></li>
                     <li><a class="dropdown-item" href="/KatsuoUploadCheck/KatsuoUploadCheck">Katsuo Upload & Check (4) ↗</a></li>
