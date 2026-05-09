@@ -179,7 +179,7 @@ public class MonthlySalesSummaryController : Controller
 
         for (var i = 0; i < totalDefinitions.Length; i++)
         {
-            var totalRow = lastDataRow + i + 1;
+            var totalRow = lastDataRow + i + 2;
             var (label, criteria) = totalDefinitions[i];
             ws.Cell(totalRow, labelColumn).Value = label;
 
