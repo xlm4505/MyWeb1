@@ -158,7 +158,7 @@ public class MonthlySalesSummaryController : Controller
     }
     private static void AddMonthlySalesAndPurchasesTotals(XLWorkbook workbook)
     {
-        var ws = workbook.Worksheet("Export");
+        var ws = workbook.Worksheet("SQL-EXEC");
         var lastDataRow = ws.LastRowUsed()?.RowNumber() ?? 1;
         if (lastDataRow < 2)
         {
