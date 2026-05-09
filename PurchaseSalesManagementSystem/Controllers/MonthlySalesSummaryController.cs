@@ -53,15 +53,16 @@ public class MonthlySalesSummaryController : Controller
         }
 
         var exportToExcel = new FormattedDataTableExcelExporter();
-        using var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "Export", "PO");
+        using var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC", "PO");
         if (!isSummary)
         {
+            InsertBlankRowsAfterInventoryRecords(workbook);
             AddMonthlySalesAndPurchasesTotals(workbook);
         }
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
 
-        var timestamp = DateTime.Now.ToString("yyMMdd_HHmmss");
+        var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         var fileName = BuildExportFileName(exportTarget, targetData, timestamp);
 
         return File(
@@ -187,6 +188,25 @@ public class MonthlySalesSummaryController : Controller
                 var colLetter = XLHelper.GetColumnLetterFromNumber(col);
                 ws.Cell(totalRow, col).FormulaA1 =
                     $"SUMIF($H$2:$H${lastDataRow},\"{criteria}\",{colLetter}2:{colLetter}{lastDataRow})";
+            }
+        }
+    }
+    private static void InsertBlankRowsAfterInventoryRecords(XLWorkbook workbook)
+    {
+        var ws = workbook.Worksheet("SQL-EXEC");
+        var lastDataRow = ws.LastRowUsed()?.RowNumber() ?? 1;
+        if (lastDataRow < 2)
+        {
+            return;
+        }
+
+        var targetColumn = XLHelper.GetColumnNumberFromLetter("H");
+        for (var row = lastDataRow; row >= 2; row--)
+        {
+            var cellText = ws.Cell(row, targetColumn).GetString().Trim();
+            if (!string.IsNullOrEmpty(cellText) && cellText.StartsWith("4", StringComparison.Ordinal))
+            {
+                ws.Row(row + 1).InsertRowsAbove(1);
             }
         }
     }

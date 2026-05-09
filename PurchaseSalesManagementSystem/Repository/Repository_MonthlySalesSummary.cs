@@ -71,7 +71,7 @@ namespace PurchaseSalesManagementSystem.Repository
             using var conn = _connectionFactory.GetConnection();
             conn.Open();
             using var cmd = new SqlCommand(sql, conn);
-            cmd.CommandTimeout = 300;
+            cmd.CommandTimeout = 600;
             if (targetYear.HasValue)
             {
                 cmd.Parameters.AddWithValue("@YYYY", targetYear.Value);
