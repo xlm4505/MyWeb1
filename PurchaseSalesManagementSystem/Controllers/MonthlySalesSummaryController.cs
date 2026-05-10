@@ -54,7 +54,11 @@ public class MonthlySalesSummaryController : Controller
 
         var exportToExcel = new FormattedDataTableExcelExporter();
         using var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC", "PO");
-        if (!isSummary)
+        if (isSummaryAll)
+        {
+            AddMonthlySalesSummaryAllTotals(workbook);
+        }
+        else if (!isSummary)
         {
             InsertBlankRowsAfterInventoryRecords(workbook);
             AddMonthlySalesAndPurchasesTotals(workbook);
@@ -156,6 +160,31 @@ public class MonthlySalesSummaryController : Controller
             dt.Columns[amtColumnIndex].ColumnName = $"Amt({monthText})";
         }
     }
+
+    private static void AddMonthlySalesSummaryAllTotals(XLWorkbook workbook)
+    {
+        var ws = workbook.Worksheet("SQL-EXEC");
+        var lastDataRow = ws.LastRowUsed()?.RowNumber() ?? 1;
+        if (lastDataRow < 2)
+        {
+            return;
+        }
+
+        var totalRow = lastDataRow + 1;
+        var labelColumn = XLHelper.GetColumnNumberFromLetter("B");
+        var firstFormulaColumn = XLHelper.GetColumnNumberFromLetter("C");
+        var lastFormulaColumn = XLHelper.GetColumnNumberFromLetter("S");
+
+        ws.Cell(totalRow, labelColumn).Value = "Total Shipped:";
+
+        for (var col = firstFormulaColumn; col <= lastFormulaColumn; col++)
+        {
+            var colLetter = XLHelper.GetColumnLetterFromNumber(col);
+            ws.Cell(totalRow, col).FormulaA1 =
+                $"SUM(${colLetter}$2:${colLetter}${lastDataRow})";
+        }
+    }
+
     private static void AddMonthlySalesAndPurchasesTotals(XLWorkbook workbook)
     {
         var ws = workbook.Worksheet("SQL-EXEC");
