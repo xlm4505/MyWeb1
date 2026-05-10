@@ -77,7 +77,7 @@ public class MonthlySalesSummaryController : Controller
         {
             if (string.Equals(targetData, "ALL", StringComparison.OrdinalIgnoreCase))
             {
-                return $"Monthly Monthly Sales Summary Report_All_{timestamp}.xlsx";
+                return $"Monthly Sales Summary Report_All_{timestamp}.xlsx";
             }
 
             return $"Monthly Sales Summary Report_{timestamp}.xlsx";
