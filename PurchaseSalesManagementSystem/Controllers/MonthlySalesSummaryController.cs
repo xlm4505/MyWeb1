@@ -58,6 +58,10 @@ public class MonthlySalesSummaryController : Controller
         {
             AddMonthlySalesSummaryAllTotals(workbook);
         }
+        else if (isSummaryFastSelling)
+        {
+            AddMonthlySalesSummaryFastSellingTotals(workbook);
+        }
         else if (!isSummary)
         {
             InsertBlankRowsAfterInventoryRecords(workbook);
@@ -75,6 +79,30 @@ public class MonthlySalesSummaryController : Controller
             fileName
         );
     }
+    private static void AddMonthlySalesSummaryFastSellingTotals(XLWorkbook workbook)
+    {
+        var ws = workbook.Worksheet("SQL-EXEC");
+        var lastDataRow = ws.LastRowUsed()?.RowNumber() ?? 1;
+        if (lastDataRow < 2)
+        {
+            return;
+        }
+
+        var totalRow = lastDataRow + 1;
+        var labelColumn = XLHelper.GetColumnNumberFromLetter("C");
+        var firstFormulaColumn = XLHelper.GetColumnNumberFromLetter("D");
+        var lastFormulaColumn = XLHelper.GetColumnNumberFromLetter("T");
+
+        ws.Cell(totalRow, labelColumn).Value = "Total Shipped:";
+
+        for (var col = firstFormulaColumn; col <= lastFormulaColumn; col++)
+        {
+            var colLetter = XLHelper.GetColumnLetterFromNumber(col);
+            ws.Cell(totalRow, col).FormulaA1 =
+                $"SUM(${colLetter}$2:${colLetter}${lastDataRow})";
+        }
+    }
+
     private static string BuildExportFileName(string exportTarget, string? targetData, string timestamp)
     {
         if (string.Equals(exportTarget, "summary", StringComparison.OrdinalIgnoreCase))
