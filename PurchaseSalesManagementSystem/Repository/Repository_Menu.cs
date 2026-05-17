@@ -70,6 +70,7 @@ namespace PurchaseSalesManagementSystem.Repository
                             int total = reader.IsDBNull(reader.GetOrdinal("Total")) ? 0 : reader.GetInt32(reader.GetOrdinal("Total"));
                             int itemNo = 0;
                             int itemNoOrdinal = reader.GetOrdinal("ItemNo");
+                            string dataType = reader["Data Type"] as string ?? "";
                             if (!reader.IsDBNull(itemNoOrdinal))
                             {
                                 itemNo = Convert.ToInt32(reader.GetValue(itemNoOrdinal));
@@ -102,6 +103,10 @@ namespace PurchaseSalesManagementSystem.Repository
                                 MonthlyQty9 = m9,
                                 Total = total
                             });
+                            if ("3".Equals(dataType.Substring(0,1)))
+                            {
+                                results.Add(new Model_InventoryForecast());
+                            }
                         }
                     }
                 }

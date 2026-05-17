@@ -41,7 +41,7 @@
             // Upload固定
             selectAction.value = "Upload";
             selectAction.disabled = true;
-            actionButton.textContent = "Upload";
+            actionButton.textContent = "RV Upload";
 
         } else if (target === "FJK") {
 
@@ -52,7 +52,8 @@
                 selectAction.value = "Check";
             }
 
-            actionButton.textContent = selectAction.value;
+            actionButton.textContent =
+                (selectAction.value === "Upload") ? "RV Upload" : selectAction.value;
         }
     }
 
@@ -60,7 +61,8 @@
 
     selectAction.addEventListener("change", function () {
         if (!selectAction.disabled) {
-            actionButton.textContent = this.value;
+            actionButton.textContent =
+                (this.value === "Upload") ? "RV Upload" : this.value;
         }
     });
 
@@ -117,7 +119,7 @@
                     throw new Error(msg);
                 }
                 // TK は Excel を返す
-                if (target === "TK" || target === "CCL") {
+                if (target === "TK" || target === "CCL" || (target === "FJK" && action === "Upload")) {
                     // ★ ファイル名をレスポンスヘッダから取得
                     const disposition = response.headers.get("Content-Disposition");
                     let filename = "download.xlsx";
@@ -147,7 +149,7 @@
             .then(data => {
 
                 // ===== TK Excelダウンロード =====
-                if (target === "TK" || target === "CCL") {
+                if (target === "TK" || target === "CCL" || (target === "FJK" && action === "Upload")) {
 
                     const { blob, filename } = data;
 

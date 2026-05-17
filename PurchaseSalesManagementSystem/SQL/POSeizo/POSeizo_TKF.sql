@@ -19,7 +19,9 @@ SELECT
         ELSE PO_PurchaseOrderDetail.UDF_ITEMDESC
     END AS [Description],
 
-    IM_ItemVendor.VendorAliasItemNo AS [CustomerPartNumber],
+    REPLACE(
+            REPLACE(IM_ItemVendor.VendorAliasItemNo, CHAR(13), ''),
+        CHAR(10), '') AS [CustomerPartNumber],
 
     CASE
         WHEN PO_PurchaseOrderDetail.SalesOrderNo <> '' THEN '(1) '

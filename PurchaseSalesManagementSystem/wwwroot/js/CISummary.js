@@ -43,10 +43,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 alert('Please select the file (.xlsm or .pdf).');
                 return;
             }
-            if (extension == 'pdf') {
+            if (extension === 'pdf') {
                 formData.append("pdfFiles", file);
             } else {
-				formData.append("excelFiles", file);
+                formData.append("excelFiles", file);
             }
         }
 
@@ -56,8 +56,11 @@ document.addEventListener("DOMContentLoaded", () => {
             method: 'POST',
             body: formData
         })
-            .then(response => {
-                if (!response.ok) throw new Error('Server error');
+            .then(async response => {
+                if (!response.ok) {
+                    const data = await response.json().catch(() => null);
+                    throw new Error(data?.error_msg || 'Server Error');
+                }
                 return response.blob();
             })
             .then(blob => {
@@ -73,7 +76,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById('messageArea').textContent = 'Process complete.';
             })
             .catch(error => {
-                document.getElementById('messageArea').textContent = '"Process incomplete due to an error(s).';
+                document.getElementById('messageArea').textContent = error.message;
             });
     });
     function getCurrentDateMMddyyyy() {

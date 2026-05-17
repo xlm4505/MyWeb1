@@ -3,6 +3,8 @@ using System.IO.Compression;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
+using NPOI.HSSF.UserModel;
+using NPOI.SS.UserModel;
 using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
 using PurchaseSalesManagementSystem.Repository;
@@ -27,13 +29,14 @@ public class CISummaryController : Controller
 	[HttpPost]
 	public async Task<IActionResult> UploadFiles(List<IFormFile> pdfFiles, List<IFormFile> excelFiles)
 	{
+		var workDir = Path.Combine(
+            _env.ContentRootPath,
+            "AppDataWork",
+            "CISummary",
+            Guid.NewGuid().ToString());
+		string? zipPath = null;
 		try
 		{
-            var workDir = Path.Combine(
-                _env.ContentRootPath,
-                "AppDataWork",
-                "CISummary",
-                Guid.NewGuid().ToString());
             var fileExcelName = "";
             var originalExcelPath = "";
 
@@ -50,32 +53,52 @@ public class CISummaryController : Controller
                 var newExcelFileName = "";
                 fileExcelName = excelFile.FileName;
                 originalExcelPath = Path.Combine(workDir, fileExcelName);
+
                 using (var stream = new FileStream(originalExcelPath, FileMode.Create))
-				{
-					await excelFile.CopyToAsync(stream);
-					stream.Position = 0;
-					using (var workbook = new XLWorkbook(stream))
-					{
-						var worksheet = workbook.Worksheet(1);
-                        var a1Cell = worksheet.Cell("A1");
-                        var a2Cell = worksheet.Cell("A2");
-						var j5Cell = worksheet.Cell("J5");
-						if (j5Cell.GetString() == "Packing List / Commercial Invoice")
-						{
-							newExcelFileName = ProcessPackingWorksheet(worksheet, fileExcelName);
-                        }
-						else if (a1Cell.GetString() == "Rinku to Rinku" ||
-                            a2Cell.GetString() == "IT from Rinku to SFO" ||
-                            a1Cell.GetString() == "IT from RINKU to SFO Consolidation")
-						{
-                            ProcessSfoWorksheet(worksheet, fileExcelName);
-                            deleteFiles.Add(originalExcelPath);
-                        }
-					}
-                } 
+                {
+                    await excelFile.CopyToAsync(stream);
+                }
+
+                // .xls → .xlsx NPOI 変換（データ読み取り用一時ファイル）
+                var workExcelPath = originalExcelPath;
+                string? tempConvertedPath = null;
+                if (Path.GetExtension(fileExcelName).Equals(".xls", StringComparison.OrdinalIgnoreCase))
+                {
+                    workExcelPath = ConvertXlsToXlsx(originalExcelPath);
+                    tempConvertedPath = workExcelPath;
+                    // originalExcelPath は削除しない（ZIP 出力用に保持）
+                }
+
+                using (var stream = new FileStream(workExcelPath, FileMode.Open, FileAccess.Read))
+                using (var workbook = new XLWorkbook(stream))
+                {
+                    var worksheet = workbook.Worksheet(1);
+                    var a1Cell = worksheet.Cell("A1");
+                    var a2Cell = worksheet.Cell("A2");
+                    var j5Cell = worksheet.Cell("J5");
+                    if (j5Cell.GetString() == "Packing List / Commercial Invoice")
+                    {
+                        newExcelFileName = ProcessPackingWorksheet(worksheet, fileExcelName);
+                    }
+                    else if (a1Cell.GetString() == "Rinku to Rinku" ||
+                        a2Cell.GetString() == "IT from Rinku to SFO" ||
+                        a1Cell.GetString() == "IT from RINKU to SFO Consolidation")
+                    {
+                        ProcessSfoWorksheet(worksheet, fileExcelName);
+                        deleteFiles.Add(originalExcelPath);
+                    }
+                }
+
+                // 一時変換ファイルを削除
+                if (tempConvertedPath != null)
+                    System.IO.File.Delete(tempConvertedPath);
 
                 if(newExcelFileName != "")
                 {
+                    // .xls の場合は ZIP 内のファイル名も .xls に変更
+                    if (Path.GetExtension(fileExcelName).Equals(".xls", StringComparison.OrdinalIgnoreCase))
+                        newExcelFileName = Path.ChangeExtension(newExcelFileName, ".xls");
+
                     var renamedExcelPath = Path.Combine(workDir, newExcelFileName);
                     System.IO.File.Move(originalExcelPath, renamedExcelPath);
 
@@ -133,7 +156,7 @@ public class CISummaryController : Controller
             outputWorkbook.SaveAs(summaryExcelPath);
 
             var zipFileName = "CISummary-" + DateTime.Now.ToString("MMddyyyy") + ".zip";
-            var zipPath = Path.Combine(Path.GetDirectoryName(workDir)!, zipFileName);
+            zipPath = Path.Combine(Path.GetDirectoryName(workDir)!, zipFileName);
             System.IO.Compression.ZipFile.CreateFromDirectory(workDir, zipPath);
 
             var zipBytes = await System.IO.File.ReadAllBytesAsync(zipPath);
@@ -145,7 +168,12 @@ public class CISummaryController : Controller
         }
 		catch (Exception ex)
 		{
-			return Json(new { error_msg = $"server error: {ex.Message}" });
+			if (Directory.Exists(workDir))
+				Directory.Delete(workDir, true);
+			if (zipPath != null && System.IO.File.Exists(zipPath))
+				System.IO.File.Delete(zipPath);
+			var errorMsg = !string.IsNullOrEmpty(ex.Message) ? ex.Message : ex.GetType().Name;
+			return new JsonResult(new { error_msg = $"server error: {errorMsg}" }) { StatusCode = 500 };
 		}
 	}
 
@@ -475,6 +503,66 @@ public class CISummaryController : Controller
 	private bool IsNumeric(string s)
 	{
 		return double.TryParse(s, out _);
+	}
+
+	private string ConvertXlsToXlsx(string xlsPath)
+	{
+		var xlsxPath = Path.ChangeExtension(xlsPath, ".xlsx");
+		using var fs = new FileStream(xlsPath, FileMode.Open, FileAccess.Read);
+		var hssf = new HSSFWorkbook(fs);
+		var xlWorkbook = new XLWorkbook();
+
+		for (int i = 0; i < hssf.NumberOfSheets; i++)
+		{
+			var srcSheet = hssf.GetSheetAt(i);
+			var dstSheet = xlWorkbook.Worksheets.Add(srcSheet.SheetName);
+
+			for (int rowIdx = srcSheet.FirstRowNum; rowIdx <= srcSheet.LastRowNum; rowIdx++)
+			{
+				var srcRow = srcSheet.GetRow(rowIdx);
+				if (srcRow == null) continue;
+
+				for (int colIdx = 0; colIdx < srcRow.LastCellNum; colIdx++)
+				{
+					var srcCell = srcRow.GetCell(colIdx);
+					if (srcCell == null) continue;
+
+					// ClosedXML は 1 始まりインデックス
+					var dstCell = dstSheet.Cell(rowIdx + 1, colIdx + 1);
+
+					var cellType = srcCell.CellType == NPOI.SS.UserModel.CellType.Formula
+						? srcCell.CachedFormulaResultType
+						: srcCell.CellType;
+
+					switch (cellType)
+					{
+						case NPOI.SS.UserModel.CellType.String:
+							dstCell.Value = srcCell.StringCellValue;
+							break;
+						case NPOI.SS.UserModel.CellType.Numeric:
+							if (DateUtil.IsCellDateFormatted(srcCell))
+							{
+								var dateVal = srcCell.DateCellValue;
+								if (dateVal.HasValue)
+								{
+									dstCell.Value = dateVal.Value;
+									dstCell.Style.NumberFormat.Format = "yyyy/mm/dd";
+								}
+								// null の場合はセル空白のまま（DateTime.MinValue を渡さない）
+							}
+							else
+								dstCell.Value = srcCell.NumericCellValue;
+							break;
+						case NPOI.SS.UserModel.CellType.Boolean:
+							dstCell.Value = srcCell.BooleanCellValue;
+							break;
+					}
+				}
+			}
+		}
+
+		xlWorkbook.SaveAs(xlsxPath);
+		return xlsxPath;
 	}
 
 }

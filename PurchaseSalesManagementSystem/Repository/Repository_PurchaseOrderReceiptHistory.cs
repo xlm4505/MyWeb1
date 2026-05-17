@@ -18,12 +18,6 @@ namespace PurchaseSalesManagementSystem.Repository
         public IEnumerable<Model_Vendor> GetVendors()
         {
             var list = new List<Model_Vendor>();
-            // ALL追加
-            list.Add(new Model_Vendor
-            {
-                VendorNo = "*ALL",
-                VendorName = ""
-            });
 
             string sqlPath = Path.Combine(
                 _env.ContentRootPath,
@@ -58,13 +52,7 @@ namespace PurchaseSalesManagementSystem.Repository
         public IEnumerable<Model_ReceiptHistoryHeader_ItemCode> GetItems()
         {
             var list = new List<Model_ReceiptHistoryHeader_ItemCode>();
-            // ALL追加
-            list.Add(new Model_ReceiptHistoryHeader_ItemCode
-            {
-                ItemCode = "*ALL",
-                Desc = ""
-            });
-
+            
             string sqlPath = Path.Combine(
                 _env.ContentRootPath,
                 "SQL",

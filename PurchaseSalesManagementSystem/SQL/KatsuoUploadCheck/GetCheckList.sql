@@ -11,8 +11,8 @@ SELECT
     ''                     AS ItemDesc,
     0                      AS 'Ordered',
     0                      AS 'Received',
-    0                      AS 'Open(FOA)',
-    0                      AS 'Open(JPN)',
+    0                      AS 'OpenQty(FOA)',
+    0                      AS 'OpenQty(JPN)',
     0                      AS 'InTransit',
     0                      AS 'JFI(Original)',
     0                      AS 'JFI(OnHand)',
@@ -39,8 +39,8 @@ SELECT
     PO_PurchaseOrderDetail.UDF_ITEMDESC                                                       AS ItemDesc,
     QuantityOrdered                                                                           AS 'Ordered',
     QuantityReceived                                                                          AS 'Received',
-    QuantityOrdered - QuantityReceived                                                        AS 'Open(FOA)',
-    CAST(COALESCE(Katsuo.OpenQty, 0) AS int)                                                 AS 'Open(JPN)',
+    QuantityOrdered - QuantityReceived                                                        AS 'OpenQty(FOA)',
+    CAST(COALESCE(Katsuo.OpenQty, 0) AS int)                                                 AS 'OpenQty(JPN)',
     CAST(CASE WHEN Katsuo.OpenQty IS NULL THEN 0
               WHEN QuantityOrdered - QuantityReceived - Katsuo.OpenQty - COALESCE(RAInv.JFIOriginal, 0) <= 0 THEN 0
               ELSE QuantityOrdered - QuantityReceived - Katsuo.OpenQty - COALESCE(RAInv.JFIOriginal, 0)

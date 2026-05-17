@@ -1,0 +1,1 @@
+INSERT INTO U_UploadITData VALUES('4', @FromWH, @ToWH, @ItemCode, @Qty, @Memo, @IpAddress, @UserName, @NowDate, '0');

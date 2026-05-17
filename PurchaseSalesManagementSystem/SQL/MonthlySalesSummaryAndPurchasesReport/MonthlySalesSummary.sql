@@ -629,7 +629,7 @@ WITH TargetItem AS (
 SELECT
     KData.ItemNo
     , KData.ItemCode
-    , KData.ItemCodeDesc
+    , TRIM(REPLACE(REPLACE(KData.ItemCodeDesc, CHAR(13), ''),CHAR(10), '')) AS ItemCodeDesc
     , CONVERT(decimal (7, 0), COALESCE(Qty1, 0), 0) AS Qty
     , CONVERT(decimal (7, 0), COALESCE(Qty2, 0), 0) AS Qty
     , CONVERT(decimal (7, 0), COALESCE(Qty3, 0), 0) AS Qty

@@ -1,5 +1,6 @@
 ﻿@{
     Layout = null;
+    var envValue = Context.Session.GetString("Environment");
 }
 
 <!DOCTYPE html>
@@ -15,7 +16,26 @@
     <!-- ナビバー -->
     <nav class="navbar navbar-dark bg-dark mb-4">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <a class="navbar-brand" href="/Home/Menu">
+                ← Back to Menu
+
+                @if (envValue == "Product")
+                {
+                    <span style="color:red; font-weight:bold; margin-left:10px;">
+                        .....Product Environment.....
+                    </span>
+                }
+                else if (envValue == "Staging")
+                {
+                    <span style="color:yellow; font-weight:bold; margin-left:10px;">
+                        .....Staging Environment.....
+                    </span>
+                }
+                else if (envValue == "noshow")
+                {
+
+                }
+            </a>
             <span class="text-white">Invoice Combine & Upload</span>
         </div>
     </nav>
@@ -34,8 +54,8 @@
     <div class="mb-4 d-flex align-items-center">
         <label for="selectA" class="me-2">Action:</label>
         <select id="selectA" class="form-select w-auto">
-            <option value="Check">Check Open PO</option>
-            <option value="Upload">Upload</option>
+            <option value="Check" selected>Check Open PO</option>
+            <option value="Upload">RV Upload</option>
         </select>
     </div>
 

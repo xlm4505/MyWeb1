@@ -84,7 +84,7 @@ public class POSeizoController : Controller
         return File(
             excelBytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"{"PO_SeizoExport ["}{vendorName}{"]"}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
+            $"{"PO_SeizoExport_"}{vendorName}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
         );
     }
 
@@ -121,7 +121,7 @@ public class POSeizoController : Controller
         var worksheet = workbook.Worksheet("PO Seizo");
         worksheet.Column(1).Style.NumberFormat.Format = "#,##0";
         worksheet.Column(8).Style.NumberFormat.Format = "#,##0";
-        reportName = "PO_SeizoExport [" + vendorName + "]";
+        reportName = "PO_SeizoExport_" + vendorName;
         return SaveExcel(workbook, reportName);
 
     }

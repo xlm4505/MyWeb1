@@ -58,6 +58,12 @@ document.addEventListener("DOMContentLoaded", () => {
             body: formData
         })
             .then(response => {
+                const contentType = response.headers.get('Content-Type') ?? '';
+                if (contentType.includes('application/json')) {
+                    return response.json().then(data => {
+                        throw new Error(data.error_msg ?? 'Server Error');
+                    });
+                }
                 if (!response.ok) throw new Error('Server Error');
                 return response.blob();
             })
@@ -74,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 document.getElementById('messageArea').textContent = 'RA_StockList file (Excel) created.';
             })
             .catch(error => {
-                document.getElementById('messageArea').textContent = '"Process incomplete due to an error(s).';
+                document.getElementById('messageArea').innerText = error.message;
             });
     });
     function getCurrentDateMMddyyyy() {

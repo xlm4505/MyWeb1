@@ -158,10 +158,10 @@ public class ItemCodeMasterController : Controller
             ws.Cell(row, col++).Value = v.Class6;
 
             // Åö ãÙêîçsÇæÇØîwåiêF
-            if ((row % 2) == 0)
-            {
-                ws.Range(row, 1, row, headers.Length).Style.Fill.BackgroundColor = evenRowColor;
-            }
+            //if ((row % 2) == 0)
+            //{
+            //    ws.Range(row, 1, row, headers.Length).Style.Fill.BackgroundColor = evenRowColor;
+            //}
 
             row++;
         }

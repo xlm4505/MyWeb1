@@ -291,7 +291,7 @@ SELECT
         WHEN ExtendedDescriptionText LIKE '%Special Price%' THEN 'Special Price; ' + UDF_IM_DESC_2
         ELSE UDF_IM_DESC_2
     END AS Message,
-    AliasItemNo,
+    TRIM(REPLACE(REPLACE(AliasItemNo, CHAR(13), ''),CHAR(10), '')) AS AliasItemNo,
     CustomerPONo
 FROM
     BaseData2

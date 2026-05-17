@@ -28,8 +28,11 @@ public class RAUploadController : Controller
 	{
 		try
 		{
-			// U_RAInventoryƒf[ƒ^íœˆ—
+			// U_RAInventoryãƒ‡ãƒ¼ã‚¿å‰Šé™¤ã™ã‚‹
 			_repo.DeleteRAInventory();
+
+			var rows = new List<RAUpload_Insert>();
+			var errors = new List<string>();
 
 			using (var stream = new MemoryStream())
 			{
@@ -40,14 +43,14 @@ public class RAUploadController : Controller
 				{
 					foreach (var ws in workbook.Worksheets)
 					{
-						// w’è‚ÌƒV[ƒg‚Ì‚İˆ—
+						// æŒ‡å®šã®ã‚·ãƒ¼ãƒˆã®ã¿å‡¦ç†
 						if (!_warehouses.Contains(ws.Name)) continue;
-						// ƒZƒ‹A1‚Ì’l‚ğƒ`ƒFƒbƒN
+						// ã‚»ãƒ«A1ã®å€¤ã‚’ãƒã‚§ãƒƒã‚¯
 						if (ws.Cell("A1").GetString() != "RECEIVING NOTE") continue;
 						int lastRow = ws.LastRowUsed()?.RowNumber() ?? 0;
-						// ÅIs‚ğƒ`ƒFƒbƒN
+						// æœ€çµ‚è¡Œã‚’ãƒã‚§ãƒƒã‚¯
 						if (lastRow <= 5) continue;
-						// "Bal" —ñŒŸõi4s–Ú K`ZZj
+						// "Bal" åˆ—æ¤œç´¢ï¼ˆ4è¡Œç›® Kåˆ—ä»¥é™ï¼‰
 						var headerRow = ws.Row(4);
 						int balColumn = -1;
 						int lastColumn = ws.LastColumnUsed().ColumnNumber();
@@ -65,87 +68,87 @@ public class RAUploadController : Controller
 						for (int r = 5; r <= lastRow; r++)
 						{
 							var itemCode = ws.Cell(r, 9).GetString();
-							// Bal—ñ
+							// Balåˆ—
 							var qtyCell = ws.Cell(r, balColumn);
-							// ‹ó”’ƒ`ƒFƒbƒN
-							if (string.IsNullOrWhiteSpace(itemCode)) continue;
-							// 0ƒ`ƒFƒbƒN
+
+							// 0ãƒã‚§ãƒƒã‚¯
 							if (!qtyCell.TryGetValue(out decimal qty)) continue;
 							if (qty == 0) continue;
 
-							var rAUpload_insert =  new RAUpload_Insert
+							// POç©ºç™½ãƒã‚§ãƒƒã‚¯
+							var poNo = ws.Cell(r, 1).GetString();
+							if (poNo == string.Empty) continue;
+
+							// G/H/I åˆ—ã®ç©ºç™½ãƒã‚§ãƒƒã‚¯
+							var emptyColumns = new List<string>();
+							if (string.IsNullOrWhiteSpace(ws.Cell(r, 7).GetString())) emptyColumns.Add("DESCRIPTION OF GOODS");
+							if (string.IsNullOrWhiteSpace(ws.Cell(r, 8).GetString())) emptyColumns.Add("UNIT PRICE");
+							if (string.IsNullOrWhiteSpace(itemCode)) emptyColumns.Add("Item#");
+							if (emptyColumns.Count > 0)
+							{
+								errors.Add($"Sheet: {ws.Name}, Row: {r} - Column {string.Join(", ", emptyColumns)} is empty");
+							}
+
+							if (errors.Count > 0)
+							{
+								continue;
+							}
+
+							rows.Add(new RAUpload_Insert
 							{
 								EntryDate = DateTime.Now,
 								WarehouseCode = ws.Name,
 								ItemCode = itemCode,
 								Description = ws.Cell(r, 7).GetString(),
 								OriginalQty = ws.Cell(r, 10).GetValue<decimal>(),
-								Qty = ws.Cell(r, balColumn).GetValue<decimal>(),
+								Qty = qtyCell.GetValue<decimal>(),
 								InvoiceNo = ws.Cell(r, 1).GetString(),
 								Box = ws.Cell(r, 2).GetString(),
 								Weight = decimal.Zero,
 								DateReceived = ws.Cell(r, 4).GetValue<DateTime>(),
 								From = ws.Cell(r, 5).GetString(),
-								VantecRef =	ws.Cell(r, 6).GetString(),
+								VantecRef = ws.Cell(r, 6).GetString(),
 								UnitPrice = ws.Cell(r, 8).GetValue<decimal>(),
 								ShipMark = ws.Cell(r, 3).GetString(),
 								Comment = "",
-							};
-
-							_repo.InsertRAInventory(rAUpload_insert);
+							});
 						}
 					}
 				}
 			}
 
-			// ƒ_ƒEƒ“ƒ[ƒhƒf[ƒ^‚ğ’Šo‚·‚é
-			var downloadData = _repo.GetDownloadData();
+			if (errors.Count > 0)
+			{
+				return Json(new { error_msg = string.Join("\n", errors) });
+			}
 
-			// JFI‚Ì‡Œv
-			var jfiSum = downloadData.Sum(x => x.JFI);
-			// NAL‚Ì‡Œv
-			var nalsum = downloadData.Sum(x => x.NAL);
-			// NCA‚Ì‡Œv
-			var ncaSum = downloadData.Sum(x => x.NCA);
-			// NTX‚Ì‡Œv
-			var ntxSum = downloadData.Sum(x => x.NTX);
-			// UTX‚Ì‡Œv
-			var utxSum = downloadData.Sum(x => x.UTX);
-			// UGP‚Ì‡Œv
-			var ugpSum = downloadData.Sum(x => x.UGP);
-			// IFS‚Ì‡Œv
-			var ifsSum = downloadData.Sum(x => x.IFS);
-			// NNJ‚Ì‡Œv
-			var nnjSum = downloadData.Sum(x => x.NNJ);
-			// XIT‚Ì‡Œv
-			var xitSum = downloadData.Sum(x => x.XIT);
-			// Total‚Ì‡Œv
-			var totalSum = downloadData.Sum(x => x.Total);
+			if (rows.Count > 0)
+			{
+				_repo.InsertRAInventoryBulk(rows);
+			}
 
-			var list = downloadData.ToList();
+			// ãƒ€ã‚¦ãƒ³ãƒ­ãƒ¼ãƒ‰ãƒ‡ãƒ¼ã‚¿ã‚’æŠ½å‡ºã™ã‚‹
+			var downloadData = _repo.GetDownloadData().ToList();
 
-			list.Add(new RAUpload_ExportToExcel
+			// åˆè¨ˆè¡Œã‚’è¿½åŠ 
+			downloadData.Add(new RAUpload_ExportToExcel
 			{
 				ItemCode = "",
 				ItemDesc = "",
-				JFI = jfiSum,
-				NAL = nalsum,
-				NCA = ncaSum,
-				NTX = ntxSum,
-				UTX = utxSum,
-				UGP = ugpSum,
-				IFS = ifsSum,
-				NNJ = nnjSum,
-				XIT = xitSum,
-				Total = totalSum,
+				JFI = downloadData.Sum(x => x.JFI),
+				NAL = downloadData.Sum(x => x.NAL),
+				NCA = downloadData.Sum(x => x.NCA),
+				NTX = downloadData.Sum(x => x.NTX),
+				UTX = downloadData.Sum(x => x.UTX),
+				UGP = downloadData.Sum(x => x.UGP),
+				IFS = downloadData.Sum(x => x.IFS),
+				NNJ = downloadData.Sum(x => x.NNJ),
+				XIT = downloadData.Sum(x => x.XIT),
+				Total = downloadData.Sum(x => x.Total),
 			});
 
-			IEnumerable<RAUpload_ExportToExcel> result = list;
-
 			FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
-			DataTable dt = new DataTable();
-
-			dt = exportToExcel.ConvertToDataTableFast(result);
+			DataTable dt = exportToExcel.ConvertToDataTableFast(downloadData);
 
 			var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt, "StockList", "SO");
 

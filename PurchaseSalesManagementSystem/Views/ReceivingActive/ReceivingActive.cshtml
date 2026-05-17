@@ -1,5 +1,6 @@
 ﻿@{
     Layout = null;
+    var envValue = Context.Session.GetString("Environment");
 }
 
 
@@ -9,20 +10,38 @@
     <meta charset="UTF-8">
     <title>Receiving Active - Fujikin</title>
     <link href="~/lib/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <script src="~/lib/xlsx/xlsx.full.min.js"></script>
 </head>
 <body class="p-4">
     <!-- ナビバー -->
     <nav class="navbar navbar-dark bg-dark mb-4">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <a class="navbar-brand" href="/Home/Menu">
+                ← Back to Menu
+
+                @if (envValue == "Product")
+                {
+                    <span style="color:red; font-weight:bold; margin-left:10px;">
+                        .....Product Environment.....
+                    </span>
+                }
+                else if (envValue == "Staging")
+                {
+                    <span style="color:yellow; font-weight:bold; margin-left:10px;">
+                        .....Staging Environment.....
+                    </span>
+                }
+                else if (envValue == "noshow")
+                {
+
+                }
+            </a>
             <span class="text-white">Receiving Active</span>
         </div>
     </nav>
 
     <!-- アップロードフォーム -->
     <div class="card p-3">
-        <input type="file" id="fileInput" class="form-control mb-3" multiple>
+        <input type="file" id="fileInput" class="form-control mb-3" accept=".xlsx,.xls,.xlsm" multiple>
 
         <!-- 選択ファイル一覧（枠付き） -->
         <div id="fileList" class="border rounded p-2 mb-3" style="min-height:60px;">
@@ -31,79 +50,12 @@
         </div>
 
         <!-- アップロードボタン -->
-        <button class="btn btn-primary" onclick="uploadFile('Katsuo Upload and Check')">Update</button>
+        <button id="btnUpload" class="btn btn-primary">Update</button>
     </div>
 
     <!-- メッセージ表示 -->
     <div id="messageArea" class="mt-3 text-primary fw-bold"></div>
 
-    <!-- チェックリスト表示 -->
-    <div id="checklist" class="mt-4" style="display:none;">
-        <h5>Console log</h5>
-        <ul class="list-group">
-            <li class="list-group-item">✔ Connect to Sage100 OK</li>
-            <li class="list-group-item">✔ Upload OK</li>
-            <li class="list-group-item">✔ Complete OK</li>
-        </ul>
-    </div>
-
-    <script>
-        // ファイル選択時に一覧を表示
-         document.getElementById("fileInput").addEventListener("change", function () {
-            const fileListItems = document.getElementById("fileListItems");
-            fileListItems.innerHTML = "";
-
-            for (const file of this.files) {
-                const li = document.createElement("li");
-                li.textContent = file.name;
-                fileListItems.appendChild(li);
-            }
-
-            if (this.files.length === 0) {
-                const li = document.createElement("li");
-                li.textContent = "No File Selected";
-                fileListItems.appendChild(li);
-            }
-        });
-
-
-
-        function uploadFile(buttonName) {
-            const fileInput = document.getElementById("fileInput");
-            const messageArea = document.getElementById("messageArea");
-
-            if (fileInput.files.length !== 2) {
-                alert("Error: Select ONLY 2 files — Receiving Active File and RA_StockList File.");
-                return;
-            }
-
-            // メッセージ表示：アップロード開始
-            messageArea.textContent = "Upload Start...";
-
-            // ダミー処理：少し待ってから完了メッセージとチェックリスト表示
-            setTimeout(() => {
-                messageArea.textContent = "Update OK！";
-                document.getElementById("checklist").style.display = "block";
-
-                // Excel生成（チェックリスト＋ボタン名）
-                const data = [
-                    ["Check List", buttonName],
-                    ["File Count", fileInput.files.length],
-                    ["Step1", "OK"],
-                    ["Step2", "OK"],
-                    ["Step3", "OK"],
-                    ["Step4", "OK"]
-                ];
-
-                const ws = XLSX.utils.aoa_to_sheet(data);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "Checklist");
-
-                const filename = "Receiving Active_" +
-                    new Date().toISOString().slice(0, 10) + ".xlsx";
-                XLSX.writeFile(wb, filename);
-            }, 1500);
-        }
-    </script>
+    <script src="~/js/ReceivingActive.js"></script>
 </body>
 </html>

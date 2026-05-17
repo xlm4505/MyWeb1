@@ -1,5 +1,6 @@
 ﻿@{
     Layout = null;
+    var envValue = Context.Session.GetString("Environment");
 }
 
 <!DOCTYPE html>
@@ -14,14 +15,33 @@
     <!-- ナビバー -->
     <nav class="navbar navbar-dark bg-dark mb-4">
         <div class="container-fluid">
-            <a class="navbar-brand" href="/Home/Menu">← Back to Menu</a>
+            <a class="navbar-brand" href="/Home/Menu">
+                ← Back to Menu
+
+                @if (envValue == "Product")
+                {
+                    <span style="color:red; font-weight:bold; margin-left:10px;">
+                        .....Product Environment.....
+                    </span>
+                }
+                else if (envValue == "Staging")
+                {
+                    <span style="color:yellow; font-weight:bold; margin-left:10px;">
+                        .....Staging Environment.....
+                    </span>
+                }
+                else if (envValue == "noshow")
+                {
+
+                }
+            </a>
             <span class="text-white">Inventory Transfer Upload</span>
         </div>
     </nav>
 
     <!-- アップロードフォーム -->
     <div class="card p-3">
-        <input type="file" id="fileInput" class="form-control mb-3" multiple>
+        <input type="file" id="fileInput" class="form-control mb-3" accept=".xlsx">
 
         <!-- 選択ファイル一覧（枠付き） -->
         <div id="fileList" class="border rounded p-2 mb-3" style="min-height:60px;">
@@ -30,58 +50,20 @@
         </div>
 
         <!-- アップロードボタン -->
-        <button class="btn btn-primary" onclick="uploadFile('Katsuo Upload and Check')">Upload</button>
+        <button id="uploadBtn" class="btn btn-primary" onclick="runUpload()">Upload</button>
+        <div id="uploadMessage" class="mt-3 fw-bold text-primary"></div>
     </div>
 
-    <!-- メッセージ表示 -->
-    <div id="messageArea" class="mt-3 text-primary fw-bold"></div>
-
-    <!-- チェックリスト表示 -->
-    <div id="checklist" class="mt-4" style="display:none;">
-        <h5>Console log</h5>
-        <ul class="list-group">
+    <!-- エラーログ -->
+    <div id="errorLogDiv" class="mt-4" style="display:none;">
+        <h5>Error log</h5>
+        <ul id="errorLog" class="list-group">
             <li class="list-group-item">✔ Connect to Sage100 OK</li>
             <li class="list-group-item">✔ Upload OK</li>
             <li class="list-group-item">✔ Complete OK</li>
         </ul>
     </div>
 
-    <script>
-        // ファイル選択時に一覧を表示
-        document.getElementById("fileInput").addEventListener("change", function () {
-            const fileListItems = document.getElementById("fileListItems");
-            fileListItems.innerHTML = "";
-            if (this.files.length === 0) {
-                const li = document.createElement("li");
-                li.textContent = "No File Selected";
-                fileListItems.appendChild(li);
-            } else {
-                for (const file of this.files) {
-                    const li = document.createElement("li");
-                    li.textContent = file.name;
-                    fileListItems.appendChild(li);
-                }
-            }
-        });
-
-        function uploadFile(buttonName) {
-            const fileInput = document.getElementById("fileInput");
-            const messageArea = document.getElementById("messageArea");
-
-            if (!fileInput.files.length) {
-                alert("Select upload File");
-                return;
-            }
-
-            // メッセージ表示：アップロード開始
-            messageArea.textContent = "Upload Start...";
-
-            // ダミー処理：少し待ってから完了メッセージとチェックリスト表示
-            setTimeout(() => {
-                messageArea.textContent = "Upload OK！";
-                
-            }, 1500);
-        }
-    </script>
+    <script src="~/js/ITUpload.js"></script>
 </body>
 </html>

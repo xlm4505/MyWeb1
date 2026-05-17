@@ -277,7 +277,7 @@ WITH KData AS (
 ) 
 SELECT
     KData.ItemCode
-    , KData.ItemCodeDesc
+    , TRIM(REPLACE(REPLACE(KData.ItemCodeDesc, CHAR(13), ''),CHAR(10), '')) AS ItemCodeDesc
     , KData.ItemNo
     , KData.[PrdsGroup]
     , KData.Catergory

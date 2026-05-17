@@ -1,4 +1,4 @@
-﻿// OrderForExport.js
+// OrderForExport.js
 document.addEventListener("DOMContentLoaded", () => {
     loadHeader();
 
@@ -98,16 +98,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     td28.textContent = v.commentText;
 
                     const td29 = document.createElement("td");
-                    td29.textContent = v.unitCost;
+                    td29.textContent = v.lastUnitCost;
 
 					const td30 = document.createElement("td");
                     td30.textContent = v.purchaseOrderNo;
 
                     const td31 = document.createElement("td");
-                    td31.textContent = v.udf_custpono;
+                    td31.textContent = v.internalNotes;
 
 					const td32 = document.createElement("td");
-                    td32.textContent = v.internalNotes;
+                    td32.textContent = v.prodCat;
 
                     trMain.appendChild(td1);
                     trMain.appendChild(td2);
@@ -163,7 +163,7 @@ function loadHeader() {
         "CustomerNo", "BillToName", "ShipToCity", "ShipVia", "HeaderComment", "CustPO_Ln", "ItemCode",
         "ItemDescription", "AliasItemNo", "Whs", "Weight", "#Ordded", "#Shipped", "#BO", "UnitPrice",
         "ExtensionAmt", "ReqDate", "PushOut", "PromiseDate", "CommitDate", "DeliveryDate", "CommentText",
-        "UnitCost", "PurchaseOrderNo", "UDF_CUSTPONO", "InternalNotes"
+        "UnitCost", "PurchaseOrderNo", "InternalNotes", "ProdCat"
     ];
 
     // ヘッダー生成

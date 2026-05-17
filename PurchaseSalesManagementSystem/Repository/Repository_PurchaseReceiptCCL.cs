@@ -121,7 +121,7 @@ namespace PurchaseSalesManagementSystem.Repository
 
                 using (var cmd = new SqlCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("@BatchNo", string.Concat("B", header.InvoiceNo.AsSpan(header.InvoiceNo.Length - 4)));
+                    cmd.Parameters.AddWithValue("@BatchNo", string.Concat("C", header.InvoiceNo.AsSpan(header.InvoiceNo.Length - 4)));
                     cmd.Parameters.AddWithValue("@InvoiceNo", header.InvoiceNo);
                     cmd.Parameters.AddWithValue("@InvoiceDate", header.InvoiceDate.ToString("M/dd/yyyy"));
                     cmd.Parameters.AddWithValue("@PONo", detail.PoNo.PadLeft(7, '0'));

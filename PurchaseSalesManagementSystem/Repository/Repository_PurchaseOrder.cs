@@ -110,6 +110,27 @@ namespace PurchaseSalesManagementSystem.Repository
                    );
                 }
             }
+            else if ("99-9999999".Equals(vendorNo))
+            {
+                if ("Valves".Equals(productType))
+                {
+                    sqlPath = Path.Combine(
+                    _env.ContentRootPath,
+                    "SQL",
+                    "PurchaseOrder",
+                    "PurchaseOrder_Other_Valves.sql"
+                  );
+                }
+                else
+                {
+                    sqlPath = Path.Combine(
+                     _env.ContentRootPath,
+                     "SQL",
+                     "PurchaseOrder",
+                     "PurchaseOrder_Other_Mass.sql"
+                   );
+                }
+            }
             else {
                 if ("Valves".Equals(productType))
                 {
@@ -158,7 +179,7 @@ namespace PurchaseSalesManagementSystem.Repository
 
                     cmd.CommandTimeout = 300;
                     
-                    if (!"00-0000000".Equals(vendorNo)) {
+                    if (!"00-0000000".Equals(vendorNo) && !"99-9999999".Equals(vendorNo)) {
                         cmd.Parameters.AddWithValue("@VendorNo", vendorNo);
                     }
 

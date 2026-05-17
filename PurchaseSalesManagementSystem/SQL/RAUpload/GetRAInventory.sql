@@ -1,134 +1,23 @@
-﻿/* ============================================================
-   GetRAInventory SQL 
+/* ============================================================
+   GetRAInventory SQL
 ============================================================ */
-SELECT DISTINCT
-  U_RAInventory.ItemCode
-  , CI_Item.UDF_ITEMDESC AS ItemDesc
-  , COALESCE(JFI.Qty, 0) AS JFI
-  , COALESCE(NAL.Qty, 0) AS NAL
-  , COALESCE(NCA.Qty, 0) AS NCA
-  , COALESCE(NTX.Qty, 0) AS NTX
-  , COALESCE(UTX.Qty, 0) AS UTX
-  , COALESCE(UGP.Qty, 0) AS UGP
-  , COALESCE(IFS.Qty, 0) AS IFS
-  , COALESCE(NNJ.Qty, 0) AS NNJ
-  , COALESCE(XIT.Qty, 0) AS XIT
-  , COALESCE(JFI.Qty, 0) + COALESCE(NAL.Qty, 0) + COALESCE(NCA.Qty, 0) + COALESCE(NTX.Qty, 0) + COALESCE
-  (UTX.Qty, 0) + COALESCE(UGP.Qty, 0) + COALESCE(IFS.Qty, 0) + COALESCE(NNJ.Qty, 0) + COALESCE(XIT.Qty, 0)
-   AS Total 
+SELECT
+  r.ItemCode
+  , MAX(i.UDF_ITEMDESC) AS ItemDesc
+  , SUM(CASE WHEN r.WarehouseCode = 'JFI' THEN r.Qty ELSE 0 END) AS JFI
+  , SUM(CASE WHEN r.WarehouseCode = 'NAL' THEN r.Qty ELSE 0 END) AS NAL
+  , SUM(CASE WHEN r.WarehouseCode = 'NCA' THEN r.Qty ELSE 0 END) AS NCA
+  , SUM(CASE WHEN r.WarehouseCode = 'NTX' THEN r.Qty ELSE 0 END) AS NTX
+  , SUM(CASE WHEN r.WarehouseCode = 'UTX' THEN r.Qty ELSE 0 END) AS UTX
+  , SUM(CASE WHEN r.WarehouseCode = 'UGP' THEN r.Qty ELSE 0 END) AS UGP
+  , SUM(CASE WHEN r.WarehouseCode = 'IFS' THEN r.Qty ELSE 0 END) AS IFS
+  , SUM(CASE WHEN r.WarehouseCode = 'NNJ' THEN r.Qty ELSE 0 END) AS NNJ
+  , SUM(CASE WHEN r.WarehouseCode = 'XIT' THEN r.Qty ELSE 0 END) AS XIT
+  , SUM(r.Qty) AS Total
 FROM
-  U_RAInventory 
-  LEFT JOIN CI_Item 
-    ON U_RAInventory.ItemCode = CI_Item.ItemCode 
-  LEFT JOIN ( 
-    SELECT
-      ItemCode
-      , SUM(Qty) AS Qty 
-    FROM
-      U_RAInventory 
-    WHERE
-      WarehouseCode = 'JFI' 
-    GROUP BY
-      ItemCode
-  ) AS JFI 
-    ON U_RAInventory.ItemCode = JFI.ItemCode 
-  LEFT JOIN ( 
-    SELECT
-      ItemCode
-      , SUM(Qty) AS Qty 
-    FROM
-      U_RAInventory 
-    WHERE
-      WarehouseCode = 'NAL' 
-    GROUP BY
-      ItemCode
-  ) AS NAL 
-    ON U_RAInventory.ItemCode = NAL.ItemCode 
-  LEFT JOIN ( 
-    SELECT
-      ItemCode
-      , SUM(Qty) AS Qty 
-    FROM
-      U_RAInventory 
-    WHERE
-      WarehouseCode = 'NCA' 
-    GROUP BY
-      ItemCode
-  ) AS NCA 
-    ON U_RAInventory.ItemCode = NCA.ItemCode 
-  LEFT JOIN ( 
-    SELECT
-      ItemCode
-      , SUM(Qty) AS Qty 
-    FROM
-      U_RAInventory 
-    WHERE
-      WarehouseCode = 'NTX' 
-    GROUP BY
-      ItemCode
-  ) AS NTX 
-    ON U_RAInventory.ItemCode = NTX.ItemCode 
-  LEFT JOIN ( 
-    SELECT
-      ItemCode
-      , SUM(Qty) AS Qty 
-    FROM
-      U_RAInventory 
-    WHERE
-      WarehouseCode = 'UTX' 
-    GROUP BY
-      ItemCode
-  ) AS UTX 
-    ON U_RAInventory.ItemCode = UTX.ItemCode 
-  LEFT JOIN ( 
-    SELECT
-      ItemCode
-      , SUM(Qty) AS Qty 
-    FROM
-      U_RAInventory 
-    WHERE
-      WarehouseCode = 'UGP' 
-    GROUP BY
-      ItemCode
-  ) AS UGP 
-    ON U_RAInventory.ItemCode = UGP.ItemCode 
-  LEFT JOIN ( 
-    SELECT
-      ItemCode
-      , SUM(Qty) AS Qty 
-    FROM
-      U_RAInventory 
-    WHERE
-      WarehouseCode = 'IFS' 
-    GROUP BY
-      ItemCode
-  ) AS IFS 
-    ON U_RAInventory.ItemCode = IFS.ItemCode 
-  LEFT JOIN ( 
-    SELECT
-      ItemCode
-      , SUM(Qty) AS Qty 
-    FROM
-      U_RAInventory 
-    WHERE
-      WarehouseCode = 'NNJ' 
-    GROUP BY
-      ItemCode
-  ) AS NNJ 
-    ON U_RAInventory.ItemCode = NNJ.ItemCode 
-  LEFT JOIN ( 
-    SELECT
-      ItemCode
-      , SUM(Qty) AS Qty 
-    FROM
-      U_RAInventory 
-    WHERE
-      WarehouseCode = 'XIT' 
-    GROUP BY
-      ItemCode
-  ) AS XIT 
-    ON U_RAInventory.ItemCode = XIT.ItemCode 
+  U_RAInventory r
+  LEFT JOIN CI_Item i ON r.ItemCode = i.ItemCode
+GROUP BY
+  r.ItemCode
 ORDER BY
-  U_RAInventory.ItemCode;
-
-
+  r.ItemCode;

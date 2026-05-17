@@ -1,8 +1,7 @@
-﻿using System.Data;
+using System.Data;
 using Microsoft.Data.SqlClient;
 using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
-using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
 
 namespace PurchaseSalesManagementSystem.Repository
 {
@@ -19,152 +18,149 @@ namespace PurchaseSalesManagementSystem.Repository
 
         public void DeleteRAInventory()
         {
-			string sqlPath = Path.Combine(
-	            _env.ContentRootPath,
-	            "SQL",
-				"RAUpload",
-				"DeleteRAInventory.sql"
-			);
+            string sqlPath = Path.Combine(
+                _env.ContentRootPath,
+                "SQL",
+                "RAUpload",
+                "DeleteRAInventory.sql"
+            );
 
-			var sql = File.ReadAllText(sqlPath);
+            var sql = File.ReadAllText(sqlPath);
 
-			using (var conn = _connectionFactory.GetConnection())
-			{
-				conn.Open();
-				using (var cmd = new SqlCommand(sql, conn))
-				{
-					cmd.ExecuteNonQuery();
-				}
-			}
-		}
+            using (var conn = _connectionFactory.GetConnection())
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
 
-		public void InsertRAInventory(RAUpload_Insert rAUpload_insert)
-		{
-			string sqlPath = Path.Combine(
-				_env.ContentRootPath,
-				"SQL",
-				"RAUpload",
-				"InsertRAInventory.sql"
-			);
+        public void InsertRAInventoryBulk(List<RAUpload_Insert> rows)
+        {
+            var dt = new DataTable();
+            dt.Columns.Add("EntryDate", typeof(DateTime));
+            dt.Columns.Add("WarehouseCode", typeof(string));
+            dt.Columns.Add("ItemCode", typeof(string));
+            dt.Columns.Add("Description", typeof(string));
+            dt.Columns.Add("OriginalQty", typeof(decimal));
+            dt.Columns.Add("Qty", typeof(decimal));
+            dt.Columns.Add("InvoiceNo", typeof(string));
+            dt.Columns.Add("Box", typeof(string));
+            dt.Columns.Add("Weight", typeof(decimal));
+            dt.Columns.Add("DateReceived", typeof(DateTime));
+            dt.Columns.Add("From", typeof(string));
+            dt.Columns.Add("VantecRef#", typeof(string));
+            dt.Columns.Add("UnitPrice", typeof(decimal));
+            dt.Columns.Add("ShipMark", typeof(string));
+            dt.Columns.Add("Comment", typeof(string));
 
-			var sql = File.ReadAllText(sqlPath);
+            foreach (var r in rows)
+            {
+                dt.Rows.Add(
+                    r.EntryDate,
+                    r.WarehouseCode,
+                    r.ItemCode,
+                    r.Description,
+                    r.OriginalQty,
+                    r.Qty,
+                    r.InvoiceNo,
+                    r.Box,
+                    r.Weight,
+                    r.DateReceived,
+                    r.From,
+                    r.VantecRef,
+                    r.UnitPrice,
+                    r.ShipMark,
+                    r.Comment
+                );
+            }
 
-			using (var conn = _connectionFactory.GetConnection())
-			{
-				conn.Open();
-				using (var cmd = new SqlCommand(sql, conn))
-				{
+            using var conn = _connectionFactory.GetConnection();
+            conn.Open();
+            using var bulk = new SqlBulkCopy(conn)
+            {
+                DestinationTableName = "U_RAInventory",
+                BulkCopyTimeout = 300,
+            };
+            bulk.ColumnMappings.Add("EntryDate", "EntryDate");
+            bulk.ColumnMappings.Add("WarehouseCode", "WarehouseCode");
+            bulk.ColumnMappings.Add("ItemCode", "ItemCode");
+            bulk.ColumnMappings.Add("Description", "Description");
+            bulk.ColumnMappings.Add("OriginalQty", "OriginalQty");
+            bulk.ColumnMappings.Add("Qty", "Qty");
+            bulk.ColumnMappings.Add("InvoiceNo", "InvoiceNo");
+            bulk.ColumnMappings.Add("Box", "Box");
+            bulk.ColumnMappings.Add("Weight", "Weight");
+            bulk.ColumnMappings.Add("DateReceived", "DateReceived");
+            bulk.ColumnMappings.Add("From", "From");
+            bulk.ColumnMappings.Add("VantecRef#", "VantecRef#");
+            bulk.ColumnMappings.Add("UnitPrice", "UnitPrice");
+            bulk.ColumnMappings.Add("ShipMark", "ShipMark");
+            bulk.ColumnMappings.Add("Comment", "Comment");
+            bulk.WriteToServer(dt);
+        }
 
-                    cmd.CommandTimeout = 300;
+        public IEnumerable<RAUpload_ExportToExcel> GetDownloadData()
+        {
+            var result = new List<RAUpload_ExportToExcel>();
 
-                    cmd.Parameters.AddWithValue("@EntryDate", rAUpload_insert.EntryDate);
-					cmd.Parameters.AddWithValue("@WarehouseCode", rAUpload_insert.WarehouseCode);
-					cmd.Parameters.AddWithValue("@ItemCode", rAUpload_insert.ItemCode);
-					cmd.Parameters.AddWithValue("@Description", rAUpload_insert.Description);
-					cmd.Parameters.AddWithValue("@OriginalQty", rAUpload_insert.OriginalQty);
-					cmd.Parameters.AddWithValue("@Qty", rAUpload_insert.Qty);
-					cmd.Parameters.AddWithValue("@InvoiceNo", rAUpload_insert.InvoiceNo);
-					cmd.Parameters.AddWithValue("@Box", rAUpload_insert.Box);
-					cmd.Parameters.AddWithValue("@Weight", rAUpload_insert.Weight);
-					cmd.Parameters.AddWithValue("@DateReceived", rAUpload_insert.DateReceived);
-					cmd.Parameters.AddWithValue("@From", rAUpload_insert.From);
-					cmd.Parameters.AddWithValue("@VantecRef", rAUpload_insert.VantecRef);
-					cmd.Parameters.AddWithValue("@UnitPrice", rAUpload_insert.UnitPrice);
-					cmd.Parameters.AddWithValue("@ShipMark", rAUpload_insert.ShipMark);
-					cmd.Parameters.AddWithValue("@Comment", rAUpload_insert.Comment);
+            string sqlPath = Path.Combine(
+                _env.ContentRootPath,
+                "SQL",
+                "RAUpload",
+                "GetRAInventory.sql"
+              );
 
-					cmd.ExecuteNonQuery();
-				}
-			}
-		}
+            var sql = File.ReadAllText(sqlPath);
 
-		public IEnumerable<RAUpload_ExportToExcel> GetDownloadData()
-		{
-			var result = new List<RAUpload_ExportToExcel>();
+            using (var conn = _connectionFactory.GetConnection())
+            {
+                conn.Open();
 
-			string sqlPath = Path.Combine(
-				_env.ContentRootPath,
-				"SQL",
-				"RAUpload",
-				"GetRAInventory.sql"
-			  );
-
-			var sql = File.ReadAllText(sqlPath);
-
-			using (var conn = _connectionFactory.GetConnection())
-			{
-				conn.Open();
-
-				using (var cmd = new SqlCommand(sql, conn))
-				{
-
+                using (var cmd = new SqlCommand(sql, conn))
+                {
                     cmd.CommandTimeout = 300;
 
                     using (var reader = cmd.ExecuteReader())
-					{
-						while (reader.Read())
-						{
-							decimal jfi = reader.IsDBNull(reader.GetOrdinal("JFI"))
-										? 0
-										: reader.GetDecimal(reader.GetOrdinal("JFI"));
+                    {
+                        int ordItemCode = reader.GetOrdinal("ItemCode");
+                        int ordItemDesc = reader.GetOrdinal("ItemDesc");
+                        int ordJFI = reader.GetOrdinal("JFI");
+                        int ordNAL = reader.GetOrdinal("NAL");
+                        int ordNCA = reader.GetOrdinal("NCA");
+                        int ordNTX = reader.GetOrdinal("NTX");
+                        int ordUTX = reader.GetOrdinal("UTX");
+                        int ordUGP = reader.GetOrdinal("UGP");
+                        int ordIFS = reader.GetOrdinal("IFS");
+                        int ordNNJ = reader.GetOrdinal("NNJ");
+                        int ordXIT = reader.GetOrdinal("XIT");
+                        int ordTotal = reader.GetOrdinal("Total");
 
-							decimal nal = reader.IsDBNull(reader.GetOrdinal("NAL"))
-										? 0
-										: reader.GetDecimal(reader.GetOrdinal("NAL"));
+                        while (reader.Read())
+                        {
+                            result.Add(new RAUpload_ExportToExcel
+                            {
+                                ItemCode = reader.IsDBNull(ordItemCode) ? "" : (reader.GetString(ordItemCode) ?? ""),
+                                ItemDesc = reader.IsDBNull(ordItemDesc) ? "" : (reader.GetString(ordItemDesc) ?? ""),
+                                JFI = reader.IsDBNull(ordJFI) ? 0 : (int)reader.GetDecimal(ordJFI),
+                                NAL = reader.IsDBNull(ordNAL) ? 0 : (int)reader.GetDecimal(ordNAL),
+                                NCA = reader.IsDBNull(ordNCA) ? 0 : (int)reader.GetDecimal(ordNCA),
+                                NTX = reader.IsDBNull(ordNTX) ? 0 : (int)reader.GetDecimal(ordNTX),
+                                UTX = reader.IsDBNull(ordUTX) ? 0 : (int)reader.GetDecimal(ordUTX),
+                                UGP = reader.IsDBNull(ordUGP) ? 0 : (int)reader.GetDecimal(ordUGP),
+                                IFS = reader.IsDBNull(ordIFS) ? 0 : (int)reader.GetDecimal(ordIFS),
+                                NNJ = reader.IsDBNull(ordNNJ) ? 0 : (int)reader.GetDecimal(ordNNJ),
+                                XIT = reader.IsDBNull(ordXIT) ? 0 : (int)reader.GetDecimal(ordXIT),
+                                Total = reader.IsDBNull(ordTotal) ? 0 : (int)reader.GetDecimal(ordTotal),
+                            });
+                        }
+                    }
+                }
+            }
 
-							decimal nca = reader.IsDBNull(reader.GetOrdinal("NCA"))
-										? 0
-										: reader.GetDecimal(reader.GetOrdinal("NCA"));
-
-							decimal ntx = reader.IsDBNull(reader.GetOrdinal("NTX"))
-										? 0
-										: reader.GetDecimal(reader.GetOrdinal("NTX"));
-
-							decimal utx = reader.IsDBNull(reader.GetOrdinal("UTX"))
-										? 0
-										: reader.GetDecimal(reader.GetOrdinal("UTX"));
-
-							decimal ugp = reader.IsDBNull(reader.GetOrdinal("UGP"))
-										? 0
-										: reader.GetDecimal(reader.GetOrdinal("UGP"));
-
-							decimal ifs = reader.IsDBNull(reader.GetOrdinal("IFS"))
-										? 0
-										: reader.GetDecimal(reader.GetOrdinal("IFS"));
-
-							decimal nnj = reader.IsDBNull(reader.GetOrdinal("NNJ"))
-										? 0
-										: reader.GetDecimal(reader.GetOrdinal("NNJ"));
-
-							decimal xit = reader.IsDBNull(reader.GetOrdinal("XIT"))
-										? 0
-										: reader.GetDecimal(reader.GetOrdinal("XIT"));
-
-							decimal total = reader.IsDBNull(reader.GetOrdinal("Total"))
-										? 0
-										: reader.GetDecimal(reader.GetOrdinal("Total"));
-
-							result.Add(new RAUpload_ExportToExcel
-							{
-								ItemCode = reader["ItemCode"] as string ?? "",
-								ItemDesc = reader["ItemDesc"] as string ?? "",
-								JFI = (int)jfi,
-								NAL = (int)nal,
-								NCA = (int)nca,
-								NTX = (int)ntx,
-								UTX = (int)utx,
-								UGP = (int)ugp,
-								IFS = (int)ifs,
-								NNJ = (int)nnj,
-								XIT = (int)xit,
-								Total = (int)total,
-							});
-						}
-					}
-				}
-			}
-
-			return result;
-		}
-	}
+            return result;
+        }
+    }
 }

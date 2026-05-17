@@ -73,19 +73,25 @@ namespace PurchaseSalesManagementSystem.Repository
             var poList = purchaseOrderNos.ToList();
             if (!poList.Any()) return;
 
-            var paramNames = poList.Select((_, i) => $"@p{i}");
-            var sql = $"DELETE FROM U_Katsuo WHERE PurchaseOrderNo IN ({string.Join(", ", paramNames)})";
+            const int batchSize = 1500;
 
             using (var conn = _connectionFactory.GetConnection())
             {
                 conn.Open();
 
-                using (var cmd = new SqlCommand(sql, conn))
+                for (int offset = 0; offset < poList.Count; offset += batchSize)
                 {
-                    cmd.CommandTimeout = 300;
-                    for (int i = 0; i < poList.Count; i++)
-                        cmd.Parameters.AddWithValue($"@p{i}", poList[i]);
-                    cmd.ExecuteNonQuery();
+                    var batch = poList.Skip(offset).Take(batchSize).ToList();
+                    var paramNames = batch.Select((_, i) => $"@p{i}");
+                    var sql = $"DELETE FROM U_Katsuo WHERE PurchaseOrderNo IN ({string.Join(", ", paramNames)})";
+
+                    using (var cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.CommandTimeout = 300;
+                        for (int i = 0; i < batch.Count; i++)
+                            cmd.Parameters.AddWithValue($"@p{i}", batch[i]);
+                        cmd.ExecuteNonQuery();
+                    }
                 }
             }
         }
