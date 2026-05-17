@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
 using PurchaseSalesManagementSystem.Repository;
+using System.Globalization;
 
 public class NittsuInventoryCheckController : Controller
 {
@@ -113,9 +114,12 @@ public class NittsuInventoryCheckController : Controller
             {
                 continue;
             }
+            var cellItem = ws.Cell(rowNo, 1).SetValue(key.ItemCode);
+            cellItem.Style.NumberFormat.Format = "@";
 
-            ws.Cell(rowNo, 1).SetValue(key.ItemCode).DataType = XLDataType.Text;
-            ws.Cell(rowNo, 2).SetValue(key.Whse).DataType = XLDataType.Text;
+            var cellWhse = ws.Cell(rowNo, 2).SetValue(key.Whse);
+            cellWhse.Style.NumberFormat.Format = "@";
+
             ws.Cell(rowNo, 3).Value = masQty;
             ws.Cell(rowNo, 4).Value = nittsuQty;
             ws.Cell(rowNo, 5).Value = diff;
@@ -163,12 +167,12 @@ public class NittsuInventoryCheckController : Controller
 
     private static decimal ToDecimal(XLCellValue value)
     {
-        if (value.TryConvert(out double dbl))
+        if (value.TryConvert(out double dbl, CultureInfo.InvariantCulture))
         {
             return Convert.ToDecimal(dbl);
         }
 
-        if (decimal.TryParse(value.ToString(), out var dec))
+        if (value.TryGetText(out var txt) && decimal.TryParse(txt, NumberStyles.Any, CultureInfo.InvariantCulture, out var dec))
         {
             return dec;
         }
