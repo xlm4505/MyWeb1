@@ -348,7 +348,7 @@ public class Repository_PurchaseReceiptFJKCheck
         ws.PageSetup.PagesWide = 1;
         //改ページプレビューモード設定
         ApplyPageBreakPreviewWithRightOffset(sourceSheet, ws, 2);
-        ws.SelectedRanges.Clear();
+        //ws.SelectedRanges.Clear();
         ws.Range("A1").Select();
         ws.Cell("A1").SetActive();
     }
