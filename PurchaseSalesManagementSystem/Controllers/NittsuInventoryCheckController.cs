@@ -148,11 +148,15 @@ public class NittsuInventoryCheckController : Controller
             rowNo++;
         }
 
-        ws.Range("A:E").Style.Font.FontName = "Calibri";
-        ws.Range("A:E").Style.Font.FontSize = 10;
-        ws.Range("A1:E1").Style.Font.Bold = true;
-        ws.Range("A1:E1").Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-        ws.Columns("A:E").AdjustToContents();
+        var lastDataRow = Math.Max(1, rowNo - 1);
+        var usedRange = ws.Range(1, 1, lastDataRow, 5);
+        var headerRange = ws.Range(1, 1, 1, 5);
+
+        usedRange.Style.Font.FontName = "Calibri";
+        usedRange.Style.Font.FontSize = 10;
+        headerRange.Style.Font.Bold = true;
+        headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+        ws.Columns(1, 5).AdjustToContents();
         ws.SheetView.FreezeRows(1);
 
         using var output = new MemoryStream();
