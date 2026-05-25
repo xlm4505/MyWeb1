@@ -1,7 +1,9 @@
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Vml;
 using Microsoft.AspNetCore.Mvc;
 using PurchaseSalesManagementSystem.Repository;
 using System.Globalization;
+using System.Text;
 
 public class NittsuInventoryCheckController : Controller
 {
@@ -64,30 +66,42 @@ public class NittsuInventoryCheckController : Controller
         {
             await nittsuFile.CopyToAsync(nittsuStream);
             nittsuStream.Position = 0;
-            using var nittsuWb = new XLWorkbook(nittsuStream);
+            using var reader = new StreamReader(nittsuStream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true, leaveOpen: true);
 
-            for (var sheetIndex = 1; sheetIndex <= Math.Min(2, nittsuWb.Worksheets.Count); sheetIndex++)
+            var headerLine = await reader.ReadLineAsync();
+            if (string.IsNullOrWhiteSpace(headerLine))
             {
-                var sheet = nittsuWb.Worksheet(sheetIndex);
-                var header = BuildHeaderIndex(sheet.Row(1));
-                var itemCol = GetColumnIndex(header, "Item");
-                var sfxCol = GetColumnIndex(header, "Sfx");
-                var qtyCol = GetColumnIndex(header, "Quantity");
+                return BadRequest(new { error_msg = "Nittsu inventory data CSV is empty." });
+            }
 
-                foreach (var row in sheet.RowsUsed().Skip(1))
-                {
-                    var itemCode = NormalizeItemCode(row.Cell(itemCol).GetString());
-                    var whseRaw = row.Cell(sfxCol).GetString().Trim();
-                    var whse = (whseRaw.Length >= 3 ? whseRaw[..3] : whseRaw).ToUpperInvariant();
-                    var qty = ToDecimal(row.Cell(qtyCol).Value);
+            var headerColumns = SplitCsvLine(headerLine);
+            var header = BuildHeaderIndex(headerColumns);
+            var itemCol = GetColumnIndex(header, "Item");
+            var sfxCol = GetColumnIndex(header, "Sfx");
+            var qtyCol = GetColumnIndex(header, "Quantity");
 
-                    if (string.IsNullOrWhiteSpace(itemCode) || string.IsNullOrWhiteSpace(whse) || qty == 0 || !AllowedWhse.Contains(whse))
+            string? line;
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(line))
                     {
-                        continue;
-                    }
-
-                    AddQuantity(nittsuRows, (itemCode, whse), qty);
+                    continue;
                 }
+
+                var columns = SplitCsvLine(line);
+                var itemRaw = GetCsvColumn(columns, itemCol);
+                var whseRaw = GetCsvColumn(columns, sfxCol).Trim();
+                var qtyRaw = GetCsvColumn(columns, qtyCol);
+
+                var itemCode = NormalizeItemCode(itemRaw);
+                var whse = (whseRaw.Length >= 3 ? whseRaw[..3] : whseRaw).ToUpperInvariant();
+                var qty = ToDecimal(qtyRaw);
+
+                if (string.IsNullOrWhiteSpace(itemCode) || string.IsNullOrWhiteSpace(whse) || qty == 0 || !AllowedWhse.Contains(whse))
+                {
+                    continue;
+                }
+                AddQuantity(nittsuRows, (itemCode, whse), qty);
             }
         }
 
@@ -172,14 +186,88 @@ public class NittsuInventoryCheckController : Controller
             return Convert.ToDecimal(dbl);
         }
 
-        if (value.TryGetText(out var txt) && decimal.TryParse(txt, NumberStyles.Any, CultureInfo.InvariantCulture, out var dec))
+        if (value.TryGetText(out var txt))
         {
-            return dec;
+            return ToDecimal(txt);
         }
 
         return 0;
     }
+    private static decimal ToDecimal(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return 0;
+        }
 
+        return decimal.TryParse(text.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var dec)
+            ? dec
+            : 0;
+    }
+
+
+    private static Dictionary<string, int> BuildHeaderIndex(IReadOnlyList<string> headerColumns)
+    {
+        var header = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (var index = 0; index < headerColumns.Count; index++)
+        {
+            var name = headerColumns[index].Trim();
+            if (!string.IsNullOrEmpty(name) && !header.ContainsKey(name))
+            {
+                header[name] = index;
+            }
+        }
+
+        return header;
+    }
+
+    private static List<string> SplitCsvLine(string line)
+    {
+        var columns = new List<string>();
+        var sb = new StringBuilder();
+        var inQuotes = false;
+
+        for (var i = 0; i < line.Length; i++)
+        {
+            var ch = line[i];
+            if (ch == '"')
+            {
+                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                {
+                    sb.Append('"');
+                    i++;
+                }
+                else
+                {
+                    inQuotes = !inQuotes;
+                }
+
+                continue;
+            }
+
+            if (ch == ',' && !inQuotes)
+            {
+                columns.Add(sb.ToString());
+                sb.Clear();
+                continue;
+            }
+
+            sb.Append(ch);
+        }
+
+        columns.Add(sb.ToString());
+        return columns;
+    }
+
+    private static string GetCsvColumn(IReadOnlyList<string> columns, int index)
+    {
+        if (index < 0 || index >= columns.Count)
+        {
+            return string.Empty;
+        }
+
+        return columns[index];
+    }
     private static void AddQuantity(Dictionary<(string ItemCode, string Whse), decimal> map, (string ItemCode, string Whse) key, decimal qty)
     {
         if (map.TryGetValue(key, out var current))
