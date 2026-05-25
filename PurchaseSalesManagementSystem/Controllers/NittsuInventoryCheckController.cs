@@ -88,8 +88,17 @@ public class NittsuInventoryCheckController : Controller
                 }
 
                 var columns = SplitCsvLine(line);
-                var itemRaw = GetCsvColumn(columns, productCol);
-                var whseRaw = GetCsvColumn(columns, productCol);
+                var productRaw = GetCsvColumn(columns, productCol);
+                var itemRaw = productRaw;
+                var whseRaw = productRaw;
+                var separatorIndex = productRaw.IndexOf('-');
+                if (separatorIndex >= 0)
+                {
+                    itemRaw = productRaw[..separatorIndex];
+                    whseRaw = separatorIndex + 1 < productRaw.Length
+                        ? productRaw[(separatorIndex + 1)..]
+                        : string.Empty;
+                }
                 var qtyRaw = GetCsvColumn(columns, qtyCol);
 
                 var itemCode = NormalizeItemCode(itemRaw);
