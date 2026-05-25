@@ -76,9 +76,8 @@ public class NittsuInventoryCheckController : Controller
 
             var headerColumns = SplitCsvLine(headerLine);
             var header = BuildHeaderIndex(headerColumns);
-            var itemCol = GetColumnIndex(header, "Item");
-            var sfxCol = GetColumnIndex(header, "Sfx");
-            var qtyCol = GetColumnIndex(header, "Quantity");
+            var productCol = GetColumnIndex(header, "Product");
+            var qtyCol = GetColumnIndex(header, "Available QTY");
 
             string? line;
             while ((line = await reader.ReadLineAsync()) != null)
@@ -89,8 +88,8 @@ public class NittsuInventoryCheckController : Controller
                 }
 
                 var columns = SplitCsvLine(line);
-                var itemRaw = GetCsvColumn(columns, itemCol);
-                var whseRaw = GetCsvColumn(columns, sfxCol).Trim();
+                var itemRaw = GetCsvColumn(columns, productCol);
+                var whseRaw = GetCsvColumn(columns, productCol);
                 var qtyRaw = GetCsvColumn(columns, qtyCol);
 
                 var itemCode = NormalizeItemCode(itemRaw);
