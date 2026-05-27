@@ -57,7 +57,7 @@ public class MonthlySalesSummaryController : Controller
         if (isSummaryAll)
         {
             AddMonthlySalesSummaryAllTotals(workbook);
-            ApplyMonthlySalesSummaryAllLayout(workbook, targetYear);
+                        ApplyMonthlySalesSummaryAllLayout(workbook, targetYear);
         }
         else if (isSummaryFastSelling)
         {
@@ -108,8 +108,7 @@ public class MonthlySalesSummaryController : Controller
     private static void ApplyMonthlySalesSummaryFastSellingLayout(XLWorkbook workbook, int targetYear)
     {
         var ws = workbook.Worksheet("SQL-EXEC");
-        ConvertWorksheetTableToRange(ws);
-        ws.Row(1).InsertRowsAbove(1);
+        ws.Row(1).InsertRowsAbove(2);
         ws.SheetView.FreezeRows(2);
 
         for (var month = 1; month <= 12; month++)
@@ -133,8 +132,7 @@ public class MonthlySalesSummaryController : Controller
     private static void ApplyMonthlySalesSummaryAllLayout(XLWorkbook workbook, int targetYear)
     {
         var ws = workbook.Worksheet("SQL-EXEC");
-        ConvertWorksheetTableToRange(ws);
-        ws.Row(1).InsertRowsAbove(1);
+        ws.Row(1).InsertRowsAbove(2);
         ws.SheetView.FreezeRows(2);
 
         for (var month = 1; month <= 12; month++)
@@ -158,8 +156,7 @@ public class MonthlySalesSummaryController : Controller
     private static void ApplyMonthlySalesAndPurchasesLayout(XLWorkbook workbook, int targetYear)
     {
         var ws = workbook.Worksheet("SQL-EXEC");
-        ConvertWorksheetTableToRange(ws);
-        ws.Row(1).InsertRowsAbove(1);
+        ws.Row(1).InsertRowsAbove(2);
         ws.SheetView.FreezeRows(2);
 
         for (var month = 1; month <= 12; month++)
@@ -188,13 +185,7 @@ public class MonthlySalesSummaryController : Controller
             }
         }
     }
-    private static void ConvertWorksheetTableToRange(IXLWorksheet ws)
-    {
-        foreach (var table in ws.Tables.ToList())
-        {
-            table.Unlist();
-        }
-    }
+
     private static void ApplyTopBorder(IXLWorksheet ws, int row, int startCol, int endCol)
     {
         ws.Range(row, startCol, row, endCol).Style.Border.TopBorder = XLBorderStyleValues.Thin;
