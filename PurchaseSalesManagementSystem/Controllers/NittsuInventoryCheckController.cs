@@ -164,7 +164,7 @@ public class NittsuInventoryCheckController : Controller
             outWb.SaveAs(stream);
             return File(stream.ToArray(),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "Compare_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+                $"Compare_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
         }
     }
 

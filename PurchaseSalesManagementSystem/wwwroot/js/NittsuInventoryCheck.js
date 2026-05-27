@@ -33,8 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
             fileListItems.appendChild(li);
         }
     }
-
-    async function compareFiles() {
+    function compareFiles() {
         const f1 = file1.files[0];
         const f2 = file2.files[0];
 
@@ -45,38 +44,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         messageArea.textContent = "Compare Start...";
 
-        const formData = new FormData();
-        formData.append("masFile", f1);
-        formData.append("nittsuFile", f2);
-
-        try {
-            const response = await fetch('/NittsuInventoryCheck/Compare', {
-                method: 'POST',
-                body: formData
-            });
-
-            const contentType = response.headers.get('Content-Type') ?? '';
-            if (contentType.includes('application/json')) {
-                const data = await response.json();
-                throw new Error(data.error_msg ?? 'Server Error');
-            }
-            if (!response.ok) {
-                throw new Error('Server Error');
-            }
-
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'Compare.xlsx';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-            messageArea.textContent = 'Compare Complete!';
-        } catch (error) {
-            messageArea.textContent = error.message;
-        }
+        const compareForm = document.getElementById("compareForm");
+        compareForm.submit();
     }
 
     updateFileList();

@@ -39,13 +39,13 @@
     </nav>
 
     <!-- アップロードフォーム -->
-    <div class="card p-3">
+    <form id="compareForm" class="card p-3" method="post" enctype="multipart/form-data" action="/NittsuInventoryCheck/Compare">
 
         <label class="form-label">Select Mas Inventory Data</label>
-        <input type="file" id="file1" class="form-control mb-3" accept=".xlsx">
+        <input type="file" id="file1" name="masFile" class="form-control mb-3" accept=".xlsx">
 
         <label class="form-label">Select Nittsu Inventory Data</label>
-        <input type="file" id="file2" class="form-control mb-3" accept=".csv">
+        <input type="file" id="file2" name="nittsuFile" class="form-control mb-3" accept=".csv">
 
         <!-- 選択ファイル一覧（枠付き） -->
         <div id="fileList" class="border rounded p-2 mb-3" style="min-height:60px;">
@@ -54,8 +54,8 @@
         </div>
 
         <!-- Compareボタン -->
-        <button class="btn btn-primary" id="btnCompare">Compare</button>
-    </div>
+        <button class="btn btn-primary" id="btnCompare" type="button">Compare</button>
+    </form>
 
     <!-- メッセージ表示 -->
     <div id="messageArea" class="mt-3 text-primary fw-bold"></div>
