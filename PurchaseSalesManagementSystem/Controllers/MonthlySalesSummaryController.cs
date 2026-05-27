@@ -108,6 +108,7 @@ public class MonthlySalesSummaryController : Controller
     private static void ApplyMonthlySalesSummaryFastSellingLayout(XLWorkbook workbook, int targetYear)
     {
         var ws = workbook.Worksheet("SQL-EXEC");
+        ConvertWorksheetTableToRange(ws);
         ws.Row(1).InsertRowsAbove(1);
         ws.SheetView.FreezeRows(2);
 
@@ -132,6 +133,7 @@ public class MonthlySalesSummaryController : Controller
     private static void ApplyMonthlySalesSummaryAllLayout(XLWorkbook workbook, int targetYear)
     {
         var ws = workbook.Worksheet("SQL-EXEC");
+        ConvertWorksheetTableToRange(ws);
         ws.Row(1).InsertRowsAbove(1);
         ws.SheetView.FreezeRows(2);
 
@@ -156,6 +158,7 @@ public class MonthlySalesSummaryController : Controller
     private static void ApplyMonthlySalesAndPurchasesLayout(XLWorkbook workbook, int targetYear)
     {
         var ws = workbook.Worksheet("SQL-EXEC");
+        ConvertWorksheetTableToRange(ws);
         ws.Row(1).InsertRowsAbove(1);
         ws.SheetView.FreezeRows(2);
 
@@ -185,7 +188,13 @@ public class MonthlySalesSummaryController : Controller
             }
         }
     }
-
+    private static void ConvertWorksheetTableToRange(IXLWorksheet ws)
+    {
+        foreach (var table in ws.Tables.ToList())
+        {
+            table.Unlist();
+        }
+    }
     private static void ApplyTopBorder(IXLWorksheet ws, int row, int startCol, int endCol)
     {
         ws.Range(row, startCol, row, endCol).Style.Border.TopBorder = XLBorderStyleValues.Thin;
