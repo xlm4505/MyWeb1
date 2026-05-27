@@ -57,15 +57,18 @@ public class MonthlySalesSummaryController : Controller
         if (isSummaryAll)
         {
             AddMonthlySalesSummaryAllTotals(workbook);
+            ApplyMonthlySalesSummaryAllLayout(workbook, targetYear);
         }
         else if (isSummaryFastSelling)
         {
             AddMonthlySalesSummaryFastSellingTotals(workbook);
+            ApplyMonthlySalesSummaryFastSellingLayout(workbook, targetYear);
         }
         else if (!isSummary)
         {
             InsertBlankRowsAfterInventoryRecords(workbook);
             AddMonthlySalesAndPurchasesTotals(workbook);
+            ApplyMonthlySalesAndPurchasesLayout(workbook, targetYear);
         }
         using var stream = new MemoryStream();
         workbook.SaveAs(stream);
@@ -102,7 +105,112 @@ public class MonthlySalesSummaryController : Controller
                 $"SUM(${colLetter}$2:${colLetter}${lastDataRow})";
         }
     }
+    private static void ApplyMonthlySalesSummaryFastSellingLayout(XLWorkbook workbook, int targetYear)
+    {
+        var ws = workbook.Worksheet("SQL-EXEC");
+        ws.Row(1).InsertRowsAbove(1);
+        ws.SheetView.FreezeRows(2);
 
+        for (var month = 1; month <= 12; month++)
+        {
+            ws.Cell(1, 3 + month).Value = FormatMonthHeader(targetYear, month);
+            ws.Cell(2, 3 + month).Value = "Qty";
+        }
+
+        ApplyTopBorder(ws, 3, 2, 20);
+        ApplyVerticalBorder(ws, "C", ws.LastRowUsed()?.RowNumber() ?? 3);
+        ApplyVerticalBorder(ws, "O", ws.LastRowUsed()?.RowNumber() ?? 3);
+
+        var totalRow = FindRowByLabel(ws, "C", "Total Shipped:");
+        if (totalRow > 0)
+        {
+            ws.Range(totalRow, 4, totalRow, 20).Style.NumberFormat.Format = "#,##0";
+            ApplyTopBorder(ws, totalRow, 3, 20);
+        }
+    }
+
+    private static void ApplyMonthlySalesSummaryAllLayout(XLWorkbook workbook, int targetYear)
+    {
+        var ws = workbook.Worksheet("SQL-EXEC");
+        ws.Row(1).InsertRowsAbove(1);
+        ws.SheetView.FreezeRows(2);
+
+        for (var month = 1; month <= 12; month++)
+        {
+            ws.Cell(1, 2 + month).Value = FormatMonthHeader(targetYear, month);
+            ws.Cell(2, 2 + month).Value = "Qty";
+        }
+
+        ApplyTopBorder(ws, 3, 1, 19);
+        ApplyVerticalBorder(ws, "B", ws.LastRowUsed()?.RowNumber() ?? 3);
+        ApplyVerticalBorder(ws, "N", ws.LastRowUsed()?.RowNumber() ?? 3);
+
+        var totalRow = FindRowByLabel(ws, "B", "Total Shipped:");
+        if (totalRow > 0)
+        {
+            ws.Range(totalRow, 3, totalRow, 19).Style.NumberFormat.Format = "#,##0";
+            ApplyTopBorder(ws, totalRow, 2, 19);
+        }
+    }
+
+    private static void ApplyMonthlySalesAndPurchasesLayout(XLWorkbook workbook, int targetYear)
+    {
+        var ws = workbook.Worksheet("SQL-EXEC");
+        ws.Row(1).InsertRowsAbove(1);
+        ws.SheetView.FreezeRows(2);
+
+        for (var month = 1; month <= 12; month++)
+        {
+            var qtyCol = 8 + ((month - 1) * 2) + 1;
+            var amtCol = qtyCol + 1;
+            ws.Range(1, qtyCol, 1, amtCol).Merge();
+            ws.Cell(1, qtyCol).Value = FormatMonthHeader(targetYear, month);
+            ws.Cell(2, qtyCol).Value = "Qty";
+            ws.Cell(2, amtCol).Value = "Amt";
+        }
+
+        ApplyTopBorder(ws, 3, 1, 32);
+        foreach (var col in new[] { "H", "J", "L", "N", "P", "R", "T", "V", "X", "Z", "AB", "AD" })
+        {
+            ApplyVerticalBorder(ws, col, ws.LastRowUsed()?.RowNumber() ?? 3);
+        }
+
+        foreach (var label in new[] { "Total Shipped:", "Total Received:", "Total Transferred:", "Total Inventory:" })
+        {
+            var row = FindRowByLabel(ws, "H", label);
+            if (row > 0)
+            {
+                ws.Range(row, 9, row, 32).Style.NumberFormat.Format = "#,##0";
+                ApplyTopBorder(ws, row, 8, 32);
+            }
+        }
+    }
+
+    private static void ApplyTopBorder(IXLWorksheet ws, int row, int startCol, int endCol)
+    {
+        ws.Range(row, startCol, row, endCol).Style.Border.TopBorder = XLBorderStyleValues.Thin;
+    }
+
+    private static void ApplyVerticalBorder(IXLWorksheet ws, string colLetter, int lastRow)
+    {
+        var col = XLHelper.GetColumnNumberFromLetter(colLetter);
+        ws.Range(1, col, lastRow, col).Style.Border.RightBorder = XLBorderStyleValues.Thin;
+    }
+
+    private static int FindRowByLabel(IXLWorksheet ws, string labelColumnLetter, string label)
+    {
+        var labelColumn = XLHelper.GetColumnNumberFromLetter(labelColumnLetter);
+        var lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
+        for (var row = 1; row <= lastRow; row++)
+        {
+            if (string.Equals(ws.Cell(row, labelColumn).GetString().Trim(), label, StringComparison.OrdinalIgnoreCase))
+            {
+                return row;
+            }
+        }
+
+        return -1;
+    }
     private static string BuildExportFileName(string exportTarget, string? targetData, string timestamp)
     {
         if (string.Equals(exportTarget, "summary", StringComparison.OrdinalIgnoreCase))
