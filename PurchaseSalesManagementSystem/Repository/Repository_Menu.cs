@@ -103,10 +103,10 @@ namespace PurchaseSalesManagementSystem.Repository
                                 MonthlyQty9 = m9,
                                 Total = total
                             });
-                            if ("3".Equals(dataType.Substring(0,1)))
-                            {
-                                results.Add(new Model_InventoryForecast());
-                            }
+                            //if ("3".Equals(dataType.Substring(0,1)))
+                            //{
+                            //    results.Add(new Model_InventoryForecast());
+                            //}
                         }
                     }
                 }

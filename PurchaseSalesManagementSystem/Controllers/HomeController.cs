@@ -141,7 +141,7 @@ namespace PurchaseSalesManagementSystem.Controllers
             {
                 dt.Columns["DataType"]!.ColumnName = "Data Type";
             }
-
+            dt = InsertBlankRowsAfterDataTypeStartsWith3(dt);
             var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC", "SO");
             var fileNamePrefix = isWithoutPoReport
                 ? "Inventory Forecasting Report"
@@ -149,7 +149,28 @@ namespace PurchaseSalesManagementSystem.Controllers
 
             return SaveExcel(workbook, reportName, fileNamePrefix);
         }
+        private System.Data.DataTable InsertBlankRowsAfterDataTypeStartsWith3(System.Data.DataTable source)
+        {
+            if (!source.Columns.Contains("Data Type"))
+            {
+                return source;
+            }
 
+            var result = source.Clone();
+
+            foreach (System.Data.DataRow row in source.Rows)
+            {
+                result.ImportRow(row);
+
+                var dataType = row["Data Type"]?.ToString();
+                if (!string.IsNullOrEmpty(dataType) && dataType[0] == '3')
+                {
+                    result.Rows.Add(result.NewRow());
+                }
+            }
+
+            return result;
+        }
         // =========================
         // 11-7 Inventory Forecast By Month
         // =========================
