@@ -26,16 +26,16 @@ SELECT
   )
   ELSE AR_InvoiceHistoryDetail.UDF_ITEMDESC
   END AS ItemCodeDesc
-  , AR_InvoiceHistoryDetail.AliasItemNo AS CustomerPartNo
+  , TRIM(REPLACE(REPLACE(AR_InvoiceHistoryDetail.AliasItemNo, CHAR(13), ''),CHAR(10), '')) AS CustomerPartNo
   , AR_InvoiceHistoryHeader.CustomerPONo
   , AR_InvoiceHistoryDetail.UDF_CUSTPOLN AS POLineNo
   , AR_InvoiceHistoryHeader.InvoiceNo
   , AR_InvoiceHistoryHeader.ShipToCode
-  , AR_InvoiceHistoryHeader.ShipToName
+  , TRIM(REPLACE(REPLACE(AR_InvoiceHistoryHeader.ShipToName, CHAR(13), ''),CHAR(10), '')) AS ShipToName
   , AR_InvoiceHistoryHeader.ShipVia
-  , COALESCE(Track1.TrackingID, '') AS [Tracking1]
-  , COALESCE(Track2.TrackingID, '') AS [Tracking2]
-  , COALESCE(Track3.TrackingID, '') AS [Tracking3]
+  , TRIM(REPLACE(REPLACE(COALESCE(Track1.TrackingID, ''), CHAR(13), ''),CHAR(10), '')) AS [Tracking1]
+  , TRIM(REPLACE(REPLACE(COALESCE(Track2.TrackingID, ''), CHAR(13), ''),CHAR(10), '')) AS [Tracking2]
+  , TRIM(REPLACE(REPLACE(COALESCE(Track3.TrackingID, ''), CHAR(13), ''),CHAR(10), '')) AS [Tracking3]
   , AR_InvoiceHistoryDetail.WarehouseCode AS Warehouse
   , AR_InvoiceHistoryDetail.QuantityShipped AS ShippedQty
   , AR_InvoiceHistoryDetail.UnitPrice

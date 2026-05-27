@@ -1,4 +1,10 @@
+using System.Diagnostics;
+using System.Net;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Mvc;
@@ -6,11 +12,6 @@ using Microsoft.Extensions.Logging;
 using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
 using PurchaseSalesManagementSystem.Repository;
-using System.Diagnostics;
-using System.Net;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 public class PurchaseReceiptController : Controller
@@ -20,24 +21,33 @@ public class PurchaseReceiptController : Controller
     private readonly Repository_PurchaseReceiptFJKCheck _repo_FJCcheck;
     private readonly Repository_PurchaseReceiptCCL _repoCCL;
     private readonly Repository_PurchaseReceiptFJK _repo_FJK;
-    public PurchaseReceiptController(
+    private readonly Repository_PurchaseReceiptFVBN _repoFVBN;
+    private readonly Repository_PurchaseReceiptFVTL _repoFVTL;
+
+	public PurchaseReceiptController(
         Repository_PurchaseReceiptTK repo,
         Repository_PurchaseReceiptFJKCheck repoFJKCheck,
-        Repository_PurchaseReceiptCCL repoCCL, Repository_PurchaseReceiptFJK repoFJK)
+        Repository_PurchaseReceiptCCL repoCCL,
+        Repository_PurchaseReceiptFJK repoFJK,
+		Repository_PurchaseReceiptFVBN repoFVBN,
+        Repository_PurchaseReceiptFVTL repoFVTL)
     {
         _repo = repo;
         _repo_FJCcheck = repoFJKCheck;
         _repoCCL = repoCCL;
         _repo_FJK = repoFJK;
-    }
+        _repoFVBN = repoFVBN;
+        _repoFVTL = repoFVTL;
+
+	}
 
     public IActionResult PurchaseReceipt()
     {
         return View();
     }
 
-    //TK—p‚ÌƒAƒNƒVƒ‡ƒ“
-    [HttpPost]
+	//TKç”¨ã®ã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+	[HttpPost]
     public IActionResult ProcessTK(List<IFormFile> files)
     {
         try
@@ -63,18 +73,18 @@ public class PurchaseReceiptController : Controller
                 using var stream = file.OpenReadStream();
                 using var workbook = new XLWorkbook(stream);
 
-                //CI sheet ‘¶İ‚µ‚È‚¢ê‡
-                if (!workbook.Worksheets.Contains("CI"))
+				//CI sheet å­˜åœ¨ã—ãªã„å ´åˆ
+				if (!workbook.Worksheets.Contains("CI"))
                     throw new Exception($"No CI sheet in {file.FileName}");
 
                 var ws = workbook.Worksheet("CI");
 
-                //INVOICE•¶Œ¾‚ª‘¶İ‚µ‚È‚¢ê‡
-                if (ws.Cell(2, 2).GetString() != "INVOICE")
+				//INVOICEæ–‡è¨€ãŒå­˜åœ¨ã—ãªã„å ´åˆ
+				if (ws.Cell(2, 2).GetString() != "INVOICE")
                     throw new Exception("Error!: There's no invoice file");
 
-                //HS Code‚Ì‚æ‚¤‚È•¶Œ¾‚ª‘¶İ‚µ‚È‚¢ê‡
-                var value = ws.Cell(13, 2).GetString();  
+				//HS Codeã®ã‚ˆã†ãªæ–‡è¨€ãŒå­˜åœ¨ã—ãªã„å ´åˆ
+				var value = ws.Cell(13, 2).GetString();  
                 if (!value.StartsWith("HS Code", StringComparison.Ordinal))
                 {
                     throw new Exception("Wrong format (HS Code)");
@@ -93,8 +103,8 @@ public class PurchaseReceiptController : Controller
                 {
                     var poNo7 = d.PoNo.PadLeft(7, '0');
 
-                    // POæ“¾
-                    var poList = _repo
+					// POå–å¾—
+					var poList = _repo
                         .GetPoDetails(poNo7, d.PartNo)
                         .OrderBy(x => x.LineKey)
                         .ToList();
@@ -102,12 +112,12 @@ public class PurchaseReceiptController : Controller
                     if (!poList.Any())
                         throw new Exception("Error!: PO missing");
 
-                    // Unit Priceƒ`ƒFƒbƒN
-                    if (!poList.Any(x => x.UnitCost == d.UP))
+					// Unit Priceãƒã‚§ãƒƒã‚¯
+					if (!poList.Any(x => x.UnitCost == d.UP))
                         throw new Exception("Wrong unit price.");
 
-                    // Open Qty‡Œv
-                    var totalOpenQty = poList.Sum(x => x.QuantityOrdered - x.QuantityReceived);
+					// Open Qtyåˆè¨ˆ
+					var totalOpenQty = poList.Sum(x => x.QuantityOrdered - x.QuantityReceived);
 
                     if (d.Quantity > totalOpenQty)
                         throw new Exception(
@@ -118,8 +128,8 @@ public class PurchaseReceiptController : Controller
 
                     decimal remainQty = d.Quantity ?? 0;
 
-                    // Qty•ªŠ„
-                    foreach (var po in poList)
+					// Qtyåˆ†å‰²
+					foreach (var po in poList)
                     {
                         if (remainQty <= 0)
                             break;
@@ -202,8 +212,8 @@ public class PurchaseReceiptController : Controller
                 lastHeader = header;
             }
 
-            // Detail.xlsx¶¬
-            using var exportBook = new XLWorkbook();
+			// Detail.xlsxç”Ÿæˆ
+			using var exportBook = new XLWorkbook();
             CreateDetailSheet(exportBook, lastHeader, lastDetails);
 
             using var ms = new MemoryStream();
@@ -223,7 +233,7 @@ public class PurchaseReceiptController : Controller
             return StatusCode(500, ex.Message);
         }
     }
-    [HttpPost]
+	[HttpPost]
     public async Task<IActionResult> CheckFJK(List<IFormFile> files)
     {
         if (files.Count == 0)
@@ -271,32 +281,32 @@ public class PurchaseReceiptController : Controller
         };
     }
 
-    private List<Model_InvoiceDetail_PurchaseReceiptTK> ReadDetails(IXLWorksheet ws)
+	private List<Model_InvoiceDetail_PurchaseReceiptTK> ReadDetails(IXLWorksheet ws)
     {
         var list = new List<Model_InvoiceDetail_PurchaseReceiptTK>();
 
-        int row = 15; // © –¾×‚Ì1s–Ú
+        int row = 15; // â† æ˜ç´°ã®1è¡Œç›®
 
-        while (true)
+		while (true)
         {
-            // 1s–Ú‘¤iHS Code + Po Noj‚Ì F—ñ ‚ğŒ©‚Ä "Total" ‚È‚çI—¹
-            var totalMark = ws.Cell(row, 6).GetString();   // F—ñ
+			// 1è¡Œç›®å´ï¼ˆHS Code + Po Noï¼‰ã® Fåˆ— ã‚’è¦‹ã¦ "Total" ãªã‚‰çµ‚äº†
+            var totalMark = ws.Cell(row, 6).GetString();   // Fåˆ—
             if (totalMark == "Total")
                 break;
 
-            var HsCode = ws.Cell(row, 2).GetString();        // B—ñ
+            var HsCode = ws.Cell(row, 2).GetString();        // Båˆ—
             var HsName = ws.Cell(row + 1, 2).GetString();
 
-            var poNo = ws.Cell(row, 3).GetString();        //C—ñ
+            var poNo = ws.Cell(row, 3).GetString();        //Cåˆ—
             var partNo = ws.Cell(row + 1, 3).GetString();
 
-            var Description = ws.Cell(row, 6).GetString();        // F—ñ
+            var Description = ws.Cell(row, 6).GetString();        // Fåˆ—
 
-            // Po No ‚ª‹ó‚È‚ç–¾×I‚í‚è‚Æ‚İ‚È‚·
+            // Po No ãŒç©ºãªã‚‰æ˜ç´°çµ‚ã‚ã‚Šã¨ã¿ãªã™
             if (string.IsNullOrWhiteSpace(poNo))
                 break;
 
-            // Part No ‚ª‹ó‚È‚çƒXƒLƒbƒv
+            // Part No ãŒç©ºãªã‚‰ã‚¹ã‚­ãƒƒãƒ—
             if (string.IsNullOrWhiteSpace(partNo))
             {
                 row += 2;
@@ -311,13 +321,13 @@ public class PurchaseReceiptController : Controller
                 PartNo = partNo.Trim(),
 
                 Description = Description.Trim(),
-                Quantity = GetDecimalSafe(ws.Cell(row, 10)),        //J—ñ
-                UP = GetDecimalSafe(ws.Cell(row, 13)),        //M—ñ
-                Amount = GetDecimalSafe(ws.Cell(row, 15))         //O—ñ
+                Quantity = GetDecimalSafe(ws.Cell(row, 10)),        //Jåˆ—
+                UP = GetDecimalSafe(ws.Cell(row, 13)),        //Måˆ—
+                Amount = GetDecimalSafe(ws.Cell(row, 15))         //Oåˆ—
 
             });
 
-            // š 2s‚Å1–¾×‚È‚Ì‚Å +2
+            // â˜… 2è¡Œã§1æ˜ç´°ãªã®ã§ +2
             row += 2;
         }
 
@@ -329,32 +339,32 @@ public class PurchaseReceiptController : Controller
     IXLWorksheet ws,
     List<Model_InvoiceDetail_PurchaseReceiptTK> details)
     {
-        //Quantity‚Ì‡Œv’l‚ğŒvZ
+        //Quantityã®åˆè¨ˆå€¤ã‚’è¨ˆç®—
         decimal detailQuantityTotal = details.Sum(x => x.Quantity ?? 0);
-        //Amount‚Ì‡Œv’l‚ğŒvZ
+        //Amountã®åˆè¨ˆå€¤ã‚’è¨ˆç®—
         decimal detailAmountTotal = details.Sum(x => x.Amount ?? 0);
 
         int row = 15;
 
         while (true)
         {
-            if (ws.Cell(row, 6).GetString() == "Total")  // F—ñ
+            if (ws.Cell(row, 6).GetString() == "Total")  // Fåˆ—
                 break;
 
             row += 2;
         }
 
-        //Quantity—ñ‚©‚çTotal‚ğæ“¾
-        decimal excelQuantityTotal = GetDecimalSafe(ws.Cell(row, 10)); // J—ñ
-        //Amount—ñ‚©‚çTotal‚ğæ“¾
-        decimal excelAmountTotal = GetDecimalSafe(ws.Cell(row, 15)); // O—ñ
+        //Quantityåˆ—ã‹ã‚‰Totalã‚’å–å¾—
+        decimal excelQuantityTotal = GetDecimalSafe(ws.Cell(row, 10)); // Jåˆ—
+        //Amountåˆ—ã‹ã‚‰Totalã‚’å–å¾—
+        decimal excelAmountTotal = GetDecimalSafe(ws.Cell(row, 15)); // Oåˆ—
 
-        //Quantity—ñ‚©‚çæ“¾‚µ‚½Total‚Quantity‚Ì‡Œv’l‚Ìê‡AƒGƒ‰[‚Æ‚µAI—¹
+        //Quantityåˆ—ã‹ã‚‰å–å¾—ã—ãŸTotalâ‰ Quantityã®åˆè¨ˆå€¤ã®å ´åˆã€ã‚¨ãƒ©ãƒ¼ã¨ã—ã€çµ‚äº†
         if (detailQuantityTotal != excelQuantityTotal)
             throw new Exception(
                 $"Error!: Total quantity not matched. Excel:{excelQuantityTotal} System:{detailQuantityTotal}"
             );
-        //Amount—ñ‚©‚çæ“¾‚µ‚½Total‚Amount‚Ì‡Œv’l‚Ìê‡AƒGƒ‰[‚Æ‚µAI—¹
+        //Amountåˆ—ã‹ã‚‰å–å¾—ã—ãŸTotalâ‰ Amountã®åˆè¨ˆå€¤ã®å ´åˆã€ã‚¨ãƒ©ãƒ¼ã¨ã—ã€çµ‚äº†
         if (detailAmountTotal != excelAmountTotal)
             throw new Exception(
                 $"Error!: Total amount not matched. Excel:{detailAmountTotal} System:{excelAmountTotal}"
@@ -366,11 +376,11 @@ public class PurchaseReceiptController : Controller
         if (cell == null)
             return 0;
 
-        // ‹ó”’‚È‚ç0
+        // ç©ºç™½ãªã‚‰0
         if (cell.IsEmpty())
             return 0;
 
-        // •¶š—ñ‚Æ‚µ‚Äæ“¾‚µ‚Äƒp[ƒX
+        // æ–‡å­—åˆ—ã¨ã—ã¦å–å¾—ã—ã¦ãƒ‘ãƒ¼ã‚¹
         decimal.TryParse(cell.GetString(), out var result);
         return result;
     }
@@ -460,7 +470,7 @@ public class PurchaseReceiptController : Controller
     {
         var ws = workbook.Worksheets.Add("Detail");
 
-        // ƒwƒbƒ_[s
+        // ãƒ˜ãƒƒãƒ€ãƒ¼è¡Œ
         ws.Cell(1, 1).Value = "Invoice No.";
         ws.Cell(1, 2).Value = "Invoice Date";
         ws.Cell(1, 3).Value = "Entry Date";
@@ -512,7 +522,7 @@ public class PurchaseReceiptController : Controller
             row++;
         }
 
-        // ”’l—ñƒtƒH[ƒ}ƒbƒg
+        // æ•°å€¤åˆ—ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ
         ws.Column(6).Style.NumberFormat.Format = "0";
         //ws.Column(8).Style.NumberFormat.Format = "0.00";
         //ws.Column(12).Style.NumberFormat.Format = "0.00";
@@ -536,7 +546,7 @@ public class PurchaseReceiptController : Controller
 
     }
 
-    //CCL—p‚ÌƒAƒNƒVƒ‡ƒ“
+    //CCLç”¨ã®ã‚¢ã‚¯ã‚·ãƒ§ãƒ³
     [HttpPost]
     public IActionResult ProcessCCL(List<IFormFile> files)
     {
@@ -564,12 +574,12 @@ public class PurchaseReceiptController : Controller
                 using var workbook = new XLWorkbook(stream);
 
 
-                // ARForm ‚©‚çn‚Ü‚éƒV[ƒg‚ğ‚·‚×‚Äæ“¾
+                // ARForm ã‹ã‚‰å§‹ã¾ã‚‹ã‚·ãƒ¼ãƒˆã‚’ã™ã¹ã¦å–å¾—
                 var arSheets = workbook.Worksheets
                     .Where(ws => ws.Name.StartsWith("ARForm", StringComparison.Ordinal))
                     .ToList();
 
-                //ARForm‚©‚çn‚Ü‚é sheet ‘¶İ‚µ‚È‚¢ê‡
+                //ARFormã‹ã‚‰å§‹ã¾ã‚‹ sheet å­˜åœ¨ã—ãªã„å ´åˆ
                 if (!arSheets.Any())
                     throw new Exception($"No ARForm sheet in {file.FileName}");
 
@@ -577,18 +587,18 @@ public class PurchaseReceiptController : Controller
                 {
                     //var ws = workbook.Worksheet("CI");
 
-                    //INVOICE•¶Œ¾‚ª‘¶İ‚µ‚È‚¢ê‡
+                    //INVOICEæ–‡è¨€ãŒå­˜åœ¨ã—ãªã„å ´åˆ
                     if (ws.Cell(10, 34).GetString() != "INVOICE")
                         throw new Exception("Error!: There's no invoice file");
 
-                    //Invoice Date‚ª‘¶İ‚µ‚È‚¢ê‡
-                    // ƒZƒ‹‚Ì’l‚ğæ“¾
+                    //Invoice DateãŒå­˜åœ¨ã—ãªã„å ´åˆ
+                    // ã‚»ãƒ«ã®å€¤ã‚’å–å¾—
                     string cellValue = ws.Cell(57, 32).GetString();
-                    // ‰E10•¶š‚ğæ“¾
+                    // å³10æ–‡å­—ã‚’å–å¾—
                     string right10 = cellValue.Length >= 10
                         ? cellValue.Substring(cellValue.Length - 10)
                         : cellValue;
-                    // dd/MM/yyyy ‚ÌŒ`®‚©‚Ç‚¤‚©”»’è
+                    // dd/MM/yyyy ã®å½¢å¼ã‹ã©ã†ã‹åˆ¤å®š
                     bool isDateFormat = Regex.IsMatch(right10, @"^\d{2}/\d{2}/\d{4}$");
                     if (!isDateFormat)
                     {
@@ -597,7 +607,7 @@ public class PurchaseReceiptController : Controller
 
                     var header = ReadHeaderCCL(ws);
 
-                    //invoice no ‚·‚Å‚É‘¶İ‚·‚éê‡
+                    //invoice no ã™ã§ã«å­˜åœ¨ã™ã‚‹å ´åˆ
                     if (_repoCCL.InvoiceExists(header.InvoiceNo))
                         throw new Exception($"Invoice exists: {header.InvoiceNo}");
 
@@ -608,10 +618,10 @@ public class PurchaseReceiptController : Controller
 
 
 
-                    // –¾×‚²‚Æ‚Ì total
+                    // æ˜ç´°ã”ã¨ã® total
                     decimal? lineTotal = details.Sum(x => x.Amount);
 
-                    // "Line(s) Subtotal:" ‚ğ’T‚·
+                    // "Line(s) Subtotal:" ã‚’æ¢ã™
                     var subtotalCell = ws.CellsUsed()
                         .FirstOrDefault(c =>
                             c.GetString().Trim() == "Line(s) Subtotal:");
@@ -621,7 +631,7 @@ public class PurchaseReceiptController : Controller
                         throw new Exception("Error!: Missing subtotal");
                     }
 
-                    // subtotal s‚Ì BP—ñ(68—ñ)
+                    // subtotal è¡Œã® BPåˆ—(68åˆ—)
                     decimal subtotalQty =
                         Math.Round(
                             GetDecimalSafe(ws.Cell(subtotalCell.Address.RowNumber, 68)),
@@ -637,7 +647,7 @@ public class PurchaseReceiptController : Controller
                     foreach (var d in details)
                     {
 
-                        // POæ“¾
+                        // POå–å¾—
                         var poList = _repoCCL
                             .GetPoDetails(header.PoNo, d.PartNo)
                             .OrderBy(x => x.LineKey)
@@ -646,11 +656,11 @@ public class PurchaseReceiptController : Controller
                         if (!poList.Any())
                             throw new Exception("Error!: PO missing");
 
-                        // Unit Priceƒ`ƒFƒbƒN
+                        // Unit Priceãƒã‚§ãƒƒã‚¯
                         if (!poList.Any(x => x.UnitCost == d.UP))
                             throw new Exception("Wrong unit price.");
 
-                        // Open Qty‡Œv
+                        // Open Qtyåˆè¨ˆ
                         var totalOpenQty = poList.Sum(x => x.QuantityOrdered - x.QuantityReceived);
 
                         if (d.Quantity > totalOpenQty)
@@ -662,7 +672,7 @@ public class PurchaseReceiptController : Controller
 
                         decimal remainQty = d.Quantity ?? 0;
 
-                        // Qty•ªŠ„
+                        // Qtyåˆ†å‰²
                         foreach (var po in poList)
                         {
                             if (remainQty <= 0)
@@ -750,7 +760,7 @@ public class PurchaseReceiptController : Controller
 
             }
 
-            // Detail.xlsx¶¬
+            // Detail.xlsxç”Ÿæˆ
             using var exportBook = new XLWorkbook();
             CreateDetailSheetCCL(exportBook, lastHeader, allDetails);
 
@@ -773,7 +783,7 @@ public class PurchaseReceiptController : Controller
     }
 
 
-    //FJK Upload—p‚ÌƒAƒNƒVƒ‡ƒ“
+    //FJK Uploadç”¨ã®ã‚¢ã‚¯ã‚·ãƒ§ãƒ³
     [HttpPost]
     public IActionResult ProcessFJK(List<IFormFile> files)
     {
@@ -798,7 +808,7 @@ public class PurchaseReceiptController : Controller
                 using var workbook = new XLWorkbook(stream);
 
 
-                // PODetail ƒV[ƒg‚ğæ“¾
+                // PODetail ã‚·ãƒ¼ãƒˆã‚’å–å¾—
                 var PODetailSheet = workbook.Worksheets
                     .FirstOrDefault(ws => ws.Name.Equals("PODetail", StringComparison.OrdinalIgnoreCase));
                 if (PODetailSheet == null)
@@ -806,7 +816,7 @@ public class PurchaseReceiptController : Controller
 
                 var resultPODetail = new List<Model_InvoicePoDetail_PurchaseReceiptFJK>();
 
-                // ƒf[ƒ^ŠJnsi1s–Ú‚ªƒwƒbƒ_[j
+                // ãƒ‡ãƒ¼ã‚¿é–‹å§‹è¡Œï¼ˆ1è¡Œç›®ãŒãƒ˜ãƒƒãƒ€ãƒ¼ï¼‰
                 int startRow = 2;
                 int lastRow = PODetailSheet.LastRowUsed().RowNumber();
 
@@ -869,7 +879,7 @@ public class PurchaseReceiptController : Controller
                             : (DateTime?)null
                     };
 
-                    // ‹ósƒXƒLƒbƒviPOLnj
+                    // ç©ºè¡Œã‚¹ã‚­ãƒƒãƒ—ï¼ˆPOLnï¼‰
                     if (string.IsNullOrWhiteSpace(model.POLn))
                         continue;
 
@@ -886,13 +896,13 @@ public class PurchaseReceiptController : Controller
                 resultSummary = resultDetail
                     .Select(x =>
                     {
-                        // PO No / Ln •ª‰ğ
+                        // PO No / Ln åˆ†è§£
                         var poParts = (x.PoNo ?? "").Split('-');
 
                         var poNo = poParts.Length > 0 ? poParts[0] : "";
                         var ln = poParts.Length > 1 ? poParts[1] : "";
 
-                        // BatchNo¶¬
+                        // BatchNoç”Ÿæˆ
                         var invoiceNo = x.InvoiceNo ?? "";
                         var last4 = invoiceNo.Length >= 4
                             ? invoiceNo.Substring(invoiceNo.Length - 4)
@@ -986,7 +996,7 @@ public class PurchaseReceiptController : Controller
 
             }
 
-            // Detail.xlsx¶¬
+            // Detail.xlsxç”Ÿæˆ
             using var exportBook = new XLWorkbook();
             CreateDetailSheetFJK(exportBook, resultDetail);
             CreateSummarySheetFJK(exportBook, resultSummary);
@@ -1013,9 +1023,9 @@ public class PurchaseReceiptController : Controller
 
     private Model_InvoiceHeader_PurchaseReceiptCCL ReadHeaderCCL(IXLWorksheet ws)
     {
-        // InvoiceDate‚Ì’l‚ğæ“¾
+        // InvoiceDateã®å€¤ã‚’å–å¾—
         string cellValue = ws.Cell(57, 32).GetString();
-        // ‰E10•¶š‚ğæ“¾
+        // å³10æ–‡å­—ã‚’å–å¾—
         string invoiceDateStr = cellValue.Length >= 10
             ? cellValue.Substring(cellValue.Length - 10)
             : cellValue;
@@ -1056,7 +1066,7 @@ public class PurchaseReceiptController : Controller
     {
         var list = new List<Model_InvoiceDetail_PurchaseReceiptCCL>();
 
-        int startRow; // © –¾×‚Ì1s–Ú
+        int startRow; // â† æ˜ç´°ã®1è¡Œç›®
         if (ws.Cell(62, 1).GetString() == "Item")
         {
             startRow = 63;
@@ -1070,18 +1080,18 @@ public class PurchaseReceiptController : Controller
             throw new Exception("Item header not found");
         }
 
-        // ¡ ÅIsæ“¾iA—ñƒx[ƒXj
+        // â–  æœ€çµ‚è¡Œå–å¾—ï¼ˆAåˆ—ãƒ™ãƒ¼ã‚¹ï¼‰
         int lastRow = ws.LastRowUsed().RowNumber();
-        // ‰º‚©‚çã‚ÉŒü‚©‚Á‚ÄuA—ñ‚ª 'Terms and Conditions' ‚Ån‚Ü‚ç‚È‚¢sv‚ğ’T‚·
+        // ä¸‹ã‹ã‚‰ä¸Šã«å‘ã‹ã£ã¦ã€ŒAåˆ—ãŒ 'Terms and Conditions' ã§å§‹ã¾ã‚‰ãªã„è¡Œã€ã‚’æ¢ã™
         while (lastRow >= 1)
         {
             string aValue = ws.Cell(lastRow, 1).GetString().Trim();
 
-            // š æ“ªˆê’v‚Å”»’èiStartsWithj
+            // â˜… å…ˆé ­ä¸€è‡´ã§åˆ¤å®šï¼ˆStartsWithï¼‰
             if (!aValue.StartsWith("Terms and Conditions", StringComparison.OrdinalIgnoreCase)
                 && !string.IsNullOrWhiteSpace(aValue))
             {
-                break; // © ‚±‚±‚ªÀÛ‚ÌÅIs
+                break; // â† ã“ã“ãŒå®Ÿéš›ã®æœ€çµ‚è¡Œ
             }
 
             lastRow--;
@@ -1091,7 +1101,7 @@ public class PurchaseReceiptController : Controller
 
         while (row2 <= lastRow)
         {
-            // ¡ A—ñ‚Ì˜A”Ôƒ`ƒFƒbƒN
+            // â–  Aåˆ—ã®é€£ç•ªãƒã‚§ãƒƒã‚¯
             var noStr = ws.Cell(row2, 1).GetString();
 
             if (!int.TryParse(noStr, out int no))
@@ -1110,7 +1120,7 @@ public class PurchaseReceiptController : Controller
                 throw new Exception("Error!: ItemCode is missing is missing");
             }
 
-            // Part NoiItemCodej
+            // Part Noï¼ˆItemCodeï¼‰
             var itemCode2 = raw.Substring(0, newlineIndex).Trim();
             var itemCode = itemCode2.Substring(itemCode2.IndexOf('-') + 1);
 
@@ -1141,7 +1151,7 @@ public class PurchaseReceiptController : Controller
     private List<Model_InvoiceDetail_PurchaseReceiptFJK> ReadDetailsFJK(XLWorkbook workbook)
     {
 
-        // PODetail ƒV[ƒgˆÈŠO‚ğ‚·‚×‚Äæ“¾
+        // PODetail ã‚·ãƒ¼ãƒˆä»¥å¤–ã‚’ã™ã¹ã¦å–å¾—
 
         var list = new List<Model_InvoiceDetail_PurchaseReceiptFJK>();
 
@@ -1150,15 +1160,15 @@ public class PurchaseReceiptController : Controller
             .ToList();
         foreach (var ws in arSheets)
         {
-            // Invoice No‚Ì’l‚ğæ“¾
+            // Invoice Noã®å€¤ã‚’å–å¾—
             string invoiceNo = ws.Cell(2, 4).GetString();
-            // Invoice Date‚Ì’l‚ğæ“¾i•¶š—ñj
+            // Invoice Dateã®å€¤ã‚’å–å¾—ï¼ˆæ–‡å­—åˆ—ï¼‰
             string invoiceDateStr = ws.Cell(9, 9).GetString();
 
-            // consolidation‚Ì’l‚ğæ“¾i•¶š—ñj
+            // consolidationã®å€¤ã‚’å–å¾—ï¼ˆæ–‡å­—åˆ—ï¼‰
             string consolidationStr = ws.Cell(15, 9).GetString();
 
-            // --- DateTime? ‚É•ÏŠ· ---
+            // --- DateTime? ã«å¤‰æ› ---
             DateTime? invoiceDate = DateTime.TryParse(invoiceDateStr, out var dtInvoice)
                 ? dtInvoice
                 : (DateTime?)null;
@@ -1171,9 +1181,9 @@ public class PurchaseReceiptController : Controller
 
             
 
-            int startRow = 26; // © –¾×‚Ì1s–Ú
+            int startRow = 26; // â† æ˜ç´°ã®1è¡Œç›®
 
-            // ƒV[ƒg‚ÌÅIg—ps‚ğæ“¾
+            // ã‚·ãƒ¼ãƒˆã®æœ€çµ‚ä½¿ç”¨è¡Œã‚’å–å¾—
             int lastRow = ws.LastRowUsed().RowNumber();
 
 
@@ -1216,7 +1226,7 @@ public class PurchaseReceiptController : Controller
     IXLWorksheet ws,
     List<Model_InvoiceDetail_PurchaseReceiptCCL> details)
     {
-        // 1. –¾×s‚²‚Æ‚ÌŒvZƒ`ƒFƒbƒN
+        // 1. æ˜ç´°è¡Œã”ã¨ã®è¨ˆç®—ãƒã‚§ãƒƒã‚¯
         foreach (var d in details)
         {
             decimal qty = d.Quantity ?? 0;
@@ -1225,7 +1235,7 @@ public class PurchaseReceiptController : Controller
 
             decimal calc = qty * up;
 
-            // ¬”Œë·‘Îô‚ÅŠÛ‚ß‚é
+            // å°æ•°èª¤å·®å¯¾ç­–ã§ä¸¸ã‚ã‚‹
             if (Math.Round(calc, 2) != Math.Round(amt, 2))
             {
                 throw new Exception(
@@ -1242,7 +1252,7 @@ public class PurchaseReceiptController : Controller
     {
         var ws = workbook.Worksheets.Add("Detail");
 
-        // ƒwƒbƒ_[s
+        // ãƒ˜ãƒƒãƒ€ãƒ¼è¡Œ
         ws.Cell(1, 1).Value = "Invoice No.";
         ws.Cell(1, 2).Value = "Invoice Date";
         ws.Cell(1, 3).Value = "Entry Date";
@@ -1294,7 +1304,7 @@ public class PurchaseReceiptController : Controller
             row++;
         }
 
-        // ”’l—ñƒtƒH[ƒ}ƒbƒg
+        // æ•°å€¤åˆ—ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ
         ws.Column(6).Style.NumberFormat.Format = "0";
         //ws.Column(8).Style.NumberFormat.Format = "0.00";
         //ws.Column(12).Style.NumberFormat.Format = "0.00";
@@ -1326,7 +1336,7 @@ public class PurchaseReceiptController : Controller
     {
         var ws = workbook.Worksheets.Add("Detail");
 
-        // ƒwƒbƒ_[s
+        // ãƒ˜ãƒƒãƒ€ãƒ¼è¡Œ
         ws.Cell(1, 1).Value = "Invoice No.";
         ws.Cell(1, 2).Value = "Invoice Date";
         ws.Cell(1, 3).Value = "Consolidation";
@@ -1374,7 +1384,7 @@ public class PurchaseReceiptController : Controller
             row++;
         }
 
-        // ”’l—ñƒtƒH[ƒ}ƒbƒg
+        // æ•°å€¤åˆ—ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ
         //ws.Column(6).Style.NumberFormat.Format = "0";
         //ws.Column(8).Style.NumberFormat.Format = "0.00";
         //ws.Column(12).Style.NumberFormat.Format = "0.00";
@@ -1396,7 +1406,7 @@ public class PurchaseReceiptController : Controller
     {
         var ws = book.Worksheets.Add("Summary");
 
-        // ƒwƒbƒ_
+        // ãƒ˜ãƒƒãƒ€
         ws.Cell(1, 1).Value = "Invoice No";
         ws.Cell(1, 2).Value = "Invoice Date";
         ws.Cell(1, 3).Value = "Consolidation";
@@ -1449,4 +1459,557 @@ public class PurchaseReceiptController : Controller
         ws.Columns().AdjustToContents();
 
     }
+
+	//FVBNç”¨ã®ã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+	[HttpPost]
+	public IActionResult ProcessFVBN(List<IFormFile> files)
+	{
+		try
+		{
+			//var ip = HttpContext.Connection.RemoteIpAddress?
+			//    .MapToIPv4()
+			//    .ToString();
+			var ip = GetClientIp();
+
+			var userName = HttpContext.Session.GetString("LoginUser");
+
+			//string _sageClientHost = "10.32.75.126"; // used when launching pvxwin32 (from original)
+			//string _sagePvXPath = @"C:\Sage\Sage 100 Workstation\MAS90\Home\pvxwin32.EXE";
+			//string _sageHomeCd = @"C:\Sage\Sage 100 Workstation\MAS90\Home";
+			//string _sageLauncherArgTemplate = "\"{0}\" ../launcher/sota.ini *Client -ARG \"{1}\" \"9921\" \"Import\" -ARG=DIRECT UIOFF {2} {3} FOA VIWI1C AUTO";
+			//string Quote(string s) => $"\"{s}\"";
+
+			Model_InvoiceHeader_PurchaseReceiptFVBN lastHeader = null;
+			var lastDetails = new List<Model_InvoiceDetail_PurchaseReceiptFVBN>();
+
+			foreach (var file in files)
+			{
+				using var stream = file.OpenReadStream();
+				using var workbook = new XLWorkbook(stream);
+
+				if (!workbook.Worksheets.Contains("IN NO 001"))
+					throw new Exception($"No IN NO 001 sheet in {file.FileName}");
+
+				var ws = workbook.Worksheet("IN NO 001");
+
+				if (ws.Cell(8, 10).GetString() != "COMMERCIAL  INVOICE")
+					throw new Exception("Error!: There's no invoice file");
+
+				// HS Codeã®ã‚ˆã†ãªæ–‡è¨€ãŒå­˜åœ¨ã—ãªã„å ´åˆ
+				var value = ws.Cell(21, 10).GetString();
+				if (!value.StartsWith("HS Code", StringComparison.Ordinal))
+				{
+					throw new Exception("Wrong format (HS Code)");
+				}
+
+				var header = ReadHeaderFVBN(ws);
+
+				if (_repoFVBN.InvoiceExists(header.InvoiceNo))
+					throw new Exception($"Invoice exists: {header.InvoiceNo}");
+
+				var details = ReadFVBNDetails(ws);
+
+				foreach (var d in details)
+				{
+					var poNo7 = d.PoNo.PadLeft(7, '0');
+
+					// POå–å¾—
+					var poList = _repoFVBN
+						.GetPoDetails(poNo7, d.Description, d.LineKey)
+						.OrderBy(x => x.LineKey)
+						.ToList();
+
+					if (!poList.Any())
+						throw new Exception("Error!: PO missing! PoNo:" + poNo7 + " Description:" + d.Description + " LineKey:" + d.LineKey);
+
+					// Unit Priceãƒã‚§ãƒƒã‚¯
+					if (!poList.Any(x => x.UnitCost == d.UP))
+						throw new Exception("Wrong unit price.");
+
+					// Open Qtyåˆè¨ˆ
+					var totalOpenQty = poList.Sum(x => x.QuantityOrdered - x.QuantityReceived);
+
+					if (d.Quantity > totalOpenQty)
+						throw new Exception(
+						$"Quantity received is more than open quantity.<br>" +
+						$"PO#: {poNo7}<br>" +
+						$"Item: {d.PartNo}"
+					);
+
+					decimal remainQty = d.Quantity ?? 0;
+
+					// Qtyåˆ†å‰²
+					foreach (var po in poList)
+					{
+						if (remainQty <= 0)
+							break;
+
+						decimal openQty = (po.QuantityOrdered ?? 0) - (po.QuantityReceived ?? 0);
+
+						if (openQty <= 0)
+							continue;
+
+						decimal allocated;
+
+						if (openQty >= remainQty)
+						{
+							allocated = remainQty;
+							remainQty = 0;
+						}
+						else
+						{
+							allocated = openQty;
+							remainQty -= openQty;
+						}
+
+						var newDetail = new Model_InvoiceDetail_PurchaseReceiptFVBN
+						{
+							HSCode = d.HSCode,
+							//HSName = d.HSName,
+							PoNo = poNo7,
+							//PartNo = d.PartNo,
+							Description = d.Description,
+							Quantity = d.Quantity,
+							UP = d.UP,
+							Amount = d.Amount,
+							LineKey = po.LineKey,
+							ItemCode = po.ItemCode,
+							WarehouseCode = po.WarehouseCode,
+							UnitCost = po.UnitCost,
+							QuantityOrdered = po.QuantityOrdered,
+							QuantityReceived = po.QuantityReceived,
+							OrderStatus = po.OrderStatus,
+
+							//AllocatedQty = allocated
+						};
+
+						_repoFVBN.InsertUploadData(header, newDetail, ip, userName);
+
+						lastDetails.Add(newDetail);
+					}
+				}
+
+				_repoFVBN.UpdateStatus(ip);
+
+				lastHeader = header;
+			}
+
+			// Detail.xlsxç”Ÿæˆ
+			using var exportBook = new XLWorkbook();
+			CreateDetailSheetFVBN(exportBook, lastHeader, lastDetails);
+
+			using var ms = new MemoryStream();
+			exportBook.SaveAs(ms);
+			ms.Position = 0;
+
+			return File(
+				ms.ToArray(),
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+				$"Check List_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
+			);
+		}
+		catch (Exception ex)
+		{
+			return StatusCode(500, ex.Message);
+		}
+	}
+
+	//FVTLç”¨ã®ã‚¢ã‚¯ã‚·ãƒ§ãƒ³
+	[HttpPost]
+	public IActionResult ProcessFVTL(List<IFormFile> files)
+	{
+		try
+		{
+			var ip = GetClientIp();
+
+			var userName = HttpContext.Session.GetString("LoginUser");
+
+			Model_InvoiceHeader_PurchaseReceiptFVTL lastHeader = null;
+			var lastDetails = new List<Model_InvoiceDetail_PurchaseReceiptFVTL>();
+
+			foreach (var file in files)
+			{
+				using var stream = file.OpenReadStream();
+				using var workbook = new XLWorkbook(stream);
+
+				var wsMatch = workbook.Worksheets.FirstOrDefault(s => s.Name.Trim() == "INV FOA");
+				if (wsMatch == null)
+					throw new Exception($"No INV FOA sheet in {file.FileName}");
+
+				var ws = wsMatch;
+
+				if (ws.Cell(5, 1).GetString().Trim() != "INVOICE")
+					throw new Exception("Error!: There's no invoice file");
+
+				var header = ReadHeaderFVTL(ws);
+
+				if (_repoFVTL.InvoiceExists(header.InvoiceNo))
+					throw new Exception($"Invoice exists: {header.InvoiceNo}");
+
+				var details = ReadFVTLDetails(ws);
+
+				foreach (var d in details)
+				{
+					var poNo7 = d.PoNo.PadLeft(7, '0');
+
+					var poList = _repoFVTL
+						.GetPoDetails(poNo7, d.Description)
+						.OrderBy(x => x.LineKey)
+						.ToList();
+
+					if (!poList.Any())
+						throw new Exception("Error!: PO missing! PoNo:" + poNo7 + " Description:" + d.Description);
+
+					if (!poList.Any(x => x.UnitCost == d.UP))
+						throw new Exception("Wrong unit price.");
+
+					var totalOpenQty = poList.Sum(x => x.QuantityOrdered - x.QuantityReceived);
+
+					if (d.Quantity > totalOpenQty)
+						throw new Exception(
+						$"Quantity received is more than open quantity.<br>" +
+						$"PO#: {poNo7}<br>" +
+						$"Item: {d.PartNo}"
+					);
+
+					decimal remainQty = d.Quantity ?? 0;
+
+					foreach (var po in poList)
+					{
+						if (remainQty <= 0)
+							break;
+
+						decimal openQty = (po.QuantityOrdered ?? 0) - (po.QuantityReceived ?? 0);
+
+						if (openQty <= 0)
+							continue;
+
+						decimal allocated;
+
+						if (openQty >= remainQty)
+						{
+							allocated = remainQty;
+							remainQty = 0;
+						}
+						else
+						{
+							allocated = openQty;
+							remainQty -= openQty;
+						}
+
+						var newDetail = new Model_InvoiceDetail_PurchaseReceiptFVTL
+						{
+							HSCode = d.HSCode,
+							PoNo = poNo7,
+							Description = d.Description,
+							Quantity = d.Quantity,
+							UP = d.UP,
+							Amount = d.Amount,
+							LineKey = po.LineKey,
+							ItemCode = po.ItemCode,
+							WarehouseCode = po.WarehouseCode,
+							UnitCost = po.UnitCost,
+							QuantityOrdered = po.QuantityOrdered,
+							QuantityReceived = po.QuantityReceived,
+							OrderStatus = po.OrderStatus,
+						};
+
+						_repoFVTL.InsertUploadData(header, newDetail, ip, userName);
+
+						lastDetails.Add(newDetail);
+					}
+				}
+
+				_repoFVTL.UpdateStatus(ip);
+
+				lastHeader = header;
+			}
+
+			using var exportBook = new XLWorkbook();
+			CreateDetailSheetFVTL(exportBook, lastHeader, lastDetails);
+
+			using var ms = new MemoryStream();
+			exportBook.SaveAs(ms);
+			ms.Position = 0;
+
+			return File(
+				ms.ToArray(),
+				"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+				$"Check List_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
+			);
+		}
+		catch (Exception ex)
+		{
+			return StatusCode(500, ex.Message);
+		}
+	}
+
+	private Model_InvoiceHeader_PurchaseReceiptFVTL ReadHeaderFVTL(IXLWorksheet ws)
+	{
+		var invoiceNo = ws.Cell("G8").GetString();
+		var invoiceDateStr = ws.Cell("G9").GetString();
+		if (!DateTime.TryParseExact(
+				invoiceDateStr,
+				new[] { "yyyy/M/d", "yyyy/M/d H:mm:ss", "yyyy/MM/dd H:mm:ss" },
+				System.Globalization.CultureInfo.InvariantCulture,
+				System.Globalization.DateTimeStyles.None,
+				out DateTime invoiceDate))
+		{
+			throw new Exception("Invoice Date format is invalid.");
+		}
+
+		return new Model_InvoiceHeader_PurchaseReceiptFVTL
+		{
+			InvoiceNo = invoiceNo,
+			InvoiceDate = invoiceDate,
+			EntryDate = DateTime.Now
+		};
+	}
+
+	private List<Model_InvoiceDetail_PurchaseReceiptFVTL> ReadFVTLDetails(IXLWorksheet ws)
+	{
+		var list = new List<Model_InvoiceDetail_PurchaseReceiptFVTL>();
+
+		int row = 23;
+
+		while (true)
+		{
+			var totalMark = ws.Cell(row, 1).GetString();
+			if (totalMark == "")
+				break;
+
+            var descriptionOfGoods = ws.Cell(row, 2).GetString();
+			var qty = GetDecimalSafe(ws.Cell(row, 3));
+			var unitPrice = Math.Round(GetDecimalSafe(ws.Cell(row, 4)), 2, MidpointRounding.AwayFromZero);
+			var amount = Math.Round(GetDecimalSafe(ws.Cell(row, 5)), 2, MidpointRounding.AwayFromZero);
+            var poNo = ws.Cell(row, 6).GetString();
+			var reference = ws.Cell(row, 7).GetString();
+
+			list.Add(new Model_InvoiceDetail_PurchaseReceiptFVTL
+			{
+				PoNo = poNo,
+				Description = descriptionOfGoods,
+				Quantity = qty,
+				UP = unitPrice,
+				Amount = amount,
+			});
+            row += 1;
+		}
+
+		return list;
+	}
+
+	private IXLWorksheet CreateDetailSheetFVTL(
+        XLWorkbook workbook,
+        Model_InvoiceHeader_PurchaseReceiptFVTL header,
+        List<Model_InvoiceDetail_PurchaseReceiptFVTL> details)
+	{
+		var ws = workbook.Worksheets.Add("Detail");
+
+		ws.Cell(1, 1).Value = "Invoice No.";
+		ws.Cell(1, 2).Value = "Invoice Date";
+		ws.Cell(1, 3).Value = "Entry Date";
+		ws.Cell(1, 4).Value = "Status";
+		ws.Cell(1, 5).Value = "PO No.";
+		ws.Cell(1, 6).Value = "Ln";
+		ws.Cell(1, 7).Value = "Part Number (FVTL)";
+		ws.Cell(1, 8).Value = "Description (FVTL)";
+		ws.Cell(1, 9).Value = "Item Code";
+		ws.Cell(1, 10).Value = "WH";
+		ws.Cell(1, 11).Value = "UnitCost";
+		ws.Cell(1, 12).Value = "OrderQty";
+		ws.Cell(1, 13).Value = "ShippedQty";
+		ws.Cell(1, 14).Value = "AllocatedQty";
+		ws.Cell(1, 15).Value = "Purchase Price";
+		ws.Cell(1, 16).Value = "Amount";
+		ws.Cell(1, 17).Value = "Batch";
+
+		ws.Range(1, 1, 1, 17).Style.Font.Bold = true;
+
+		int row = 2;
+
+		foreach (var d in details)
+		{
+			ws.Cell(row, 1).Value = header.InvoiceNo;
+			ws.Cell(row, 2).Value = header.InvoiceDate.ToString("M/dd/yyyy");
+			ws.Cell(row, 3).Value = header.EntryDate.ToString("M/dd/yyyy");
+			ws.Cell(row, 4).Value = d.OrderStatus;
+			ws.Cell(row, 5).Value = d.PoNo.PadLeft(7, '0');
+			ws.Cell(row, 6).Value = int.Parse(d.LineKey);
+            ws.Cell(row, 7).Value = "";
+			ws.Cell(row, 8).Value = d.Description;
+			ws.Cell(row, 9).Value = d.ItemCode;
+			ws.Cell(row, 10).Value = d.WarehouseCode;
+			ws.Cell(row, 11).Value = d.UnitCost;
+			ws.Cell(row, 12).Value = d.QuantityOrdered;
+			ws.Cell(row, 13).Value = d.QuantityReceived;
+			ws.Cell(row, 14).Value = d.Quantity;
+			ws.Cell(row, 15).Value = d.UP;
+			ws.Cell(row, 16).Value = d.UP * d.Quantity;
+			ws.Cell(row, 17).Value = header.InvoiceNo.Substring(header.InvoiceNo.Length - 5);
+
+			row++;
+		}
+
+		ws.Column(6).Style.NumberFormat.Format = "0";
+
+		ws.Column(11).Style.NumberFormat.Format = "0.00";
+		ws.Column(15).Style.NumberFormat.Format = "0.00";
+		ws.Column(16).Style.NumberFormat.Format = "0.00";
+
+		ws.Cell(row, 14).FormulaA1 = $"=SUM(N2:N{row - 1})";
+		ws.Cell(row, 14).Style.Font.Bold = true;
+
+		ws.Cell(row, 16).FormulaA1 = $"=SUM(P2:P{row - 1})";
+		ws.Cell(row, 16).Style.Font.Bold = true;
+
+		ws.Range(1, 1, 1, 17).Style.Font.Bold = true;
+		ws.Range(1, 1, 1, 17).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
+
+		ws.Columns().AdjustToContents();
+
+		return ws;
+
+	}
+
+	private Model_InvoiceHeader_PurchaseReceiptFVBN ReadHeaderFVBN(IXLWorksheet ws)
+	{
+		// No. of Invoice
+		var invoiceNo = ws.Cell("AF10").GetString();
+		// date of Invoice
+		var invoiceDateStr = ws.Cell("AF11").GetString();
+		if (!DateTime.TryParseExact(
+				invoiceDateStr,
+				new[] { "yyyy/M/d", "yyyy/M/d H:mm:ss", "yyyy/MM/dd H:mm:ss" },
+				System.Globalization.CultureInfo.InvariantCulture,
+				System.Globalization.DateTimeStyles.None,
+				out DateTime invoiceDate))
+		{
+			throw new Exception("Invoice Date format is invalid.");
+		}
+
+		return new Model_InvoiceHeader_PurchaseReceiptFVBN
+		{
+			InvoiceNo = invoiceNo,
+			InvoiceDate = invoiceDate,
+			EntryDate = DateTime.Now
+		};
+	}
+
+	private List<Model_InvoiceDetail_PurchaseReceiptFVBN> ReadFVBNDetails(IXLWorksheet ws)
+	{
+		var list = new List<Model_InvoiceDetail_PurchaseReceiptFVBN>();
+
+		int row = 22; // â† æ˜ç´°ã®1è¡Œç›®
+
+		while (true)
+		{
+			// 1è¡Œç›®ã¯ "Total" ãªã‚‰çµ‚äº†
+			var totalMark = ws.Cell(row, 1).GetString();   // Aåˆ—
+			if (totalMark == "TOTAL")
+				break;
+
+            var itemName = ws.Cell(row, 3).GetString();
+            var itemNo = ws.Cell(row, 4).GetString();
+			var hsCode = ws.Cell(row, 10).GetString();
+            var itemCode = ws.Cell(row, 11).GetString();
+            var qty = GetDecimalSafe(ws.Cell(row, 15));
+            var unitPrice = GetDecimalSafe(ws.Cell(row, 17));
+			var amount = GetDecimalSafe(ws.Cell(row, 21));
+            var remark = ws.Cell(row, 36).GetString();
+
+			list.Add(new Model_InvoiceDetail_PurchaseReceiptFVBN
+			{
+				HSCode = hsCode.Trim(),
+				PoNo = remark.Split('-')[0].Trim(),
+				LineKey = remark.Split('-')[1].Trim().PadLeft(6, '0'),
+				Description = itemNo.Trim(),
+				ItemCode = itemCode.Trim(),
+				Quantity = qty,
+				UP = unitPrice,
+				Amount = amount,
+			});
+            row += 1;
+		}
+
+		return list;
+	}
+
+	private IXLWorksheet CreateDetailSheetFVBN(
+        XLWorkbook workbook, 
+        Model_InvoiceHeader_PurchaseReceiptFVBN header,
+        List<Model_InvoiceDetail_PurchaseReceiptFVBN> details)
+	{
+		var ws = workbook.Worksheets.Add("Detail");
+
+		// ãƒ˜ãƒƒãƒ€ãƒ¼è¡Œ
+		ws.Cell(1, 1).Value = "Invoice No.";
+		ws.Cell(1, 2).Value = "Invoice Date";
+		ws.Cell(1, 3).Value = "Entry Date";
+		ws.Cell(1, 4).Value = "Status";
+		ws.Cell(1, 5).Value = "PO No.";
+		ws.Cell(1, 6).Value = "Ln";
+		ws.Cell(1, 7).Value = "Part Number (FVBN)";
+		ws.Cell(1, 8).Value = "Description (FVBN)";
+		ws.Cell(1, 9).Value = "Item Code";
+		ws.Cell(1, 10).Value = "WH";
+		ws.Cell(1, 11).Value = "UnitCost";
+		ws.Cell(1, 12).Value = "OrderQty";
+		ws.Cell(1, 13).Value = "ShippedQty";
+		ws.Cell(1, 14).Value = "AllocatedQty";
+		ws.Cell(1, 15).Value = "Purchase Price";
+		ws.Cell(1, 16).Value = "Amount";
+		ws.Cell(1, 17).Value = "Batch";
+
+		ws.Range(1, 1, 1, 17).Style.Font.Bold = true;
+
+		int row = 2;
+
+		foreach (var d in details)
+		{
+			ws.Cell(row, 1).Value = header.InvoiceNo;
+			ws.Cell(row, 2).Value = header.InvoiceDate.ToString("M/dd/yyyy");
+			ws.Cell(row, 3).Value = header.EntryDate.ToString("M/dd/yyyy");
+			ws.Cell(row, 4).Value = d.OrderStatus;
+			ws.Cell(row, 5).Value = d.PoNo.PadLeft(7, '0');
+			ws.Cell(row, 6).Value = int.Parse(d.LineKey);
+            ws.Cell(row, 7).Value = "";
+			ws.Cell(row, 8).Value = d.Description;
+			ws.Cell(row, 9).Value = d.ItemCode;
+			ws.Cell(row, 10).Value = d.WarehouseCode;
+			ws.Cell(row, 11).Value = d.UnitCost;
+			ws.Cell(row, 12).Value = d.QuantityOrdered;
+			ws.Cell(row, 13).Value = d.QuantityReceived;
+			ws.Cell(row, 14).Value = d.Quantity;
+			ws.Cell(row, 15).Value = d.UP;
+			ws.Cell(row, 16).Value = d.UP * d.Quantity;
+			ws.Cell(row, 17).Value = header.InvoiceNo.Substring(header.InvoiceNo.Length - 5);
+
+			row++;
+		}
+
+		// æ•°å€¤åˆ—ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆ
+		ws.Column(6).Style.NumberFormat.Format = "0";
+		//ws.Column(8).Style.NumberFormat.Format = "0.00";
+		//ws.Column(12).Style.NumberFormat.Format = "0.00";
+
+		ws.Column(11).Style.NumberFormat.Format = "0.00";
+		ws.Column(15).Style.NumberFormat.Format = "0.00";
+		ws.Column(16).Style.NumberFormat.Format = "0.00";
+
+		ws.Cell(row, 14).FormulaA1 = $"=SUM(N2:N{row - 1})";
+		ws.Cell(row, 14).Style.Font.Bold = true;
+
+		ws.Cell(row, 16).FormulaA1 = $"=SUM(P2:P{row - 1})";
+		ws.Cell(row, 16).Style.Font.Bold = true;
+
+		ws.Range(1, 1, 1, 17).Style.Font.Bold = true;
+		ws.Range(1, 1, 1, 17).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
+
+		ws.Columns().AdjustToContents();
+
+		return ws;
+
+	}
+
 }

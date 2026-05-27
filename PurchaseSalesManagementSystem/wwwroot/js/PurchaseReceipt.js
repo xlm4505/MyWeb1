@@ -36,7 +36,7 @@
 
         const target = selectTarget.value;
 
-        if (target === "TK" || target === "CCL") {
+        if (target === "TK" || target === "CCL" || target === "FVBN" || target === "FVTL") {
 
             // Upload固定
             selectAction.value = "Upload";
@@ -104,6 +104,12 @@
                 ? "/PurchaseReceipt/CheckFJK"
                 : "/PurchaseReceipt/ProcessFJK";
         }
+        else if (target === "FVBN") {
+            url = "/PurchaseReceipt/ProcessFVBN";
+        }
+        else if (target === "FVTL") {
+            url = "/PurchaseReceipt/ProcessFVTL";
+        }
 
         messageArea.textContent = action + " Start...";
         checklist.style.display = "none";
@@ -118,8 +124,8 @@
                     const msg = await response.text();
                     throw new Error(msg);
                 }
-                // TK は Excel を返す
-                if (target === "TK" || target === "CCL" || (target === "FJK" && action === "Upload")) {
+                // TK OR FVBN は Excel を返す
+                if (target === "TK" || target === "CCL" || (target === "FJK" && action === "Upload") || target === "FVBN" || target === "FVTL") {
                     // ★ ファイル名をレスポンスヘッダから取得
                     const disposition = response.headers.get("Content-Disposition");
                     let filename = "download.xlsx";
@@ -149,7 +155,7 @@
             .then(data => {
 
                 // ===== TK Excelダウンロード =====
-                if (target === "TK" || target === "CCL" || (target === "FJK" && action === "Upload")) {
+                if (target === "TK" || target === "CCL" || (target === "FJK" && action === "Upload") || target === "FVBN" || target === "FVTL") {
 
                     const { blob, filename } = data;
 

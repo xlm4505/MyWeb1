@@ -430,7 +430,7 @@ public class Repository_PurchaseReceiptFJKCheck
 
     private static bool IsFlowInvoice(string value)
     {
-        var upper = value.Substring(0, 6).ToUpperInvariant();
+        var upper = (value.Length >= 6 ? value.Substring(0, 6) : value).ToUpperInvariant();
         return upper.StartsWith("MASS F")
                || upper.StartsWith("LIQUID")
                || upper.StartsWith("CONCEN")

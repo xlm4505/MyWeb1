@@ -15,7 +15,7 @@ SELECT
   , SO_SalesOrderHeader.Comment AS HeaderComment
   , SO_SalesOrderDetail.UDF_CUST_PO_LN AS CustPO_Ln
   , SO_SalesOrderDetail.ItemCode
-  , SO_SalesOrderDetail.UDF_ITEMDESC AS ItemDescription
+  , TRIM(REPLACE(REPLACE(SO_SalesOrderDetail.UDF_ITEMDESC, CHAR(13), ''),CHAR(10), '')) AS ItemDescription
   , SO_SalesOrderDetail.AliasItemNo
   , SO_SalesOrderDetail.WarehouseCode AS Whs
   , SO_SalesOrderDetail.UDF_SHIPWEIGHT AS [Weight]

@@ -34,6 +34,8 @@ builder.Services.AddScoped<Repository_PurchaseReceiptFJK>();
 builder.Services.AddScoped<Repository_ITUpload>();
 builder.Services.AddScoped<Repository_FOAInventory>();
 builder.Services.AddScoped<Repository_MonthlySalesSummary>();
+builder.Services.AddScoped<Repository_PurchaseReceiptFVBN>();
+builder.Services.AddScoped<Repository_PurchaseReceiptFVTL>();
 
 
 var app = builder.Build();

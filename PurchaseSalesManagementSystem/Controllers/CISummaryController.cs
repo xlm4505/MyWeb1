@@ -48,7 +48,7 @@ public class CISummaryController : Controller
             // delete from U_CIDetailData
             _repo.DeleteUCIDetailData();
 
-			foreach (var excelFile in excelFiles)
+			foreach (var excelFile in excelFiles.OrderBy(f => f.FileName))
 			{
                 var newExcelFileName = "";
                 fileExcelName = excelFile.FileName;
@@ -72,21 +72,8 @@ public class CISummaryController : Controller
                 using (var stream = new FileStream(workExcelPath, FileMode.Open, FileAccess.Read))
                 using (var workbook = new XLWorkbook(stream))
                 {
-                    var worksheet = workbook.Worksheet(1);
-                    var a1Cell = worksheet.Cell("A1");
-                    var a2Cell = worksheet.Cell("A2");
-                    var j5Cell = worksheet.Cell("J5");
-                    if (j5Cell.GetString() == "Packing List / Commercial Invoice")
-                    {
-                        newExcelFileName = ProcessPackingWorksheet(worksheet, fileExcelName);
-                    }
-                    else if (a1Cell.GetString() == "Rinku to Rinku" ||
-                        a2Cell.GetString() == "IT from Rinku to SFO" ||
-                        a1Cell.GetString() == "IT from RINKU to SFO Consolidation")
-                    {
-                        ProcessSfoWorksheet(worksheet, fileExcelName);
-                        deleteFiles.Add(originalExcelPath);
-                    }
+                    foreach (var ws in workbook.Worksheets)
+                        TryProcessWorksheet(ws, fileExcelName, ref newExcelFileName, deleteFiles, originalExcelPath);
                 }
 
                 // 一時変換ファイルを削除
@@ -136,20 +123,52 @@ public class CISummaryController : Controller
             var detailtWorksheet = outputWorkbook.Worksheet("Detail");
             detailtWorksheet.Column(24).Style.NumberFormat.Format = "#,##0.00";
             detailtWorksheet.Column(25).Style.NumberFormat.Format = "#,##0.00";
+            detailtWorksheet.Cell(1, 6).Value = "FOA_CI#";
+            detailtWorksheet.Cell(1, 14).Value = "Whse (Out)";
+            detailtWorksheet.Cell(1, 15).Value = "Whse (In)";
 
             var raInputList = _repo.GetRAInputData();
             dt = exportToExcel.ConvertToDataTableFast(raInputList);
             outputWorkbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(outputWorkbook, dt, "RA_Input", "SO");
+			var raInputWorksheet = outputWorkbook.Worksheet("RA_Input");
+			raInputWorksheet.Cell(1, 5).Value = "ShipTo - ShipVia";
+			raInputWorksheet.Cell(1, 6).Value = "Whse (Out)";
+			raInputWorksheet.Cell(1, 7).Value = "Whse (In)";
 
-            var stockCheckList = _repo.GetStockCheckData();
+			var stockCheckList = _repo.GetStockCheckData();
             dt = exportToExcel.ConvertToDataTableFast(stockCheckList);
             outputWorkbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(outputWorkbook, dt, "StockCheck", "SO");
+			var stockCheckWorksheet = outputWorkbook.Worksheet("StockCheck");
+			stockCheckWorksheet.Cell(1, 4).Value = "Qty (Current)";
+			stockCheckWorksheet.Cell(1, 6).Value = "IT (Out)";
+			stockCheckWorksheet.Cell(1, 7).Value = "IT (In)";
+			stockCheckWorksheet.Cell(1, 8).Value = "Qty (After)";
 
-            var rinkuList = _repo.GetRINKUData();
+            var stockLastRow = stockCheckWorksheet.LastRowUsed()?.RowNumber() ?? 1;
+            for (int row = 2; row <= stockLastRow; row++)
+            {
+                var qtyAfterCell = stockCheckWorksheet.Cell(row, 8);
+                if (qtyAfterCell.TryGetValue(out decimal qtyVal) && qtyVal < 0)
+                    qtyAfterCell.Style.Font.FontColor = XLColor.Red;
+            }
+
+			var rinkuList = _repo.GetRINKUData();
             dt = exportToExcel.ConvertToDataTableFast(rinkuList);
             outputWorkbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(outputWorkbook, dt, "RINKU", "SO");
             var rinkuWorksheet = outputWorkbook.Worksheet("RINKU");
             rinkuWorksheet.Column(14).Style.NumberFormat.Format = "#,##0.00";
+			rinkuWorksheet.Cell(1, 11).Value = "Requested By";
+
+			var rinkuLastRow = rinkuWorksheet.LastRowUsed()?.RowNumber() ?? 1;
+            for (int row = 2; row <= rinkuLastRow; row++)
+            {
+                var paceCell = rinkuWorksheet.Cell(row, 12);
+                if (!string.IsNullOrEmpty(paceCell.GetString()))
+                {
+                    paceCell.Style.Fill.BackgroundColor = XLColor.Yellow;
+                    rinkuWorksheet.Cell(row, 8).Style.Fill.BackgroundColor = XLColor.Yellow;
+                }
+            }
 
             var summaryExcelFileName = "CI_Summary_" + DateTime.Now.ToString("MMddyyyy") + ".xlsx";
             var summaryExcelPath = Path.Combine(workDir, summaryExcelFileName);
@@ -174,6 +193,27 @@ public class CISummaryController : Controller
 				System.IO.File.Delete(zipPath);
 			var errorMsg = !string.IsNullOrEmpty(ex.Message) ? ex.Message : ex.GetType().Name;
 			return new JsonResult(new { error_msg = $"server error: {errorMsg}" }) { StatusCode = 500 };
+		}
+
+		bool TryProcessWorksheet(IXLWorksheet ws, string excelName, ref string newFileName, List<string> delFiles, string origPath)
+		{
+			var a1 = ws.Cell("A1");
+			var a2 = ws.Cell("A2");
+			var j5 = ws.Cell("J5");
+			if (j5.GetString() == "Packing List / Commercial Invoice")
+			{
+				newFileName = ProcessPackingWorksheet(ws, excelName);
+				return true;
+			}
+			else if (a1.GetString() == "Rinku to Rinku" ||
+					 a2.GetString() == "IT from Rinku to SFO" ||
+					 a1.GetString() == "IT from RINKU to SFO Consolidation")
+			{
+				ProcessSfoWorksheet(ws, excelName);
+				delFiles.Add(origPath);
+				return true;
+			}
+			return false;
 		}
 	}
 

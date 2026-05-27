@@ -61,17 +61,17 @@ public class ReceivingActiveController : Controller
                 }
             }
 
-            // 5行目: K列から最終列(Bal列)の間で入力ありの最終セル値を取得
-            object? lastFilledValueRow5 = null;
-            for (int col = balCol-1; col >= 11; col--)
-            {
-                var cell = ws.Cells[5, col];
-                if (cell.Value != null && !string.IsNullOrWhiteSpace(cell.Text))
-                {
-                    lastFilledValueRow5 = cell.Value;
-                    break;
-                }
-            }
+            //// 5行目: K列から最終列(Bal列)の間で入力ありの最終セル値を取得
+            //object? lastFilledValueRow5 = null;
+            //for (int col = balCol-1; col >= 11; col--)
+            //{
+            //    var cell = ws.Cells[5, col];
+            //    if (cell.Value != null && !string.IsNullOrWhiteSpace(cell.Text))
+            //    {
+            //        lastFilledValueRow5 = cell.Value;
+            //        break;
+            //    }
+            //}
 
             // lastFilledColRow4 と Bal列の間の空白列数
             int emptyColsBetween = (lastFilledColRow4 != -1) ? balCol - lastFilledColRow4 - 1 : -1;
@@ -97,32 +97,35 @@ public class ReceivingActiveController : Controller
             if (ciLastRow == 0)
                 return Json(new { error_msg = "RA_Input sheet is empty." });
 
-            if (!int.TryParse(raInputSheet.Cells[ciLastRow, 1].Value?.ToString(), out int ciLastRowA))
-                return Json(new { error_msg = "RA_Input: last row column A is not a valid number." });
+            // C列 (FileName) のユニーク値を順序付きで収集
+            var fileNameColOffset = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            int offsetCounter = 0;
+            for (int raRow = 2; raRow <= ciLastRow; raRow++)
+            {
+                string fn = raInputSheet.Cells[raRow, 3].Text ?? "";
+                if (!fileNameColOffset.ContainsKey(fn))
+                    fileNameColOffset[fn] = ++offsetCounter;
+            }
+            int uniqueFileNameCount = offsetCounter;
 
             // インサート後のBal列位置（インサートなし時は元のbalColのまま）
             int currentBalCol = balCol;
 
-            // 最終行A列の値 > 空白列数 の場合、差分列をインサート
-            if (ciLastRowA > emptyColsBetween)
+            // ユニークFileName数 > 空白列数 の場合、差分列をインサート
+            if (uniqueFileNameCount > emptyColsBetween)
             {
-                int diff = ciLastRowA - emptyColsBetween;
+                int diff = uniqueFileNameCount - emptyColsBetween;
                 int sourceCol = balCol - 1;
                 int totalRows = ws.Dimension?.End.Row ?? 0;
 
                 // Bal列の前に diff + 1 列を挿入（Bal列以降が右にシフト）
                 ws.InsertColumn(balCol, diff + 1);
 
-                // Bal列の前列（sourceCol）を挿入した各列にコピー
+                // Bal列の前列（sourceCol）を挿入した各列にコピー（式・スタイル含む）
                 for (int newCol = balCol; newCol < balCol + diff + 1; newCol++)
                 {
-                    for (int row = 1; row <= totalRows; row++)
-                    {
-                        var src = ws.Cells[row, sourceCol];
-                        var dst = ws.Cells[row, newCol];
-                        dst.Value = src.Value;
-                        dst.StyleID = src.StyleID;
-                    }
+                    ws.Cells[1, sourceCol, totalRows, sourceCol]
+                        .Copy(ws.Cells[1, newCol, totalRows, newCol]);
                 }
 
                 // インサート後の新Bal列のSUM計算式の終了列をBal前列に更新
@@ -133,79 +136,124 @@ public class ReceivingActiveController : Controller
                 for (int row = 1; row <= totalRows; row++)
                 {
                     string formula = ws.Cells[row, newBalCol].Formula ?? "";
-                    if (formula.IndexOf("SUM", StringComparison.OrdinalIgnoreCase) >= 0)
+                    if (Regex.IsMatch(formula, @"\$?[A-Za-z]+\$?\d+-SUM\(", RegexOptions.IgnoreCase))
                     {
                         ws.Cells[row, newBalCol].Formula = Regex.Replace(formula,
-                            @"([A-Za-z]+)(\d+):([A-Za-z]+)(\d+)",
+                            @"\$?([A-Za-z]+)\$?(\d+):\$?([A-Za-z]+)\$?(\d+)",
                             m => $"{m.Groups[1].Value}{m.Groups[2].Value}:{newEndColLetter}{m.Groups[4].Value}");
                     }
                 }
             }
 
-            // 計算式セルの値を確定（Bal列等のSUM式をValueとして読み取れるようにする）
-            ws.Calculate();
-
-            // RA_Input 2行目からのデータを lastFilledColRow4+1 列から繰り返し書き込む
             int raLastRow = ws.Dimension?.End.Row ?? 0;
-            double row5Counter = Convert.ToDouble(lastFilledValueRow5 ?? 0);
+            //double row5Counter = Convert.ToDouble(lastFilledValueRow5 ?? 0);
 
+            // Bal式をパース: jCol=J, sumStartCol=L
+            // $絶対参照を含む場合も対応
+            int jCol = -1;
+            int sumStartCol = 11;
+            for (int row = 8; row <= raLastRow; row++)
+            {
+                string formula = ws.Cells[row, currentBalCol].Formula ?? "";
+                var m = Regex.Match(formula,
+                    @"\$?([A-Za-z]+)\$?\d+-SUM\(\$?([A-Za-z]+)\$?\d+", RegexOptions.IgnoreCase);
+                if (m.Success)
+                {
+                    jCol = FromColumnLetter(m.Groups[1].Value);
+                    sumStartCol = FromColumnLetter(m.Groups[2].Value);
+                    break;
+                }
+                var m2 = Regex.Match(formula, @"SUM\(\$?([A-Za-z]+)\$?\d+", RegexOptions.IgnoreCase);
+                if (m2.Success) { sumStartCol = FromColumnLetter(m2.Groups[1].Value); break; }
+            }
+
+            // Bal列を数値化: 式を保存して Bal = J値 - SUM(割り当て済み) で上書き
+            var balFormulas = new Dictionary<int, string>();
+            for (int row = 8; row <= raLastRow; row++)
+            {
+                string formula = ws.Cells[row, currentBalCol].Formula ?? "";
+                if (formula.IndexOf("SUM", StringComparison.OrdinalIgnoreCase) < 0) continue;
+
+                double allocatedSum = 0;
+                for (int c = sumStartCol; c < currentBalCol; c++)
+                    allocatedSum += ws.Cells[row, c].Value is double d ? d : 0;
+
+                double balValue = jCol > 0
+                    ? (ws.Cells[row, jCol].Value is double jv ? jv : 0) - allocatedSum
+                    : allocatedSum;
+
+                balFormulas[row] = formula;
+                ws.Cells[row, currentBalCol].Value = balValue;
+            }
+
+            // I列（col 9）を事前インデックス化してO(m×n)スキャンをO(1)ルックアップに置換
+            var iColIndex = new Dictionary<string, List<int>>(StringComparer.OrdinalIgnoreCase);
+            for (int row = 8; row <= raLastRow; row++)
+            {
+                string iVal = ws.Cells[row, 9].Text ?? "";
+                if (!iColIndex.TryGetValue(iVal, out var rowList))
+                    iColIndex[iVal] = rowList = new List<int>();
+                rowList.Add(row);
+            }
+
+            var headerWritten = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             for (int raRow = 2; raRow <= ciLastRow; raRow++)
             {
-                int col = lastFilledColRow4 + (raRow - 1); // 1件目 → lastFilledColRow4+1
-                 
-                // 3行目: RA_Input D列
-                ws.Cells[3, col].Value = raInputSheet.Cells[raRow, 4].Value;
+                string fileName = raInputSheet.Cells[raRow, 3].Text ?? ""; // C列 = FileName
+                int col = lastFilledColRow4 + fileNameColOffset[fileName];
 
-                // 4行目: システム日付
-                ws.Cells[4, col].Value = DateTime.Now.Date;
-
-                // 5行目: B列が CI の場合のみ row5Counter を +1 して書き込む
-                string bValue = raInputSheet.Cells[raRow, 2].Text ?? "";
-                if (bValue.Equals("CI", StringComparison.OrdinalIgnoreCase))
+                // ヘッダ行は各FileName初回のみ書き込み
+                if (headerWritten.Add(fileName))
                 {
-                    row5Counter += 1;
-                    ws.Cells[5, col].Value = row5Counter;
+                    // 3行目: RA_Input D列
+                    ws.Cells[3, col].Value = raInputSheet.Cells[raRow, 4].Value;
+
+                    // 4行目: システム日付
+                    ws.Cells[4, col].Value = DateTime.Now.Date;
+
+                    // 6行目: RA_Input C列 (FileName)
+                    ws.Cells[6, col].Value = raInputSheet.Cells[raRow, 3].Value;
+
+                    // 7行目: RA_Input E列（折り返し全体を表示）
+                    ws.Cells[7, col].Value = raInputSheet.Cells[raRow, 5].Value;
+                    ws.Cells[7, col].Style.WrapText = true;
+                    ws.Cells[7, col].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
+                    ws.Cells[7, col].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
                 }
-
-                // 6行目: RA_Input C列
-                ws.Cells[6, col].Value = raInputSheet.Cells[raRow, 3].Value;
-
-                // 7行目: RA_Input E列（折り返し全体を表示）
-                ws.Cells[7, col].Value = raInputSheet.Cells[raRow, 5].Value;
-                ws.Cells[7, col].Style.WrapText = true;
 
                 // 8行目以降: RA_Input H列とReceiving_Active I列が一致し、Bal列が0以外の行に割り当て
                 string hMatchKey = raInputSheet.Cells[raRow, 8].Text ?? "";
                 double hRemaining = Convert.ToDouble(raInputSheet.Cells[raRow, 9].Value ?? 0);
 
-                for (int row = 8; row <= raLastRow; row++)
-                {
-                    // I列(9)とRA_Input H列が一致するか確認
-                    if (!(ws.Cells[row, 9].Text ?? "").Equals(hMatchKey, StringComparison.OrdinalIgnoreCase))
-                        continue;
+                if (!iColIndex.TryGetValue(hMatchKey, out var candidates)) continue;
 
-                    // Bal列が0の行はスキップ
+                foreach (int row in candidates)
+                {
                     double bal = Convert.ToDouble(ws.Cells[row, currentBalCol].Value ?? 0);
                     if (bal == 0) continue;
 
                     if (hRemaining <= bal)
                     {
-                        // H列 <= Bal列: H残分をセットして次のRA_Input行へ
                         ws.Cells[row, col].Value = hRemaining;
                         ws.Cells[row, col].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                         ws.Cells[row, col].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+                        ws.Cells[row, currentBalCol].Value = bal - hRemaining;
                         break;
                     }
                     else
                     {
-                        // H列 > Bal列: Bal値をセットしてH残分を次行へ繰り越し
                         ws.Cells[row, col].Value = bal;
                         ws.Cells[row, col].Style.Fill.PatternType = OfficeOpenXml.Style.ExcelFillStyle.Solid;
                         ws.Cells[row, col].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.Yellow);
+                        ws.Cells[row, currentBalCol].Value = 0;
                         hRemaining -= bal;
                     }
                 }
             }
+
+            // Bal列に式を復元
+            foreach (var (row, formula) in balFormulas)
+                ws.Cells[row, currentBalCol].Formula = formula;
 
             var outputStream = new MemoryStream();
             await package.SaveAsAsync(outputStream);
@@ -218,6 +266,14 @@ public class ReceivingActiveController : Controller
         {
             return Json(new { error_msg = $"server error: {ex.Message}" });
         }
+    }
+
+    private static int FromColumnLetter(string col)
+    {
+        int result = 0;
+        foreach (char c in col.ToUpper())
+            result = result * 26 + (c - 'A' + 1);
+        return result;
     }
 
     private static string ToColumnLetter(int col)
