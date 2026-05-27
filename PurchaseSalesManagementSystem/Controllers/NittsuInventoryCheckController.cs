@@ -117,7 +117,7 @@ public class NittsuInventoryCheckController : Controller
             .OrderBy(k => k.ItemCode)
             .ThenBy(k => k.Whse);
 
-        using var outWb = new XLWorkbook();
+        var outWb = new XLWorkbook();
         var ws = outWb.Worksheets.Add("Compare");
 
         ws.Cell(1, 1).Value = "Item Code";
@@ -159,12 +159,13 @@ public class NittsuInventoryCheckController : Controller
         ws.Columns(1, 5).AdjustToContents();
         ws.SheetView.FreezeRows(1);
 
-        using var output = new MemoryStream();
-        outWb.SaveAs(output);
-
-        return File(output.ToArray(),
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"Compare_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+        using (var stream = new MemoryStream())
+        {
+            outWb.SaveAs(stream);
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "Compare_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+        }
     }
 
     private static Dictionary<string, int> BuildHeaderIndex(IXLRow headerRow)
