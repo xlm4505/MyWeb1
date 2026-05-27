@@ -164,7 +164,7 @@ public class NittsuInventoryCheckController : Controller
 
         return File(output.ToArray(),
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            $"{"Compare_"}{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
+            $"Compare_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx");
     }
 
     private static Dictionary<string, int> BuildHeaderIndex(IXLRow headerRow)
