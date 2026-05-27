@@ -143,12 +143,53 @@ namespace PurchaseSalesManagementSystem.Controllers
             }
             dt = InsertBlankRowsAfterDataTypeStartsWith3(dt);
             var workbook = exportToExcel.ExportDataTableWithFormattingForWorkbook(dt, "SQL-EXEC", "SO");
+            ApplyInventoryForecastNumberFormatting(workbook, isWithoutPoReport);
             var fileNamePrefix = isWithoutPoReport
                 ? "Inventory Forecasting Report"
                 : reportName;
 
             return SaveExcel(workbook, reportName, fileNamePrefix);
         }
+
+        private void ApplyInventoryForecastNumberFormatting(XLWorkbook workbook, bool isWithoutPoReport)
+        {
+            var ws = workbook.Worksheet("SQL-EXEC");
+            var usedRange = ws.RangeUsed();
+            int lastRow = usedRange.LastRow().RowNumber();
+            if (lastRow < 2)
+            {
+                return;
+            }
+
+            var targetColumnRanges = isWithoutPoReport
+                ? new[] { (Start: 6, End: 9), (Start: 11, End: 20) }   // F-I, K-T
+                : new[] { (Start: 6, End: 10), (Start: 12, End: 21) }; // F-J, L-U
+
+            for (int row = 2; row <= lastRow; row++)
+            {
+                foreach (var (start, end) in targetColumnRanges)
+                {
+                    for (int col = start; col <= end; col++)
+                    {
+                        var cell = ws.Cell(row, col);
+                        if (!cell.TryGetValue<decimal>(out var value))
+                        {
+                            continue;
+                        }
+
+                        if (value < 0)
+                        {
+                            cell.Style.Font.FontColor = XLColor.Red;
+                        }
+                        else if (value == 0)
+                        {
+                            cell.Clear(XLClearOptions.Contents);
+                        }
+                    }
+                }
+            }
+        }
+
         private System.Data.DataTable InsertBlankRowsAfterDataTypeStartsWith3(System.Data.DataTable source)
         {
             if (!source.Columns.Contains("Data Type"))
