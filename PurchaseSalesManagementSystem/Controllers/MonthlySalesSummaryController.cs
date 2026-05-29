@@ -82,32 +82,6 @@ public class MonthlySalesSummaryController : Controller
             fileName
         );
     }
-    private static void AddMonthlySalesSummaryFastSellingTotals(XLWorkbook workbook)
-    {
-        var ws = workbook.Worksheet("SQL-EXEC");
-        var lastDataRow = ws.LastRowUsed()?.RowNumber() ?? 1;
-        if (lastDataRow < 2)
-        {
-            return;
-        }
-
-        var totalRow = lastDataRow + 1;
-        var labelColumn = XLHelper.GetColumnNumberFromLetter("C");
-        var firstFormulaColumn = XLHelper.GetColumnNumberFromLetter("D");
-        var lastFormulaColumn = XLHelper.GetColumnNumberFromLetter("T");
-
-        ws.Cell(totalRow, labelColumn).Value = "Total Shipped:";
-        ws.Cell(totalRow, labelColumn).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
-        for (var col = firstFormulaColumn; col <= lastFormulaColumn; col++)
-        {
-            var colLetter = XLHelper.GetColumnLetterFromNumber(col);
-            ws.Cell(totalRow, col).FormulaA1 =
-                $"SUM(${colLetter}$2:${colLetter}${lastDataRow})";
-        }
-        ws.Range(totalRow, 4, totalRow, 20).Style.NumberFormat.Format = "#,##0";
-        ws.Range(3, 1, totalRow, 1).Style.NumberFormat.Format = "#,##0";
-        ApplyTopBorder(ws, totalRow, 1, 20);
-    }
     private static void ApplyMonthlySalesSummaryFastSellingLayout(XLWorkbook workbook, int targetYear)
     {
         var ws = workbook.Worksheet("SQL-EXEC");
@@ -282,7 +256,33 @@ public class MonthlySalesSummaryController : Controller
             dt.Columns[amtColumnIndex].ColumnName = $"Amt({monthText})";
         }
     }
+    private static void AddMonthlySalesSummaryFastSellingTotals(XLWorkbook workbook)
+    {
+        var ws = workbook.Worksheet("SQL-EXEC");
+        var lastDataRow = ws.LastRowUsed()?.RowNumber() ?? 1;
+        if (lastDataRow < 2)
+        {
+            return;
+        }
 
+        var totalRow = lastDataRow + 1;
+        var labelColumn = XLHelper.GetColumnNumberFromLetter("C");
+        var firstFormulaColumn = XLHelper.GetColumnNumberFromLetter("D");
+        var lastFormulaColumn = XLHelper.GetColumnNumberFromLetter("T");
+
+        ws.Cell(totalRow, labelColumn).Value = "Total Shipped:";
+        ws.Cell(totalRow, labelColumn).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+        for (var col = firstFormulaColumn; col <= lastFormulaColumn; col++)
+        {
+            var colLetter = XLHelper.GetColumnLetterFromNumber(col);
+            ws.Cell(totalRow, col).FormulaA1 =
+                $"SUM(${colLetter}$2:${colLetter}${lastDataRow})";
+        }
+        ws.Range(totalRow, 4, totalRow, 20).Style.NumberFormat.Format = "#,##0";
+        ws.Range(3, 1, totalRow, 1).Style.NumberFormat.Format = "#,##0";
+        ws.Range(totalRow, 1, totalRow, 20).Style.Font.Bold = true;
+        ApplyTopBorder(ws, totalRow, 1, 20);
+    }
     private static void AddMonthlySalesSummaryAllTotals(XLWorkbook workbook)
     {
         var ws = workbook.Worksheet("SQL-EXEC");
@@ -308,6 +308,7 @@ public class MonthlySalesSummaryController : Controller
         }
 
         ws.Range(totalRow, 3, totalRow, 19).Style.NumberFormat.Format = "#,##0";
+        ws.Range(totalRow, 1, totalRow, 19).Style.Font.Bold = true;
         ApplyTopBorder(ws, totalRow, 1, 19);
 
     }
@@ -347,6 +348,7 @@ public class MonthlySalesSummaryController : Controller
                     $"SUMIF($H$2:$H${lastDataRow},\"{criteria}\",{colLetter}2:{colLetter}{lastDataRow})";
             }
             ws.Range(totalRow, 9, totalRow, 32).Style.NumberFormat.Format = "#,##0";
+            ws.Range(totalRow, 1, totalRow, 19).Style.Font.Bold = true;
         }
 
         ApplyTopBorder(ws, lastDataRow + 2, 1, 32);
