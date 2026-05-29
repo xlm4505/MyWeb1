@@ -365,5 +365,98 @@ namespace PurchaseSalesManagementSystem.Common
             return workbook;
         }
 
+        public XLWorkbook ExportDataTableWithFormattingForWorkbook_MoreHeards(DataTable dataTable, String sheetName, String ColorType)
+        {
+            var workbook = new XLWorkbook();
+
+            // ワークシートを追加
+            var worksheet = workbook.Worksheets.Add(sheetName);
+
+            // ヘッダー行を書き込む
+            for (int col = 0; col < dataTable.Columns.Count; col++)
+            {
+                worksheet.Cell(1, col + 1).Value = dataTable.Columns[col].ColumnName;
+            }
+
+            // データ行を書き込む
+            for (int row = 0; row < dataTable.Rows.Count; row++)
+            {
+                for (int col = 0; col < dataTable.Columns.Count; col++)
+                {
+                    var value = dataTable.Rows[row][col];
+                    if (value == DBNull.Value || value == null)
+                    {
+                        worksheet.Cell(row + 2, col + 1).Clear(XLClearOptions.Contents);
+                    }
+                    else
+                    {
+                        worksheet.Cell(row + 2, col + 1).SetValue(value.ToString());
+                        if (value is IConvertible convertible)
+                        {
+                            var typeCode = convertible.GetTypeCode();
+                            if (typeCode == TypeCode.Decimal || typeCode == TypeCode.Double || typeCode == TypeCode.Single ||
+                                typeCode == TypeCode.Int16 || typeCode == TypeCode.Int32 || typeCode == TypeCode.Int64 ||
+                                typeCode == TypeCode.UInt16 || typeCode == TypeCode.UInt32 || typeCode == TypeCode.UInt64)
+                            {
+                                worksheet.Cell(row + 2, col + 1).SetValue(Convert.ToDouble(value));
+                            }
+                        }
+                        else if (value is DateTime dtValue)
+                        {
+                            worksheet.Cell(row + 2, col + 1).SetValue(dtValue);
+                        }
+                    }
+                }
+            }
+
+            // ヘッダー行のスタイルを設定
+            var headerRow = worksheet.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+            for (int col = 0; col < dataTable.Columns.Count; col++)
+            {
+
+                if ("SO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerRow.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(112, 173, 71);
+                }
+                else if ("PO".Equals(ColorType, StringComparison.OrdinalIgnoreCase))
+                {
+                    headerRow.Cell(col + 1).Style.Fill.BackgroundColor = XLColor.FromArgb(255, 192, 0);
+                }
+            }
+
+            // 列のデータ型に基づいた書式設定
+            for (int col = 0; col < dataTable.Columns.Count; col++)
+            {
+                var column = dataTable.Columns[col];
+                var xlColumn = worksheet.Column(col + 1);
+
+                if (column.DataType == typeof(DateTime))
+                {
+                    xlColumn.Style.DateFormat.Format = "mm/dd/yyyy";
+                }
+                else if (column.DataType == typeof(decimal) || column.DataType == typeof(double))
+                {
+                    xlColumn.Style.NumberFormat.Format = "#,##0.00";
+                }
+                else if (column.DataType == typeof(int))
+                {
+                    xlColumn.Style.NumberFormat.Format = "#,##0";
+                }
+            }
+
+            // 列幅を自動調整
+            worksheet.Columns().AdjustToContents();
+            // ヘッダー行を固定
+            worksheet.SheetView.FreezeRows(1);
+            // 目盛線（グリッド線）を非表示にする
+            worksheet.ShowGridLines = false;
+
+            return workbook;
+
+        }
+
     }
 }
