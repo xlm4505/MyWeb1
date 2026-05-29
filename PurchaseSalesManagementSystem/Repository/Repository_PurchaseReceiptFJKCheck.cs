@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
 using System.Data;
+using System.Globalization;
 using DataTable = System.Data.DataTable;
 
 namespace PurchaseSalesManagementSystem.Repository;
@@ -71,14 +72,14 @@ public class Repository_PurchaseReceiptFJKCheck
                     continue;
                 }
                 //"FOR "対象行の4桁目から3桁データ取得
-                var siteCode = GetSiteCode(invSheet.Cell(forRow.Value, 2).GetString());
+                var siteCode = GetSiteCode(GetCellDisplayText(invSheet.Cell(forRow.Value, 2)));
                 if (string.IsNullOrWhiteSpace(siteCode))
                 {
                     result.Warnings.Add($"Warning: Irregular format (site code missing). File = {file.FileName}");
                     continue;
                 }
                 //B24セルデータ（先頭6桁）が"MASS F"　"LIQUID"　"CONCEN"　"VAPORI"であるかどうか判断
-                var isFlow = IsFlowInvoice(invSheet.Cell(24, 2).GetString());
+                var isFlow = IsFlowInvoice(GetCellDisplayText(invSheet.Cell(24, 2)));
                 //siteCode（"FCH" または "FTP"）とisFlowで出力対象ファイルを決める。
                 var summaryType = ResolveType(siteCode, isFlow);
                 //if (targetSummaryType is null)
@@ -251,7 +252,7 @@ public class Repository_PurchaseReceiptFJKCheck
 
         ws.Cell("G20").Value = inv.Note;
         //B列「FOR 」行データをG21にセット
-        ws.Cell("G21").Value = ws.Cell(forRow, 2).GetString();
+        ws.Cell("G21").Value = GetCellDisplayText(ws.Cell(forRow, 2));
         // E～F 列の位置に、新しい列を挿入する
         ws.Column(5).InsertColumnsBefore(2);
 
@@ -290,12 +291,12 @@ public class Repository_PurchaseReceiptFJKCheck
             ws.Cell(row, 21).Value = po is null ? string.Empty : po.StandardUnitCost;
             //V
             ws.Cell(row, 22).Value = po is null ? string.Empty : po.QtyDiscCost;
-            string? text = ws.Cell(row, 12).GetText()?.ToString();
+            var text = GetCellDisplayText(ws.Cell(row, 12));
 
             if (text == "#N/A")
             {
                 //P列データをEへ
-                ws.Cell(row, 5).Value = ws.Cell(row, 16).GetString();
+                ws.Cell(row, 5).Value = GetCellDisplayText(ws.Cell(row, 16));
                 ws.Cell(row, 5).Style.Fill.BackgroundColor = XLColor.Orange;
             }
             else
@@ -303,7 +304,7 @@ public class Repository_PurchaseReceiptFJKCheck
                 //L列データをEへ
                 ws.Cell(row, 5).Value = text;
                 string? lText = text;
-                string? pText = ws.Cell(row, 16).GetString();
+                var pText = GetCellDisplayText(ws.Cell(row, 16));
                 //L列とP列のデータが異なる
                 if (!string.Equals(lText, pText, StringComparison.OrdinalIgnoreCase))
                 {
@@ -311,13 +312,13 @@ public class Repository_PurchaseReceiptFJKCheck
                 }
                 else {
                     //F列データがリストに存在しないデータ
-                    if (!list.Contains(inv.SiteCode + ws.Cell(row, 6).Value))
+                    if (!list.Contains(inv.SiteCode + GetCellDisplayText(ws.Cell(row, 6))))
                     {
                         ws.Cell(row, 6).Style.Fill.BackgroundColor = XLColor.Orange;
                     }
                     //G列（7列） と Q列（17列） の“値（Value）”を数値として比較し、G列の方が大きいか
-                    double g = (double)ws.Cell(row, 7).Value;
-                    double q = (double)ws.Cell(row, 17).Value;
+                    double g = GetCellDouble(ws.Cell(row, 7));
+                    double q = GetCellDouble(ws.Cell(row, 17));
                     if (g>q)
                     {
                         ws.Cell(row, 7).Style.Fill.BackgroundColor = XLColor.Orange;
@@ -325,11 +326,11 @@ public class Repository_PurchaseReceiptFJKCheck
                     else
                     {
                         //M列(9列)データ
-                        string? mtext = ws.Cell(row, 9).GetString();
+                        var mtext = GetCellDisplayText(ws.Cell(row, 9));
                         //小数2桁まで四捨五入
                         decimal m = Math.Round(ConvertToDecimal(mtext), 2);
                         //R列(18列)データ
-                        string? rtext = ws.Cell(row, 18).GetString();
+                        var rtext = GetCellDisplayText(ws.Cell(row, 18));
                         //小数2桁まで四捨五入
                         decimal r = Math.Round(ConvertToDecimal(rtext), 2);
                         if (m != r)
@@ -430,13 +431,40 @@ public class Repository_PurchaseReceiptFJKCheck
 
     private static bool IsFlowInvoice(string value)
     {
-        var upper = (value.Length >= 6 ? value.Substring(0, 6) : value).ToUpperInvariant();
-        return upper.StartsWith("MASS F")
-               || upper.StartsWith("LIQUID")
-               || upper.StartsWith("CONCEN")
-               || upper.StartsWith("VAPORI");
+        var normalized = value.TrimStart();
+        var upper = (normalized.Length >= 6 ? normalized.Substring(0, 6) : normalized).ToUpperInvariant();
+        return upper == "MASS F"
+               || upper == "LIQUID"
+               || upper == "LIOUID"
+               || upper == "CONCEN"
+               || upper == "VAPORI";
     }
 
+    private static string GetCellDisplayText(IXLCell cell)
+    {
+        var formatted = cell.GetFormattedString();
+        if (!string.IsNullOrWhiteSpace(formatted))
+        {
+            return formatted;
+        }
+
+        return cell.GetString();
+    }
+    private static double GetCellDouble(IXLCell cell)
+    {
+        if (cell.TryGetValue<double>(out var value))
+        {
+            return value;
+        }
+
+        return double.TryParse(
+            GetCellDisplayText(cell),
+            NumberStyles.Any,
+            CultureInfo.InvariantCulture,
+            out value)
+            ? value
+            : 0d;
+    }
     private static string GetSiteCode(string text)
     {
         var val = text.Trim();
@@ -453,7 +481,7 @@ public class Repository_PurchaseReceiptFJKCheck
         var lastRow = ws.Column("B").LastCellUsed()?.Address.RowNumber ?? 19;
         for (var row = lastRow; row >= 20; row--)
         {
-            if (ws.Cell(row, 2).GetString().StartsWith("FOR ", StringComparison.OrdinalIgnoreCase))
+            if (GetCellDisplayText(ws.Cell(row, 2)).StartsWith("FOR ", StringComparison.OrdinalIgnoreCase))
             {
                 return row;
             }
