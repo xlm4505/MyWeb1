@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
+using NPOI.OpenXmlFormats.Spreadsheet;
 using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Repository;
 using System.Data;
@@ -91,6 +92,7 @@ public class MonthlySalesSummaryController : Controller
         for (var month = 1; month <= 12; month++)
         {
             ws.Cell(1, 3 + month).Value = FormatMonthHeader(targetYear, month);
+            ws.Cell(1, 3 + month).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             ws.Cell(2, 3 + month).Value = "Qty";
         }
         NormalizeHeaderRows(ws, 1, 2, 1, 20);
@@ -109,6 +111,7 @@ public class MonthlySalesSummaryController : Controller
         for (var month = 1; month <= 12; month++)
         {
             ws.Cell(1, 2 + month).Value = FormatMonthHeader(targetYear, month);
+            ws.Cell(1, 2 + month).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             ws.Cell(2, 2 + month).Value = "Qty";
         }
         NormalizeHeaderRows(ws, 1, 2, 1, 19);
@@ -129,6 +132,7 @@ public class MonthlySalesSummaryController : Controller
             var amtCol = qtyCol + 1;
             ws.Range(1, qtyCol, 1, amtCol).Merge();
             ws.Cell(1, qtyCol).Value = FormatMonthHeader(targetYear, month);
+            ws.Cell(1, qtyCol).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             ws.Cell(2, qtyCol).Value = "Qty";
             ws.Cell(2, amtCol).Value = "Amt";
         }
