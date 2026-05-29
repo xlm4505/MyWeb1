@@ -39,10 +39,7 @@ public class Repository_PurchaseReceiptFJKCheck
         };
 
         var poMap = poDetails.ToDictionary(x => x.PoLn, x => x, StringComparer.OrdinalIgnoreCase);
-        var processedDate_Con = DateTime.Today;
-        var processedDate_Rinku = DateTime.Today;
-        var processedDate_ConFlow = DateTime.Today;
-        var processedDate_RinkuFlow = DateTime.Today;
+        DateTime? processedDate = null;
 
         foreach (var file in files)
         {
@@ -93,22 +90,7 @@ public class Repository_PurchaseReceiptFJKCheck
                 //}
                 //G9セル日付取得
                 var invoiceDate = GetDate(invSheet.Cell("G9"));
-                if (summaryType == SummaryType.Con)
-                {
-                    processedDate_Con = invoiceDate;
-                }
-                if (summaryType == SummaryType.Rinku)
-                {
-                    processedDate_Rinku = invoiceDate;
-                }
-                if (summaryType == SummaryType.ConFlow)
-                {
-                    processedDate_ConFlow = invoiceDate;
-                }
-                if (summaryType == SummaryType.RinkuFlow)
-                {
-                    processedDate_RinkuFlow = invoiceDate;
-                }
+                processedDate = invoiceDate;
                 //G20セルに登録データ作成
                 var sheetInfo = new InvoiceSheetData
                 {
@@ -140,21 +122,22 @@ public class Repository_PurchaseReceiptFJKCheck
         }
 
         //ファイル作成
-        if (categorized[SummaryType.Con].Count>0)
+        var outputFileDate = processedDate ?? DateTime.Today;
+        if (categorized[SummaryType.Con].Count > 0)
         {
-            CreateSummaryFile(result, categorized[SummaryType.Con], processedDate_Con);
+            CreateSummaryFile(result, categorized[SummaryType.Con], outputFileDate);
         }
         if (categorized[SummaryType.Rinku].Count > 0)
         {
-            CreateSummaryFile(result, categorized[SummaryType.Rinku], processedDate_Rinku);
+            CreateSummaryFile(result, categorized[SummaryType.Rinku], outputFileDate);
         }
         if (categorized[SummaryType.ConFlow].Count > 0)
         {
-            CreateSummaryFile(result, categorized[SummaryType.ConFlow], processedDate_ConFlow);
+            CreateSummaryFile(result, categorized[SummaryType.ConFlow], outputFileDate);
         }
         if (categorized[SummaryType.RinkuFlow].Count > 0)
         {
-            CreateSummaryFile(result, categorized[SummaryType.RinkuFlow], processedDate_RinkuFlow);
+            CreateSummaryFile(result, categorized[SummaryType.RinkuFlow], outputFileDate);
         }
         if (result.TotalInvoices == 0)
         {
@@ -228,7 +211,6 @@ public class Repository_PurchaseReceiptFJKCheck
         {
             return;
         }
-        ClearPoDetailDataUnderline(summary.Workbook);
         using var stream = new MemoryStream();
         summary.Workbook.SaveAs(stream);
         result.Files.Add(new GeneratedSummaryFile
@@ -237,19 +219,6 @@ public class Repository_PurchaseReceiptFJKCheck
             Content = stream.ToArray()
         });
 
-    }
-    private static void ClearPoDetailDataUnderline(XLWorkbook workbook)
-    {
-        var poDetailSheet = workbook.Worksheets
-            .FirstOrDefault(ws => ws.Name.Equals("PODetail", StringComparison.OrdinalIgnoreCase));
-        var lastRow = poDetailSheet?.LastRowUsed()?.RowNumber();
-
-        if (poDetailSheet is null || lastRow is null || lastRow < 2)
-        {
-            return;
-        }
-
-        poDetailSheet.Range(2, 1, lastRow.Value, 18).Style.Font.Underline = XLFontUnderlineValues.None;
     }
     private static void CreateInvoiceSheet(
             XLWorkbook summaryWorkbook,
