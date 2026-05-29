@@ -228,7 +228,7 @@ public class Repository_PurchaseReceiptFJKCheck
         {
             return;
         }
-
+        ClearPoDetailDataUnderline(summary.Workbook);
         using var stream = new MemoryStream();
         summary.Workbook.SaveAs(stream);
         result.Files.Add(new GeneratedSummaryFile
@@ -237,6 +237,19 @@ public class Repository_PurchaseReceiptFJKCheck
             Content = stream.ToArray()
         });
 
+    }
+    private static void ClearPoDetailDataUnderline(XLWorkbook workbook)
+    {
+        var poDetailSheet = workbook.Worksheets
+            .FirstOrDefault(ws => ws.Name.Equals("PODetail", StringComparison.OrdinalIgnoreCase));
+        var lastRow = poDetailSheet?.LastRowUsed()?.RowNumber();
+
+        if (poDetailSheet is null || lastRow is null || lastRow < 2)
+        {
+            return;
+        }
+
+        poDetailSheet.Range(2, 1, lastRow.Value, 18).Style.Font.Underline = XLFontUnderlineValues.None;
     }
     private static void CreateInvoiceSheet(
             XLWorkbook summaryWorkbook,
