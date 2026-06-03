@@ -27,7 +27,7 @@ SELECT
   ELSE AR_InvoiceHistoryDetail.UDF_ITEMDESC
   END AS ItemCodeDesc
   , TRIM(REPLACE(REPLACE(AR_InvoiceHistoryDetail.AliasItemNo, CHAR(13), ''),CHAR(10), '')) AS CustomerPartNo
-  , AR_InvoiceHistoryHeader.CustomerPONo
+  , TRIM(REPLACE(REPLACE(AR_InvoiceHistoryHeader.CustomerPONo, CHAR(13), ''),CHAR(10), '')) AS CustomerPONo
   , AR_InvoiceHistoryDetail.UDF_CUSTPOLN AS POLineNo
   , AR_InvoiceHistoryHeader.InvoiceNo
   , AR_InvoiceHistoryHeader.ShipToCode
