@@ -27,6 +27,7 @@ SELECT
   , CAST(SO_SalesOrderDetail.UDF_REQUEST_DATE AS DATE) AS ReqDate
   , CAST(SO_SalesOrderDetail.UDF_PUSHOUT AS DATE) AS PushOut
   , CAST(SO_SalesOrderDetail.PromiseDate AS DATE) AS PromiseDate
+  , DATEDIFF(DAY, CAST(GETDATE() AS DATE), CAST(SO_SalesOrderDetail.PromiseDate AS DATE)) AS SODueDate
   , CAST(SO_SalesOrderDetail.UDF_COMMIT_DATE AS DATE) AS CommitDate
   , CAST(SO_SalesOrderDetail.UDF_DELIVERYDATE AS DATE) AS DeliveryDate
   , SO_SalesOrderDetail.CommentText
@@ -61,4 +62,8 @@ WHERE
   AND ( 
     @SalesOrderNo IS NULL 
     OR SO_SalesOrderDetail.SalesOrderNo = @SalesOrderNo
-  );
+  )
+ORDER BY
+  SO_SalesOrderDetail.PromiseDate,
+  SO_SalesOrderDetail.ItemCode,
+  SO_SalesOrderHeader.OrderDate;

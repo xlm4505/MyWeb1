@@ -95,7 +95,10 @@ namespace PurchaseSalesManagementSystem.Repository
 								PromiseDate = reader.IsDBNull(reader.GetOrdinal("PromiseDate"))
 										? null
 										: reader.GetDateTime(reader.GetOrdinal("PromiseDate")),
-								CommitDate = reader.IsDBNull(reader.GetOrdinal("CommitDate"))
+                                SODueDate = reader.IsDBNull(reader.GetOrdinal("SODueDate"))
+                                        ? null
+                                        : reader.GetInt32(reader.GetOrdinal("SODueDate")),
+                                CommitDate = reader.IsDBNull(reader.GetOrdinal("CommitDate"))
 										? null
 										: reader.GetDateTime(reader.GetOrdinal("CommitDate")),
 								DeliveryDate = reader.IsDBNull(reader.GetOrdinal("DeliveryDate"))

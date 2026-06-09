@@ -108,7 +108,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
 					const td32 = document.createElement("td");
                     td32.textContent = v.prodCat;
-
+					const td33 = document.createElement("td");
+                    td33.textContent = v.soDueDate ?? "";
+                    
                     trMain.appendChild(td1);
                     trMain.appendChild(td2);
                     trMain.appendChild(td3);
@@ -141,6 +143,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					trMain.appendChild(td30);
 					trMain.appendChild(td31);
 					trMain.appendChild(td32);
+					trMain.appendChild(td33);
 
                     gridMain.appendChild(trMain);
                     rowCount++;
@@ -163,7 +166,7 @@ function loadHeader() {
         "CustomerNo", "BillToName", "ShipToCity", "ShipVia", "HeaderComment", "CustPO_Ln", "ItemCode",
         "ItemDescription", "AliasItemNo", "Whs", "Weight", "#Ordded", "#Shipped", "#BO", "UnitPrice",
         "ExtensionAmt", "ReqDate", "PushOut", "PromiseDate", "CommitDate", "DeliveryDate", "CommentText",
-        "UnitCost", "PurchaseOrderNo", "InternalNotes", "ProdCat"
+        "UnitCost", "PurchaseOrderNo", "InternalNotes", "ProdCat", "SO Due Date"
     ];
 
     // ヘッダー生成

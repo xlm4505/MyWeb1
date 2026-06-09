@@ -33,7 +33,8 @@ namespace PurchaseSalesManagementSystem.Models
 		public DateTime? ReqDate { get; set; }
 		public DateTime? PushOut { get; set; }
 		public DateTime? PromiseDate { get; set; }
-		public DateTime? CommitDate { get; set; }
+        public int? SODueDate { get; set; }
+        public DateTime? CommitDate { get; set; }
 		public DateTime? DeliveryDate { get; set; }
 		public string? CommentText { get; set; }
 		public decimal? LastUnitCost { get; set; }

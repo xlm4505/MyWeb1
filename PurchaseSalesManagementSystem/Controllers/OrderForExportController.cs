@@ -68,8 +68,9 @@ public class OrderForExportController : Controller
 			m.LastUnitCost,
 			m.PurchaseOrderNo,
 			m.InternalNotes,
-            m.ProdCat
-		});
+            m.ProdCat,
+            m.SODueDate
+        });
 
 		FormattedDataTableExcelExporter exportToExcel = new FormattedDataTableExcelExporter();
 		DataTable dt = new DataTable();
@@ -84,7 +85,8 @@ public class OrderForExportController : Controller
         if (dt.Columns.Contains("BO"))
             dt.Columns["BO"]!.ColumnName = "#BO";
 
-
+        if (dt.Columns.Contains("SODueDate"))
+            dt.Columns["SODueDate"]!.ColumnName = "SO Due Date";
 
         var excelBytes = exportToExcel.ExportDataTableWithFormatting(dt,"Report","SO");
 
