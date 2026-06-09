@@ -1,5 +1,3 @@
-using System.Data;
-using System.Reflection;
 using ClosedXML.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Mvc;
@@ -7,6 +5,9 @@ using Microsoft.Extensions.Logging;
 using PurchaseSalesManagementSystem.Common;
 using PurchaseSalesManagementSystem.Models;
 using PurchaseSalesManagementSystem.Repository;
+using System.Data;
+using System.Globalization;
+using System.Reflection;
 
 public class OrderForExportController : Controller
 {
@@ -16,8 +17,12 @@ public class OrderForExportController : Controller
     {
         _repo = repo;
     }
-
-	public IActionResult OrderForExport()
+    private static string FormatPromiseDateForExcel(DateTime? promiseDate)
+    {
+        // Excel date serials cannot display dates before 1900 reliably, so export PromiseDate as text.
+        return promiseDate?.ToString("MM/dd/yyyy", CultureInfo.InvariantCulture) ?? string.Empty;
+    }
+    public IActionResult OrderForExport()
 	{
 		return View();
 	}
@@ -61,8 +66,8 @@ public class OrderForExportController : Controller
 			m.ExtensionAmt,
 			m.ReqDate,
 			m.PushOut,
-			m.PromiseDate,
-			m.CommitDate,
+            PromiseDate = FormatPromiseDateForExcel(m.PromiseDate),
+            m.CommitDate,
 			m.DeliveryDate,
 			m.CommentText,
 			m.LastUnitCost,
